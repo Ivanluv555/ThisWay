@@ -17,7 +17,14 @@
 3. 
 4. 
 
-
+#### 可能用到的技术与算法：
+ 1.LSTM-GCN混合神经网络架构
+ 2.API网关开放RESTful接口
+ 3.OAuth2.0协议
+ 4.Hadoop架构
+ 5.开发时空图卷积网络(ST-GCN)
+ 6.LSTM-Transformer混合模型
+ 7.NSGA-II改进的多种群遗传算法
 #### 使用说明
 
 
