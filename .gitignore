@@ -7,4 +7,8 @@
 
 # Local History for Visual Studio Code
 .history/
+
+# 本地文件夹
 .others/
+.documents/
+.logs/
