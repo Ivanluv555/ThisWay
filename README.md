@@ -1,20 +1,19 @@
-<div align='center' style='font-size: 40px'>
+<h1 align='center' style='font-size: 40px'>
     <a href="https://gitee.com/daiso_1/daiso" style="text-decoration: none; color: black;">基于人工智能的多景区游客协调分流系统开发</a>
-</div>
+</h1>
 
-
-
-<div style="display:flex;align-items:center;justify-content:center">
+<div align='center'>
     <img src="https://img.shields.io/badge/License-Apache2.0-green">
     <img src="https://img.shields.io/badge/Version-0.1-blue">
     <img src="https://img.shields.io/badge/创新训练项目-red">
 </div>
 
-<div style="display:flex;align-items:center;justify-content:center">
+<div align='center'>
     <img src="https://img.shields.io/badge/Leader-刘博洋-gold">
     <img src="https://img.shields.io/badge/Member-韩方俊-aqua">
     <img src="https://img.shields.io/badge/Member-代双遥-aqua">
 </div>
+
 
 
 
