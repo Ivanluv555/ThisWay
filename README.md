@@ -1,6 +1,7 @@
-<div style='text-align: center;font-size: 40px'>
+<div style='display:flex;justify-content:center;font-size: 40px'>
     <a href="https://gitee.com/daiso_1/daiso" style="text-decoration: none; color: black;">基于人工智能的多景区游客协调分流系统开发</a>
 </div>
+
 
 <div style="display:flex;align-items:center;justify-content:center">
     <img src="https://img.shields.io/badge/License-Apache2.0-green">
