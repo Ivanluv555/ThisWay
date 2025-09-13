@@ -9,7 +9,8 @@
 .history/
 
 # 本地文件夹
+.gitee/
 .others/
-.documents/
-.logs/
+documents/
+logs/
 TODO.md
