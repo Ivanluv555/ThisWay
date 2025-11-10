@@ -2,6 +2,7 @@ package org.daiso.cidi.modules.user.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import lombok.Data;
 
@@ -16,8 +17,12 @@ public class user {
     @Id
     private String Wechat_UnionID;
 
+    @Column
     private String nickname;
+    @Column
     private String tel_number;
-    private Date signup_time;
+    @Column
+    private LocalDateTime signup_time;
+    @Column
     private boolean is_ban;
 }
