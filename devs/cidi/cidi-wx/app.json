@@ -1,0 +1,55 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/updates/updates",
+    "pages/map/map",
+    "pages/collections/collections",
+    "pages/profile/profile"
+  ],
+  "subPackages": [
+    {
+      "root": "pages_sub",
+      "pages": [
+        "login/login"
+      ]
+    }
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "WeChat",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#8a8a8a",
+    "selectedColor": "#1296db",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/updates/updates",
+        "text": "动态"
+      },
+      {
+        "pagePath": "pages/map/map",
+        "text": "手气不错"
+      },
+      {
+        "pagePath": "pages/collections/collections",
+        "text": "收藏"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "您的位置信息将用于地图展示"
+    }
+  },
+  "sitemapLocation": "sitemap.json"
+}
