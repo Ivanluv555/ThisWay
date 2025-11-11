@@ -12,17 +12,18 @@ import lombok.Data;
 public class user {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "userID")
     private Long userID;
 
-    @Id
-    private String Wechat_UnionID;
+    @Column(name = "Wechat_UnionID")
+    private String wechatUnionID;
 
-    @Column
-    private String nickname;
-    @Column
-    private String tel_number;
-    @Column
-    private LocalDateTime signup_time;
-    @Column
-    private boolean is_ban;
+    @Column(name = "nickname")
+    private String nickName;
+    @Column(name = "tel_number")
+    private String telNumber;
+    @Column(name = "signup_time")
+    private LocalDateTime signupTime;
+    @Column(name = "is_ban")
+    private boolean isBan;
 }

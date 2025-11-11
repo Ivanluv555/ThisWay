@@ -44,16 +44,16 @@ class userService {
         }
 
         // 2. 使用 UnionID 查询我们的数据库
-        Optional<user> userOptional = userRepository.findByWechat_UnionID(unionId);
+        Optional<user> userOptional = userRepository.findByWechatUnionID(unionId);
 
         user user;
         if (userOptional.isEmpty()) {
             // 3. 用户不存在 (新用户)，自动为他注册
             user = new user();
-            user.setWechat_UnionID(unionId);
-            user.setNickname("微信用户"); // 设置一个默认昵称
-            user.setSignup_time(LocalDateTime.now()); // 设置注册时间
-            user.set_ban(false); // 默认不封禁
+            user.setWechatUnionID(unionId);
+            user.setNickName("微信用户"); // 设置一个默认昵称
+            user.setSignupTime(LocalDateTime.now()); // 设置注册时间
+            user.setBan(false); // 默认不封禁
             // 电话号码 等其他信息可以留空，等用户以后自己填
 
             user = userRepository.save(user); // 保存新用户到数据库
@@ -63,7 +63,7 @@ class userService {
         }
 
         // 5. 检查封禁状态
-        if (user.is_ban()) { //
+        if (user.isBan()) { //
             throw new RuntimeException("登录失败：该账户已被封禁");
         }
 
