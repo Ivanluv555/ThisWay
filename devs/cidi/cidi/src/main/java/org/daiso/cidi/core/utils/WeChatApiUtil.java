@@ -1,22 +1,58 @@
 package org.daiso.cidi.core.utils;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component
+@Component // 注册为 Spring 组件，这样 Service 才能“注入” 它
 public class WeChatApiUtil {
 
-    public String getUnionIdFromCode(String code) {
-        // 这里是模拟从微信服务器获取 UnionID 的逻辑
-        return "mocked_union_id";
-    }
+    // 1. 从 application.properties “注入” 配置
+    @Value("${wx.appid}")
+    private String appid;
 
-    public String getAccessToken() {
-        // 这里是模拟从微信服务器获取 AccessToken 的逻辑
-        return "mocked_access_token";
-    }
+    @Value("${wx.secret}")
+    private String secret;
 
-    public String getUserInfo(String accessToken, String openId) {
-        // 这里是模拟从微信服务器获取用户信息的逻辑
-        return "mocked_user_info";
+    // 2. 准备一个 HTTP 请求工具
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // 微信 code2Session API 地址
+    private static final String WECHAT_API_URL = "https://api.weixin.qq.com/sns/jscode2session" +
+            "?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code";
+
+    /**
+     * 这就是您在 UserService 中调用的方法
+     */
+    public String getUnionIdFromCode(String code) throws Exception {
+        // 3. 拼接请求 URL
+        String url = String.format(WECHAT_API_URL, appid, secret, code);
+
+        // 4. 从您的后端服务器“发起”对微信服务器的 GET 请求
+        String responseJson = restTemplate.getForObject(url, String.class);
+
+        // 5. 解析微信返回的 JSON 数据
+        JsonNode rootNode = objectMapper.readTree(responseJson);
+
+        if (rootNode.has("errcode") && rootNode.get("errcode").asInt() != 0) {
+            // 如果微信返回错误
+            throw new RuntimeException("微信 code2Session 失败: " + rootNode.get("errmsg").asText());
+        }
+
+        // 6. 成功，返回 UnionID
+        // 注意：您需要确保您的小程序已绑定到“微信开放平台”才能获取 UnionID，
+        // 否则这里应该获取 "openid"
+        if (rootNode.has("unionid")) {
+            return rootNode.get("unionid").asText();
+        }
+        // 如果没有 unionid，退而求其次使用 openid
+        if (rootNode.has("openid")) {
+            return rootNode.get("openid").asText(); // 您需要修改数据库字段来存 openid
+        }
+
+        throw new RuntimeException("微信 API 未返回 unionid 或 openid");
     }
 }
