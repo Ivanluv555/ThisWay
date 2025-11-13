@@ -25,7 +25,7 @@ public class JwtTokenUtil {
     }
 
     /**
-     * 这就是您在 UserService 中调用的“生成Token”方法
+     * 生成Token
      * @param userId 用户的 userID，我们将把它作为 "subject"
      * @return JWT Token 字符串
      */
