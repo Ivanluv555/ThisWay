@@ -1,7 +1,6 @@
 <view class="container">
-  <view class="search-bar">
-    <input class="search-input" placeholder="Search..." placeholder-style="color:#999" />
-    <view class="add-btn">+</view> 
+  <view class="search-bar" bindtap="goSearch">
+    <input class="search-input" placeholder="搜索新鲜事" placeholder-style="color:#999" />
   </view>
 
   <view class="waterfall-container">
@@ -30,4 +29,9 @@
       </block>
     </view>
   </view>
+  <view class="container">
+  <view class="fab-btn" bindtap="goPublish">
+    <text>+</text>
+  </view>
+</view>
 </view>

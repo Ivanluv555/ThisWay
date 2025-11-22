@@ -1,0 +1,60 @@
+<view class="container">
+  <view class="search-header">
+    <view class="input-box">
+      <icon type="search" size="16" color="#999"/>
+      <input class="input" 
+             placeholder="搜索帖子 / 地点" 
+             focus="{{true}}" 
+             confirm-type="search" 
+             bindconfirm="doSearch" 
+             bindinput="onInput"
+             value="{{keyword}}" />
+      <icon type="clear" size="16" color="#ccc" wx:if="{{keyword}}" bindtap="clearInput"/>
+    </view>
+    <view class="cancel-btn" bindtap="goBack">取消</view>
+  </view>
+
+  <view class="history-panel" wx:if="{{!hasResult && historyList.length > 0}}">
+    <view class="panel-header">
+      <text class="panel-title">历史搜索</text>
+      <icon type="warn" size="14" color="#ccc" bindtap="clearHistory"/> </view>
+    <view class="tags-row">
+      <block wx:for="{{historyList}}" wx:key="*this">
+        <view class="tag" bindtap="tapHistory" data-val="{{item}}">{{item}}</view>
+      </block>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="result-list" wx:if="{{hasResult}}">
+    
+    <view class="section" wx:if="{{results.locations.length > 0}}">
+      <view class="section-title">相关地点</view>
+      <block wx:for="{{results.locations}}" wx:key="id">
+        <view class="res-item location-item" bindtap="goLocation" data-id="{{item.id}}">
+          <view class="loc-icon">📍</view>
+          <view class="res-info">
+            <text class="res-title">{{item.title}}</text>
+            <text class="res-sub">{{item.address}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="section" wx:if="{{results.articles.length > 0}}">
+      <view class="section-title">相关帖子</view>
+      <block wx:for="{{results.articles}}" wx:key="id">
+        <view class="res-item article-item" bindtap="goArticle" data-id="{{item.id}}">
+          <image class="res-cover" src="{{item.coverUrl}}" mode="aspectFill"/>
+          <view class="res-info">
+            <text class="res-title">{{item.title}}</text>
+            <text class="res-sub">{{item.author}} · {{item.likes}} 赞</text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="empty-tip" wx:if="{{results.articles.length === 0 && results.locations.length === 0}}">
+      未找到相关内容
+    </view>
+  </scroll-view>
+</view>

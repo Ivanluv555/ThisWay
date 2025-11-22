@@ -1,20 +1,35 @@
 <view class="container">
-  <view class="logo">Π</view> 
-  <text class="title">欢迎使用</text> 
+  <image class="bg-image" src="https://picsum.photos/1080/1920?random=travel" mode="aspectFill" />
+  <view class="bg-mask"></view>
 
-  <view class="form-group">
-    <text class="icon">Π</text> 
-    <input class="input" placeholder="请输入您的账号" bindinput="onInput" data-field="username" /> 
-  </view>
-  <view class="form-group">
-    <text class="icon">σ°</text> 
-    <input class="input" placeholder="请输入您的密码" password bindinput="onInput" data-field="password" /> 
-  </view>
+  <view class="content-wrapper">
+    
+    <view class="brand-section">
+      <view class="logo-box">
+        <text class="logo-text">Π</text>
+      </view>
+      <view class="text-group">
+        <text class="app-en">CIDI</text>
+        <text class="app-cn">此地 · 探索未知</text>
+      </view>
+    </view>
 
-  <button class="login-btn" bindtap="handleLogin">登录</button> 
+    <view class="action-section">
+      <view class="slogan-box">
+        <text class="slogan-main">Start Your Journey</text>
+        <text class="slogan-sub">记录足迹，分享此刻的感动</text>
+      </view>
 
-  <view class="links">
-    <text class="link">忘记密码</text> 
-    <text class="link">注册账号</text> 
+      <button class="btn-wx" bindtap="handleWxLogin">
+        <view class="wx-icon-bg">
+           <text style="color:#07C160; font-weight:bold;">●</text>
+        </view>
+        <text>微信一键登录</text>
+      </button>
+
+      <view class="agreement-box">
+        <text class="agree-text">登录即代表同意用户协议与隐私政策</text>
+      </view>
+    </view>
   </view>
 </view>

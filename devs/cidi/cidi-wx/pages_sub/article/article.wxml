@@ -1,18 +1,82 @@
-<view class="container" wx:if="{{!loading}}">
-  <image class="cover" src="{{article.coverUrl}}" mode="widthFix" />
-  <view class="content-body">
-    <text class="title">{{article.title}}</text>
-    <view class="meta">
-      <text class="author">{{article.author}}</text>
-      <text class="date">{{article.date}}</text>
+<view class="container">
+  
+  <scroll-view scroll-y class="main-scroll" wx:if="{{!loading}}">
+    <swiper class="gallery" indicator-dots="{{true}}" indicator-active-color="#C1A06E" circular>
+      <block wx:for="{{article.images && article.images.length > 0 ? article.images : [article.coverUrl]}}" wx:key="*this">
+        <swiper-item>
+          <image src="{{item}}" mode="aspectFill" class="slide-image" bindtap="previewImage" data-src="{{item}}"/>
+        </swiper-item>
+      </block>
+    </swiper>
+
+    <view class="content-body">
+      <text class="title">{{article.title}}</text>
+      <text class="desc" space="nbsp" selectable>{{article.content}}</text>
+      
+      <view class="meta-row">
+        <text class="date">{{article.date || '刚刚'}}</text>
+        <text class="location">📍 {{article.location || '重庆'}}</text>
+      </view>
     </view>
-    <block wx:for="{{article.content}}" wx:key="index">
-      <view class="text-p" wx:if="{{item.type === 'text'}}">{{item.value}}</view>
-      <image class="img-p" wx:if="{{item.type === 'image'}}" src="{{item.value}}" mode="widthFix" />
-    </block>
+
+    <view class="divider"></view>
+
+    <view class="comment-area">
+      <text class="comment-count">共 {{comments.length}} 条评论</text>
+      <view class="comment-list">
+        <block wx:for="{{comments}}" wx:key="index">
+          <view class="comment-row">
+            <image class="c-avatar" src="{{item.userInfo.avatarUrl || 'https://ui-avatars.com/api/?name=U'}}" />
+            <view class="c-right">
+              <text class="c-name">{{item.userInfo.username || item.user}}</text>
+              <text class="c-content">{{item.text}}</text>
+            </view>
+          </view>
+        </block>
+        <view wx:if="{{comments.length === 0}}" class="empty-state">
+          <text>还没有人评论，快来抢沙发~</text>
+        </view>
+      </view>
+    </view>
+    
+    <view style="height: 40rpx;"></view>
+  </scroll-view>
+
+  <view wx:if="{{loading}}" style="display:flex; justify-content:center; padding-top:200rpx;">
+    <text style="color:#999; font-size:28rpx;">加载中...</text>
   </view>
-  <view class="footer-action">
-    <button class="btn btn-main">收藏</button>
-    <button class="btn btn-sub">分享</button>
+
+  <view class="footer-bar" wx:if="{{!loading}}">
+  <view class="input-box" bindtap="showCommentInput">
+    <text class="placeholder">说点什么...</text>
+  </view>
+
+  <view class="icon-group">
+    
+    <view class="icon-item" bindtap="toggleLike">
+      <image class="action-icon {{isLiked ? 'animate-bounce' : ''}}" 
+             src="{{isLiked ? '/images/icon_like_active.png' : '/images/icon_like.png'}}" />
+      <text class="num">{{article.likeCount || 0}}</text>
+    </view>
+    
+    <view class="icon-item" bindtap="toggleCollect">
+      <image class="action-icon {{isCollected ? 'animate-bounce' : ''}}" 
+             src="{{isCollected ? '/images/icon_star_active.png' : '/images/icon_star.png'}}" />
+      <text class="num">{{isCollected ? '已收藏' : '收藏'}}</text>
+    </view>
+    
+    <view class="icon-item">
+      <image class="action-icon" src="/images/icon_comment.png" />
+      <text class="num">{{comments.length || 0}}</text>
+    </view>
+  </view>
+</view>
+
+  <view class="input-modal" wx:if="{{showInput}}">
+    <view class="modal-mask" bindtap="hideCommentInput"></view>
+    <view class="modal-body">
+      <textarea class="real-input" focus="{{showInput}}" placeholder="友善评论..." bindinput="onCommentInput" show-confirm-bar="{{false}}" cursor-spacing="20" fixed="true"></textarea>
+      <button class="send-btn" bindtap="triggerSend">发送</button>
+    </view>
   </view>
 </view>

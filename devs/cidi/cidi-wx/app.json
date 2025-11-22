@@ -4,7 +4,8 @@
     "pages/updates/updates",
     "pages/map/map",
     "pages/collections/collections",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/search/search"
   ],
   "subPackages": [
     {
@@ -14,7 +15,8 @@
         "location/location",
         "settings/settings",
         "feedback/feedback",
-        "login/login"
+        "login/login",
+        "publish/publish"
       ]
     }
   ],

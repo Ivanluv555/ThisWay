@@ -1,0 +1,88 @@
+/* 头部保持不变，微调下间距 */
+.header { 
+  width: 100%; 
+  padding: 30rpx 30rpx 10rpx; /* 减少底部padding */
+  background: #F7F8FA; 
+  box-sizing: border-box; 
+}
+.title { 
+  font-size: 36rpx; 
+  font-weight: bold; 
+  color: #2C2C2C; 
+}
+.subtitle { 
+  font-size: 24rpx; 
+  color: #999; 
+  margin-top: 8rpx; 
+}
+
+/* --- 列表容器 --- */
+.list-container {
+  width: 100%;
+  padding: 20rpx 30rpx; /* 左右留边距 */
+  box-sizing: border-box;
+}
+
+/* --- 单个卡片 (横板) --- */
+.list-item {
+  display: flex;        /* 启用 Flex 布局，默认是 row (横向) */
+  width: 100%;
+  height: 180rpx;       /* 固定卡片高度，整齐划一 */
+  background: #fff;
+  border-radius: 12rpx;
+  margin-bottom: 24rpx; /* 卡片之间的间距 */
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.03); /* 轻微阴影增加层次感 */
+}
+
+/* --- 左侧封面 --- */
+.cover-img {
+  width: 280rpx;        /* 固定宽度 */
+  height: 100%;         /* 撑满卡片高度 */
+  background: #eee;     /* 加载时的背景色 */
+  flex-shrink: 0;       /* 防止图片被挤压变形 */
+}
+
+/* --- 右侧内容区 --- */
+.content-box {
+  flex: 1;              /* 占据剩余的所有宽度 */
+  padding: 20rpx;       /* 内部留白 */
+  display: flex;
+  flex-direction: column; /* 内容区内部垂直排列 */
+  justify-content: space-between; /* 标题在顶，小信息在底 */
+  box-sizing: border-box;
+}
+
+/* --- 标题样式 --- */
+.item-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+  
+  /* 限制最多显示两行，超出省略，就像B站那样 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- 底部小信息样式 --- */
+.meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* 作者靠左，日期靠右，或者都在左边看你喜好 */
+}
+
+.meta-text {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.UP {
+  color: #C1A06E; /* 给作者名加个稍微亮一点的颜色，突出显示 */
+  margin-right: 20rpx;
+  background: rgba(193, 160, 110, 0.1);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+}

@@ -6,6 +6,23 @@
       </swiper-item>
     </block>
   </swiper>
+  <view class="ai-card">
+  <view class="ai-header">
+    <text class="ai-title">🤖 AI 未来人流预测</text>
+    <view class="ai-btn" bindtap="fetchPrediction" wx:if="{{!prediction}}">点击预测</view>
+  </view>
+
+  <view class="ai-result" wx:if="{{prediction}}">
+    <view class="result-row">
+       <text class="result-time">预计 {{prediction.predictTime}}</text>
+       <text class="result-trend">{{prediction.trend}}</text>
+    </view>
+    <view class="level-bar">
+       <view class="level-inner level-{{prediction.level}}" style="width: {{(prediction.level+1)*25}}"></view>
+    </view>
+    <text class="result-desc">{{prediction.desc}}</text>
+  </view>
+</view>
   
   <view class="info-card">
     <view class="header-row">

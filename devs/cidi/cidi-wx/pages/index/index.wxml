@@ -1,18 +1,44 @@
 <view class="container">
-  <view class="header">
-    <image class="avatar" src="https://api.multiavatar.com/CidiUser.png" />
-    <text class="username">Discover</text>
+  <view class="hero-area">
+    <text class="hero-title">{{greeting}}</text>
+    
+    <view class="search-box" bindtap="goSearch">
+      <icon type="search" size="18" color="#999"/>
+      <input placeholder="搜索目的地 / 笔记" placeholder-class="ph-style" disabled />
+    </view>
   </view>
 
-  <view class="content-list">
+  <scroll-view class="category-scroll" scroll-x enable-flex>
+    <block wx:for="{{categories}}" wx:key="*this">
+      <view class="category-item {{activeCategory === index ? 'active' : ''}}" 
+            bindtap="switchCategory" data-index="{{index}}">
+        <text>{{item}}</text>
+        <view class="active-dot" wx:if="{{activeCategory === index}}"></view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <view class="feed-list">
     <block wx:for="{{contentList}}" wx:key="id">
-      <view class="content-item" bindtap="goDetail" data-id="{{item.id}}">
-        <image class="item-cover" src="{{item.coverUrl}}" mode="aspectFill" />
-        <view class="item-info">
-          <text class="item-title">{{item.title}}</text>
-          <view class="item-meta">
-            <text class="item-author">{{item.author}}</text>
-            <text class="item-date">{{item.date}}</text>
+      <view class="card" bindtap="goDetail" data-id="{{item.id}}">
+        <image class="card-cover" src="{{item.coverUrl}}" mode="aspectFill" lazy-load />
+        
+        <view class="card-info">
+          <view class="card-tag">
+            <text>📍 重庆 · 渝中区</text>
+          </view>
+          
+          <text class="card-title">{{item.title}}</text>
+          
+          <view class="card-meta">
+            <view class="author-box">
+              <image class="author-face" src="https://api.multiavatar.com/{{item.author}}.png" />
+              <text class="author-name">{{item.author}}</text>
+            </view>
+            <view class="likes-box">
+              <image class="card-icon" src="/images/icon_like.png" mode="aspectFit" />
+              <text class="like-num">{{item.likes}}</text>
+            </view>
           </view>
         </view>
       </view>

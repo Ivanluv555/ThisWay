@@ -1,15 +1,21 @@
 <view class="container">
   <view class="header">
-    <text class="title">My Collections</text>
-    <text class="subtitle">{{list.length}} items saved</text>
+    <text class="title">我的收藏</text>
+    <text class="subtitle">{{list.length}} 个内容</text>
   </view>
   
-  <view class="grid">
+  <view class="list-container">
     <block wx:for="{{list}}" wx:key="id">
-      <view class="grid-item" bindtap="goDetail" data-id="{{item.id}}">
-        <image src="{{item.coverUrl}}" mode="aspectFill" class="thumb"/>
-        <view class="info">
+      <view class="list-item" bindtap="goDetail" data-id="{{item.id}}">
+        <image src="{{item.coverUrl}}" mode="aspectFill" class="cover-img"/>
+        
+        <view class="content-box">
           <text class="item-title">{{item.title}}</text>
+          
+          <view class="meta-row">
+            <text class="meta-text UP">UP {{item.author}}</text>
+            <text class="meta-text">{{item.date}}</text>
+          </view>
         </view>
       </view>
     </block>

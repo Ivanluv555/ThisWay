@@ -1,0 +1,72 @@
+.container {
+  padding: 40rpx;
+  background: #fff;
+  min-height: 100vh;
+}
+
+/* 顶部栏 */
+.nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 50rpx;
+}
+.cancel-text { font-size: 32rpx; color: #666; }
+.pub-btn {
+  margin: 0;
+  background: #2C2C2C;
+  color: #C1A06E;
+  font-size: 28rpx;
+  font-weight: bold;
+  padding: 14rpx 44rpx;
+  border-radius: 40rpx;
+  line-height: 1.5;
+}
+.pub-btn[disabled] { background: #F0F0F0; color: #ccc; }
+
+/* 输入区 */
+.input-section { margin-bottom: 40rpx; }
+.title-ipt {
+  font-size: 38rpx;
+  font-weight: bold;
+  height: 80rpx;
+  border-bottom: 1rpx solid #f9f9f9;
+  margin-bottom: 20rpx;
+}
+.content-ipt {
+  width: 100%;
+  height: 240rpx;
+  font-size: 30rpx;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* 图片九宫格 */
+.grid { display: flex; flex-wrap: wrap; gap: 20rpx; }
+.img-wrap, .add-box {
+  width: 210rpx;
+  height: 210rpx;
+  border-radius: 12rpx;
+  position: relative;
+}
+.preview-img { width: 100%; height: 100%; border-radius: 12rpx; }
+.add-box {
+  background: #F7F8FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.plus-icon { font-size: 60rpx; color: #ccc; font-weight: 300; margin-top: -10rpx; }
+
+/* 删除角标 */
+.del-tag {
+  position: absolute;
+  top: -10rpx; right: -10rpx;
+  width: 40rpx; height: 40rpx;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 36rpx;
+  font-size: 30rpx;
+}
