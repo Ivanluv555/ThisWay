@@ -1,0 +1,23 @@
+<view class="container" wx:if="{{location}}">
+  <swiper class="gallery" indicator-dots autoplay circular indicator-active-color="#C1A06E">
+    <block wx:for="{{location.images}}" wx:key="*this">
+      <swiper-item>
+        <image src="{{item}}" mode="aspectFill" class="slide-image"/>
+      </swiper-item>
+    </block>
+  </swiper>
+  
+  <view class="info-card">
+    <view class="header-row">
+      <text class="title">{{location.title}}</text>
+      <view class="nav-btn" bindtap="openNav">导航 GO</view>
+    </view>
+    <view class="address-row">
+      <text class="addr">{{location.address}}</text>
+    </view>
+    <view class="desc-box">
+      <text class="label">关于此地</text>
+      <text class="desc">{{location.desc}}</text>
+    </view>
+  </view>
+</view>

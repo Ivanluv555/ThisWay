@@ -1,0 +1,11 @@
+.container { background: #fff; min-height: 100vh; padding-bottom: 140rpx; }
+.cover { width: 100%; display: block; }
+.content-body { padding: 40rpx; }
+.title { font-size: 42rpx; font-weight: bold; color: #2C2C2C; margin-bottom: 20rpx; }
+.meta { font-size: 24rpx; color: #999; margin-bottom: 60rpx; border-bottom: 1rpx solid #eee; padding-bottom: 30rpx; }
+.text-p { font-size: 32rpx; line-height: 1.8; color: #444; margin-bottom: 30rpx; text-align: justify; }
+.img-p { width: 100%; margin-bottom: 30rpx; border-radius: 4rpx; }
+.footer-action { position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.95); padding: 20rpx 40rpx; display: flex; gap: 20rpx; border-top: 1rpx solid #eee; padding-bottom: 40rpx; box-sizing: border-box; }
+.btn { flex: 1; font-size: 28rpx; border-radius: 4rpx; border: none; }
+.btn-main { background: #2C2C2C; color: #C1A06E; }
+.btn-sub { background: #F7F8FA; color: #333; }

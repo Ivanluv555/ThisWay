@@ -1,0 +1,9 @@
+.gallery { width: 100%; height: 600rpx; }
+.slide-image { width: 100%; height: 100%; }
+.info-card { background: #fff; border-radius: 40rpx 40rpx 0 0; margin-top: -50rpx; position: relative; padding: 60rpx 40rpx; min-height: 50vh; }
+.header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
+.title { font-size: 48rpx; font-weight: bold; color: #2C2C2C; }
+.nav-btn { background: #2C2C2C; color: #C1A06E; padding: 14rpx 40rpx; border-radius: 40rpx; font-size: 24rpx; font-weight: bold; }
+.address-row { color: #666; font-size: 28rpx; margin-bottom: 60rpx; }
+.label { display: block; font-size: 28rpx; font-weight: bold; margin-bottom: 20rpx; color: #C1A06E; }
+.desc { font-size: 30rpx; color: #555; line-height: 1.6; }

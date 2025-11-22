@@ -1,10 +1,10 @@
-// app.js
 App({
   onLaunch() {
-    // 可以在这里检查登录态
+    // 检查更新等逻辑
   },
   globalData: {
     userInfo: null,
-    apiBaseUrl: 'http://localhost:8080' // 您的Spring Boot后端地址
+    // 注意：在开发者工具中需勾选“不校验合法域名”
+    apiBaseUrl: 'http://localhost:3000' 
   }
 })

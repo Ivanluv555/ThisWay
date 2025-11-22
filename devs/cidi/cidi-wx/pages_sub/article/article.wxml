@@ -1,0 +1,18 @@
+<view class="container" wx:if="{{!loading}}">
+  <image class="cover" src="{{article.coverUrl}}" mode="widthFix" />
+  <view class="content-body">
+    <text class="title">{{article.title}}</text>
+    <view class="meta">
+      <text class="author">{{article.author}}</text>
+      <text class="date">{{article.date}}</text>
+    </view>
+    <block wx:for="{{article.content}}" wx:key="index">
+      <view class="text-p" wx:if="{{item.type === 'text'}}">{{item.value}}</view>
+      <image class="img-p" wx:if="{{item.type === 'image'}}" src="{{item.value}}" mode="widthFix" />
+    </block>
+  </view>
+  <view class="footer-action">
+    <button class="btn btn-main">收藏</button>
+    <button class="btn btn-sub">分享</button>
+  </view>
+</view>

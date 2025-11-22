@@ -1,17 +1,9 @@
 <view class="container">
   <view class="search-bar">
-    <input class="search-input" placeholder="搜索任何兴趣点！" /> 
+    <input class="search-input" placeholder="Search Places..." />
   </view>
-  <map
-    id="amap"
-    style="width: 100%; height: 100vh;"
-    longitude="{{longitude}}"
-    latitude="{{latitude}}"
-    scale="{{scale}}"
-    markers="{{markers}}"
-    show-location
-    bindmarkertap="onMarkerTap"
-    bindcallouttap="onCalloutTap"
-  >
+  <map id="cidiMap" style="width: 100%; height: 100vh;" 
+       latitude="{{latitude}}" longitude="{{longitude}}" scale="{{scale}}" 
+       markers="{{markers}}" show-location bindcallouttap="onCalloutTap">
   </map>
 </view>

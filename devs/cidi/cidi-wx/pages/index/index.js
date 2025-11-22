@@ -1,24 +1,37 @@
 const app = getApp();
 Page({
-  data: {
-    contentList: []
+  data: { contentList: [] },
+  onLoad: function () { this.fetchData(); },
+  
+  onPullDownRefresh: function() { 
+      // 传入 true 标识这是手动刷新操作
+      this.fetchData(true); 
   },
-  onLoad: function () {
-    this.fetchHomePageData();
-  },
-  fetchHomePageData: function () {
-    // 模拟数据
-    this.setData({
-      contentList: [
-        { id: 1, coverUrl: '', title: '标题名称标题名称标题名称标题名称标题名称标题名称标题名', author: '作者', date: '2024/03/25', collections: 98 },
-        { id: 2, coverUrl: '', title: '标题名称标题名称标题名称标题名称标题名称标题名称标题名', author: '作者', date: '2024/03/25', collections: 98 }
-      ]
+  
+  fetchData: function (isRefresh = false) {
+    wx.request({
+      url: `${app.globalData.apiBaseUrl}/api/home/list`,
+      success: (res) => {
+        if(res.data.code === 0) {
+          this.setData({ contentList: res.data.data });
+        }
+      },
+      fail: (err) => {
+          wx.showToast({ title: '加载失败', icon: 'none' });
+          console.error(err);
+      },
+      complete: () => {
+        // 无论成功失败，都要停止下拉刷新
+        if (isRefresh) wx.stopPullDownRefresh();
+      }
     });
-    // wx.request({
-    //   url: `${app.globalData.apiBaseUrl}/api/content/home`,
-    //   success: (res) => {
-    //     this.setData({ contentList: res.data });
-    //   }
-    // });
+  },
+  
+  goDetail: function(e) {
+    const id = e.currentTarget.dataset.id;
+    // 增加防抖或 id 校验是更好的习惯
+    if (id) {
+        wx.navigateTo({ url: `/pages_sub/article/article?id=${id}` });
+    }
   }
 })

@@ -1,28 +1,21 @@
 <view class="container">
   <view class="profile-header">
-    <image class="avatar" src="{{userInfo.avatarUrl || '/images/avatar_placeholder.png'}}" />
+    <image class="avatar" src="{{userInfo.avatarUrl}}" />
     <view class="info">
-      <text class="username">{{userInfo.username || '请登录'}}</text> 
-      <text class="bio">{{userInfo.bio || '一句话用户介绍'}}</text> 
+      <text class="username">{{userInfo.username}}</text> 
+      <text class="bio">{{userInfo.bio}}</text> 
     </view>
   </view>
 
   <view class="menu-list">
-    <view class="menu-item">
-      <text>个人资料</text> 
-      <text class="arrow">></text> 
+    <view class="menu-item" bindtap="navTo" data-page="collections">
+      <text>我的收藏</text> <text class="arrow">></text> 
     </view>
-    <view class="menu-item">
-      <text>足迹</text> 
-      <text class="arrow">></text> 
+    <view class="menu-item" bindtap="navTo" data-page="settings">
+      <text>账户设置</text> <text class="arrow">></text> 
     </view>
-    <view class="menu-item">
-      <text>账户设置</text> 
-      <text class="arrow">></text> 
-    </view>
-    <view class="menu-item">
-      <text>意见反馈</text> 
-      <text class="arrow">></text> 
+    <view class="menu-item" bindtap="navTo" data-page="feedback">
+      <text>意见反馈</text> <text class="arrow">></text> 
     </view>
   </view>
 </view>

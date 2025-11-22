@@ -1,0 +1,8 @@
+<view class="container">
+  <view class="group">
+    <view class="cell"><text>账号安全</text><text class="arrow">></text></view>
+    <view class="cell"><text>隐私设置</text><text class="arrow">></text></view>
+    <view class="cell"><text>通用</text><text class="arrow">></text></view>
+  </view>
+  <button class="logout">退出登录</button>
+</view>

@@ -1,0 +1,5 @@
+.container { padding: 30rpx; }
+.group { background: #fff; border-radius: 8rpx; overflow: hidden; margin-bottom: 40rpx; }
+.cell { display: flex; justify-content: space-between; padding: 30rpx; border-bottom: 1rpx solid #f9f9f9; font-size: 30rpx; color: #333; }
+.arrow { color: #ccc; }
+.logout { background: #fff; color: #ff4d4f; }

@@ -1,2 +1,17 @@
-<!--pages/collections/collections.wxml-->
-<text>pages/collections/collections.wxml</text>
+<view class="container">
+  <view class="header">
+    <text class="title">My Collections</text>
+    <text class="subtitle">{{list.length}} items saved</text>
+  </view>
+  
+  <view class="grid">
+    <block wx:for="{{list}}" wx:key="id">
+      <view class="grid-item" bindtap="goDetail" data-id="{{item.id}}">
+        <image src="{{item.coverUrl}}" mode="aspectFill" class="thumb"/>
+        <view class="info">
+          <text class="item-title">{{item.title}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

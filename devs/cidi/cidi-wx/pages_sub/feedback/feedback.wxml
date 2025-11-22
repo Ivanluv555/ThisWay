@@ -1,0 +1,4 @@
+<view class="container">
+  <textarea class="input-area" placeholder="请输入您的建议..." maxlength="200"></textarea>
+  <button class="submit-btn">提交</button>
+</view>

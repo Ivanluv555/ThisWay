@@ -1,17 +1,18 @@
 <view class="container">
   <view class="header">
-    <text class="username">用户的名字</text> 
+    <image class="avatar" src="https://api.multiavatar.com/CidiUser.png" />
+    <text class="username">Discover</text>
   </view>
 
   <view class="content-list">
     <block wx:for="{{contentList}}" wx:key="id">
-      <view class="content-item">
+      <view class="content-item" bindtap="goDetail" data-id="{{item.id}}">
         <image class="item-cover" src="{{item.coverUrl}}" mode="aspectFill" />
         <view class="item-info">
-          <text class="item-title">{{item.title}}</text> 
+          <text class="item-title">{{item.title}}</text>
           <view class="item-meta">
-            <text class="item-author">{{item.author}} {{item.date}}</text> 
-            <text class="item-collections">{{item.collections}}收藏</text> 
+            <text class="item-author">{{item.author}}</text>
+            <text class="item-date">{{item.date}}</text>
           </view>
         </view>
       </view>
