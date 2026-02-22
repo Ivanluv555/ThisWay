@@ -1,6 +1,9 @@
 <view class="container">
   
   <scroll-view scroll-y class="main-scroll" wx:if="{{!loading}}">
+    <!-- 顶部导航栏占位 -->
+    <view class="nav-placeholder"></view>
+
     <swiper class="gallery" indicator-dots="{{true}}" indicator-active-color="#C1A06E" circular>
       <block wx:for="{{article.images && article.images.length > 0 ? article.images : [article.coverUrl]}}" wx:key="*this">
         <swiper-item>
@@ -9,37 +12,42 @@
       </block>
     </swiper>
 
-    <view class="content-body">
-      <text class="title">{{article.title}}</text>
-      <text class="desc" space="nbsp" selectable>{{article.content}}</text>
-      
-      <view class="meta-row">
-        <text class="date">{{article.date || '刚刚'}}</text>
-        <text class="location">📍 {{article.location || '重庆'}}</text>
-      </view>
-    </view>
-
-    <view class="divider"></view>
-
-    <view class="comment-area">
-      <text class="comment-count">共 {{comments.length}} 条评论</text>
-      <view class="comment-list">
-        <block wx:for="{{comments}}" wx:key="index">
-          <view class="comment-row">
-            <image class="c-avatar" src="{{item.userInfo.avatarUrl || 'https://ui-avatars.com/api/?name=U'}}" />
-            <view class="c-right">
-              <text class="c-name">{{item.userInfo.username || item.user}}</text>
-              <text class="c-content">{{item.text}}</text>
+    <view class="content-card">
+      <view class="content-body">
+        <text class="title">{{article.title}}</text>
+        <view class="meta-row">
+            <view class="author-info">
+              <image class="author-avatar" src="{{article.authorAvatar || 'https://ui-avatars.com/api/?name=User'}}" />
+              <text class="author-name">{{article.author || '匿名用户'}}</text>
             </view>
+            <text class="date">{{article.date || '刚刚'}}</text>
+        </view>
+        <text class="desc" space="nbsp" selectable>{{article.content}}</text>
+        <view class="location-tag" wx:if="{{article.location}}">📍 {{article.location}}</view>
+      </view>
+
+      <view class="divider"></view>
+
+      <view class="comment-area">
+        <text class="comment-count">共 {{comments.length}} 条评论</text>
+        <view class="comment-list">
+          <block wx:for="{{comments}}" wx:key="index">
+            <view class="comment-row">
+              <image class="c-avatar" src="{{item.userInfo.avatarUrl || 'https://ui-avatars.com/api/?name=U'}}" />
+              <view class="c-right">
+                <text class="c-name">{{item.userInfo.username || item.user}}</text>
+                <text class="c-content">{{item.text}}</text>
+              </view>
+            </view>
+          </block>
+          <view wx:if="{{comments.length === 0}}" class="empty-state">
+            <text>还没有人评论，快来抢沙发~</text>
           </view>
-        </block>
-        <view wx:if="{{comments.length === 0}}" class="empty-state">
-          <text>还没有人评论，快来抢沙发~</text>
         </view>
       </view>
+      
+      <view style="height: 140rpx;"></view> <!-- 底部垫高，防遮挡 -->
     </view>
-    
-    <view style="height: 40rpx;"></view>
   </scroll-view>
 
   <view wx:if="{{loading}}" style="display:flex; justify-content:center; padding-top:200rpx;">

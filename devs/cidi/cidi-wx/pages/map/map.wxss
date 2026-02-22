@@ -1,3 +1,204 @@
-.container { position: relative; width: 100%; height: 100vh; }
-.search-bar { position: absolute; top: 50rpx; left: 30rpx; right: 30rpx; z-index: 10; display: flex; }
-.search-input { flex: 1; background: rgba(255, 255, 255, 0.95); border-radius: 4rpx; padding: 24rpx 40rpx; box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.08); font-size: 28rpx; }
+/* 全屏容器 */
+page {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.container { 
+  position: relative; 
+  width: 100%; 
+  height: 100%; 
+}
+
+/* 地图层：占满全屏，但在抽屉下面 */
+.map-layer {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* --- 自定义 Marker 样式 --- */
+.custom-marker {
+  width: 80rpx;
+  height: 80rpx;
+  position: relative;
+  border-radius: 50%;
+  border: 4rpx solid #fff;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.3);
+  /* 居中偏移修正：map marker 默认定位点可能是左上，这里通过 CSS 控制内部 */
+  /* 或者在 JS 中通过 anchorX/Y 控制。通常 customCallout 默认 anchor (0.5, 0) ? */
+  /* 为保险起见，这里只设外观 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.marker-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.heat-badge {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  background: linear-gradient(135deg, #ff6b6b, #ff4757);
+  padding: 4rpx 8rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30rpx;
+}
+
+.heat-text {
+  font-size: 16rpx;
+  color: #fff;
+  font-weight: bold;
+  line-height: 1;
+}
+/* ------------------------- */
+
+/* 底部抽屉：核心样式 */
+.bottom-drawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 85vh; /* 增加高度，覆盖大部分屏幕 */
+  background: #f6f7f9; /* 稍微灰一点的背景，区分层级 */
+  border-radius: 32rpx 32rpx 0 0;
+  z-index: 10;
+  box-shadow: 0 -4rpx 30rpx rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+  
+  /* 初始通过 WXS 控制 transform，这里不需要默认 transform */
+  /* 如果 WXS 加载慢，可以给一个默认值 */
+  transform: translateY(100%); 
+}
+
+/* WXS 也就是 touches 结束后添加这个类，实现惯性回弹 */
+.animating {
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* 头部拖拽区，包含 handle 和 search */
+.drawer-header {
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  padding-bottom: 20rpx;
+  flex-shrink: 0; /* 防止被挤压 */
+}
+
+/* 顶部拖拽把手 */
+.drawer-handle {
+  width: 80rpx;
+  height: 8rpx;
+  background: #e0e0e0;
+  border-radius: 10rpx;
+  margin: 16rpx auto;
+}
+
+/* 搜索区：模仿高德的样式 */
+.search-box {
+  margin: 0 30rpx 20rpx;
+  background: #f2f4f7;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 30rpx;
+  flex-shrink: 0;
+}
+
+.placeholder {
+  font-size: 28rpx;
+  color: #7f8691;
+  margin-left: 20rpx;
+}
+
+/* 列表容器 */
+.poi-list {
+  flex: 1;
+  height: 0; /* 重要：让scroll-view吃掉剩余空间 */
+  background: #fff;
+  padding: 0 30rpx;
+  box-sizing: border-box;
+}
+
+.list-header {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #222;
+  margin: 20rpx 0;
+}
+
+/* 宽信息流卡片：左图右文 */
+.poi-card {
+  display: flex;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #f5f6f8;
+}
+
+.poi-img {
+  width: 200rpx;
+  height: 150rpx;
+  border-radius: 16rpx;
+  background: #eee;
+  flex-shrink: 0;
+  margin-right: 24rpx;
+}
+
+.poi-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0; /* 防止 flex 子项超出 */
+}
+
+.poi-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.poi-desc {
+  font-size: 24rpx;
+  color: #888;
+  margin-top: 8rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; /* 最多两行 */
+  overflow: hidden;
+  line-height: 1.5;
+}
+
+.poi-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+}
+
+.distance {
+  font-size: 22rpx;
+  color: #a0a6b0;
+  margin-right: 20rpx;
+}
+
+.tag {
+  font-size: 20rpx;
+  color: #c1a06e;
+  background: rgba(193, 160, 110, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}

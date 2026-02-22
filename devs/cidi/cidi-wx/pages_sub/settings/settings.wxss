@@ -1,7 +1,67 @@
-.container { padding: 30rpx; }
-.group { background: #fff; border-radius: 8rpx; overflow: hidden; margin-bottom: 40rpx; }
-.cell { display: flex; 
+.container {
+  min-height: 100vh;
+  background: #f6f7f9;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.group {
+  background: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  border: 1rpx solid #f0f1f3;
+  box-shadow: 0 8rpx 22rpx rgba(16, 24, 40, 0.05);
+}
+
+.cell {
+  display: flex;
   width: 100%;
-  justify-content: space-between; padding: 30rpx; border-bottom: 1rpx solid #f9f9f9; font-size: 30rpx; color: #333; }
-.arrow { color: #ccc; }
-.logout { background: #fff; color: #ff4d4f; }
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx 30rpx;
+  font-size: 30rpx; /* 虽然你之前是 30rpx，但在新风格下可以保持 */
+  color: #222;
+  box-sizing: border-box; /* 关键：防止宽度撑破 flex */
+  position: relative;
+}
+
+/* 单元格分割线 */
+.cell:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 30rpx;
+  right: 30rpx;
+  height: 1rpx;
+  background: #f5f6f8;
+}
+
+.cell:active {
+  background-color: #f9fafa;
+}
+
+.arrow {
+  color: #c0c4cc; /* 更柔和的箭头 */
+  font-size: 26rpx;
+}
+
+.logout {
+  background: #fff;
+  color: #ff4d4f; /* 警告红 */
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  padding: 32rpx 0;
+  line-height: normal; /* 重置 button 默认行高 */
+  border: 1rpx solid #f0f1f3;
+  box-shadow: 0 8rpx 22rpx rgba(16, 24, 40, 0.05);
+}
+
+.logout:after {
+  border: none; /* 去掉 button 默认边框 */
+}
+
+.logout:active {
+  background: #fff5f5;
+}

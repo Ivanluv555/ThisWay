@@ -1,13 +1,70 @@
+<wxs module="drawer" src="./drawer.wxs" />
+
 <view class="container">
-  <view class="search-bar" bindtap="goSearch">
-    <input class="search-input" placeholder="就是此地..." />
-  </view>
-  
-  <map id="cidiMap" style="width: 100%; height: 100vh;"
+  <!-- 地图层 -->
+  <map id="cidiMap" class="map-layer"
        latitude="{{latitude}}" longitude="{{longitude}}" scale="{{scale}}" 
        markers="{{markers}}" show-location 
        bindcallouttap="onCalloutTap"
        bindmarkertap="onMarkerTap"
        bindtap="onMapTap">
+
+    <!-- 自定义 Marker (slot="callout") -->
+    <cover-view slot="callout">
+      <block wx:for="{{markers}}" wx:key="id">
+        <!-- marker-id 必须此属性与 markers 数据中的 id 对应 -->
+        <cover-view class="custom-marker" marker-id="{{item.id}}">
+          <!-- 图片主体 -->
+          <cover-image class="marker-img" src="{{item.image || 'https://picsum.photos/100/100?random=' + index}}" />
+          <!-- 热度徽章 -->
+          <cover-view class="heat-badge">
+            <cover-view class="heat-text">🔥 {{item.heat}}</cover-view>
+          </cover-view>
+        </cover-view>
+      </block>
+    </cover-view>
   </map>
+
+  <!-- 底部抽屉层 -->
+  <!-- 绑定 WXS 事件到整个抽屉容器，或者只绑定头部 -->
+  <!-- 这里 prop 传入配置，change:prop 触发 WXS 初始化 -->
+  <view class="bottom-drawer" 
+        prop="{{drawerConfig}}" 
+        change:prop="{{drawer.propObserver}}">
+    
+    <!-- 拖拽区域：包含把手和搜索框 -->
+    <!-- catch:touchstart 阻止冒泡，让 WXS 捕获 -->
+    <view class="drawer-header"
+          bindtouchstart="{{drawer.touchStart}}" 
+          catchtouchmove="{{drawer.touchMove}}" 
+          bindtouchend="{{drawer.touchEnd}}">
+      <view class="drawer-handle"></view>
+      <view class="search-box" bindtap="goSearch">
+        <icon type="search" size="16" color="#a0a6b0"/>
+        <text class="placeholder">搜索周边地点、帖子...</text>
+      </view>
+    </view>
+
+    <!-- 宽信息流列表 -->
+    <!-- list-header 也可以参与拖动，如果需要的话可以把 handles 绑在 header 上 -->
+    <!-- scroll-view 内部滚动不需要被 drawer 劫持，除非在顶部下拉 -->
+    <scroll-view scroll-y class="poi-list">
+      <view class="list-header">附近推荐</view>
+      <block wx:for="{{markers}}" wx:key="id">
+        <view class="poi-card" bindtap="onCalloutTap" data-marker-id="{{item.id}}"> 
+          <image class="poi-img" src="{{item.image || 'https://picsum.photos/200/200?random=' + index}}" mode="aspectFill" />
+          <view class="poi-info">
+            <text class="poi-title">{{item.title}}</text>
+            <text class="poi-desc">{{item.desc || '暂无简介'}}</text>
+            <view class="poi-meta">
+              <text class="distance">距您 {{item.distance || '1.2km'}}</text>
+              <text class="tag">热门打卡</text>
+            </view>
+          </view>
+        </view>
+      </block>
+      <!-- 底部留白，防止被系统手势挡住 -->
+      <view style="height: 40rpx;"></view>
+    </scroll-view>
+  </view>
 </view>

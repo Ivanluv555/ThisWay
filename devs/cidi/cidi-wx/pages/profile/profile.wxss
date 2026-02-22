@@ -1,113 +1,114 @@
-page {
-  background-color: #F7F8FA; /* 浅灰底色，衬托卡片 */
-}
-
+/* pages/profile/profile.wxss */
 .container {
-  padding: 30rpx 40rpx;
+  min-height: 100vh;
+  background: #f6f7f9;
+  box-sizing: border-box;
+  padding: 24rpx;
+  display: block; /* 覆盖 app.wxss 全局 flex */
 }
 
-/* --- 1. 用户信息卡片 --- */
+/* --- 用户信息卡片 --- */
 .user-card {
-  background: #fff;
-  border-radius: 32rpx; /* 更大的圆角 */
-  padding: 50rpx 40rpx;
-  margin-bottom: 40rpx;
-  box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.05); /* 悬浮感阴影 */
-  position: relative;
-  overflow: hidden;
+  padding: 40rpx 20rpx;
+  margin-bottom: 24rpx;
+  /* 去掉卡片背景，让头像更加沉浸 */
 }
 
-.user-info-row {
+.user-main {
   display: flex;
   align-items: center;
-  margin-bottom: 40rpx;
 }
 
 .avatar {
   width: 140rpx;
   height: 140rpx;
   border-radius: 50%;
-  background: #eee;
-  border: 6rpx solid #fff; /* 白色描边增加精致感 */
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+  background: #fff;
+  border: 4rpx solid #fff;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06);
 }
 
-.info-text {
-  margin-left: 30rpx;
+.info-area {
+  margin-left: 32rpx;
   flex: 1;
 }
 
 .username {
-  font-size: 44rpx; /* 大字体 */
-  font-weight: 800;
-  color: #2C2C2C;
+  font-size: 44rpx;
+  font-weight: 600;
+  color: #222;
   display: block;
-  margin-bottom: 10rpx;
-  letter-spacing: -0.5px;
+  margin-bottom: 8rpx;
+  line-height: 1.2;
 }
 
 .bio {
   font-size: 26rpx;
-  color: #999;
+  color: #9097a3;
   display: block;
 }
 
-.login-arrow {
-  background: #2C2C2C;
-  color: #C1A06E;
-  font-size: 24rpx;
-  font-weight: bold;
-  padding: 12rpx 30rpx;
-  border-radius: 40rpx;
-}
-
-/* 数据概览栏 */
-.stats-row {
+/* --- 数据概览栏 (新风格: 独立卡片) --- */
+.stats-card {
+  background: #fff;
+  border-radius: 20rpx;
   display: flex;
-  justify-content: space-around; /* 平均分布 */
-  border-top: 1rpx solid #f9f9f9;
-  padding-top: 40rpx;
+  justify-content: space-between;
+  padding: 30rpx 40rpx;
+  margin-bottom: 24rpx;
+  border: 1rpx solid #f0f1f3;
+  box-shadow: 0 8rpx 22rpx rgba(16, 24, 40, 0.05); /* 统一卡片阴影 */
 }
 
 .stat-item {
   text-align: center;
+  flex: 1;
 }
 
 .stat-num {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #2C2C2C;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #222;
   display: block;
+  margin-bottom: 4rpx;
 }
 
 .stat-label {
   font-size: 22rpx;
-  color: #bbb;
-  margin-top: 6rpx;
+  color: #9097a3;
   display: block;
-  text-transform: uppercase; /* 大写更有设计感 */
-  letter-spacing: 1px;
 }
 
-/* --- 2. 菜单卡片 --- */
-.menu-card {
+/* --- 菜单列表 (新风格: 卡片式分组) --- */
+.menu-list {
   background: #fff;
-  border-radius: 24rpx;
-  padding: 10rpx 0; /* 上下留点白 */
-  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.03);
-  width: 85%;
+  border-radius: 20rpx;
+  overflow: hidden;
+  border: 1rpx solid #f0f1f3;
+  box-shadow: 0 8rpx 22rpx rgba(16, 24, 40, 0.05);
 }
 
 .menu-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 34rpx 40rpx;
-  /* 去掉 border-bottom，更极简 */
+  padding: 32rpx 30rpx;
+  position: relative;
+}
+
+/* 分割线：除了最后一项都有 */
+.menu-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 30rpx; 
+  right: 30rpx;
+  height: 1rpx;
+  background: #f5f6f8;
 }
 
 .menu-item:active {
-  background-color: #f9f9f9; /* 点击反馈 */
+  background-color: #f9fafa;
 }
 
 .menu-left {
@@ -116,29 +117,29 @@ page {
 }
 
 .menu-icon {
-  font-size: 36rpx;
+  font-size: 34rpx;
   margin-right: 24rpx;
-  color: #2C2C2C;
-  width: 50rpx; /* 固定宽度确保文字对齐 */
+  color: #555;
+  width: 40rpx;
   text-align: center;
 }
 
 .menu-name {
-  font-size: 30rpx;
+  font-size: 28rpx;
+  color: #222;
   font-weight: 500;
-  color: #333;
 }
 
 .arrow {
   font-size: 24rpx;
-  color: #ddd;
+  color: #c0c4cc;
 }
 
 /* --- 底部版本号 --- */
 .footer-version {
   text-align: center;
-  color: #ccc;
+  color: #cfd3dc;
   font-size: 22rpx;
   margin-top: 60rpx;
-  letter-spacing: 1px;
+  padding-bottom: 40rpx;
 }

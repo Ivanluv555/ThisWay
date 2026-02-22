@@ -2,14 +2,23 @@ const app = getApp();
 
 Page({
   data: { 
-    // 增加顶部问候语或Slogan
     greeting: 'Find your\nNext Journey.',
-    
-    // 增加分类标签数据
-    categories: ['推荐', '当季', '露营', '咖啡', '看展', '徒步', '海岛'],
-    activeCategory: 0, // 当前选中的分类索引
 
-    contentList: [] 
+    categories: ['推荐', '附近', '热门', '美食', '视频', '门票'],
+    activeCategory: 0,
+
+    contentList: [],
+    isScrolled: false
+  },
+
+  onPageScroll: function(e) {
+    // 阈值设为 30pt (约60rpx)，超过则收缩
+    const threshold = 30;
+    if (e.scrollTop > threshold && !this.data.isScrolled) {
+      this.setData({ isScrolled: true });
+    } else if (e.scrollTop <= threshold && this.data.isScrolled) {
+      this.setData({ isScrolled: false });
+    }
   },
 
   onLoad: function () { this.fetchData(); },

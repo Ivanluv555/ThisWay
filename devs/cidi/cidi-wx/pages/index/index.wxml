@@ -1,22 +1,23 @@
 <view class="container">
-  <view class="hero-area">
-    <text class="hero-title">{{greeting}}</text>
-    
-    <view class="search-box" bindtap="goSearch">
-      <icon type="search" size="18" color="#999"/>
-      <input placeholder="搜索目的地 / 笔记" placeholder-class="ph-style" disabled />
-    </view>
-  </view>
-
-  <scroll-view class="category-scroll" scroll-x enable-flex>
-    <block wx:for="{{categories}}" wx:key="*this">
-      <view class="category-item {{activeCategory === index ? 'active' : ''}}" 
-            bindtap="switchCategory" data-index="{{index}}">
-        <text>{{item}}</text>
-        <view class="active-dot" wx:if="{{activeCategory === index}}"></view>
+  <view class="sticky-header {{isScrolled ? 'shrunk' : ''}}">
+    <view class="hero-area">
+      <text class="hero-title">{{greeting}}</text>
+      <view class="search-box" bindtap="goSearch">
+        <icon type="search" size="18" color="#999"/>
+        <input placeholder="搜索目的地 / 笔记" placeholder-class="ph-style" disabled />
       </view>
-    </block>
-  </scroll-view>
+    </view>
+
+    <scroll-view class="category-scroll" scroll-x enable-flex>
+      <block wx:for="{{categories}}" wx:key="*this">
+        <view class="category-item {{activeCategory === index ? 'active' : ''}}" 
+              bindtap="switchCategory" data-index="{{index}}">
+          <text>{{item}}</text>
+          <view class="active-dot" wx:if="{{activeCategory === index}}"></view>
+        </view>
+      </block>
+    </scroll-view>
+  </view>
 
   <view class="feed-list">
     <block wx:for="{{contentList}}" wx:key="id">

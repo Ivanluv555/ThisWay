@@ -5,15 +5,40 @@ Page({
     latitude: 29.557458,
     longitude: 106.577262,
     scale: 13,
-    markers: []
+    markers: [],
+    // WXS 配置
+    drawerConfig: null
   },
   
   // 私有变量：用于逻辑控制
   _timer: null,
-  _lock: false, // 【新增】防冲突锁
 
   onLoad: function () { 
+    this.initDrawer();
     this.fetchMarkers(); 
+  },
+
+  initDrawer: function() {
+    const { windowHeight } = wx.getSystemInfoSync();
+    // 定义抽屉总高度 85vh
+    const drawerHeight = windowHeight * 0.85;
+    // 定义 Snap Points (吸附点)，相对于 translateY 偏移量 (px)
+    // 0: 完全展开
+    // validHeight * 0.4: 中间态
+    // validHeight - 120: 收起态 (只露头)
+    
+    // 注意：translateY = 0 表示 Drawer 在 bottom:0 的位置，即完全展示
+    // translateY = positive value 表示向下位移，Drawer 隐藏
+    
+    const snapPoints = [
+      0,                            // 展开 (Top)
+      drawerHeight * 0.5,           // 半开 (Mid) - 距离顶部一半
+      drawerHeight - 130            // 收起 (Bottom) - 比如露出 130px 
+    ];
+
+    this.setData({
+      drawerConfig: { snapPoints }
+    });
   },
   
   fetchMarkers: function () {
@@ -27,14 +52,21 @@ Page({
         // 下面这段数据处理逻辑保持不变
         const markers = result.data.map(item => ({
           ...item,
-          width: 40, 
-          height: 40,
-          anchor: { x: 0.5, y: 1 }, 
-          callout: {
-            content: ` ${item.title} \n 点击查看详情 `, 
-            // ... (保留你之前的样式设置) ...
-            display: 'NONE'
-          }
+          // 【修改】将 width/height 设为 0，隐藏默认的大头针
+          width: 0, 
+          height: 0,
+          // 设置自定义气泡（作为新的 Marker 视觉）
+          customCallout: {
+            display: 'ALWAYS',
+            anchorX: 0,
+            anchorY: 0,
+          },
+          // 适配列表展示需要的字段
+          image: item.images ? item.images[0] : '', // 用于左图右文
+          desc: item.desc || '暂无简介',           // 描述文本
+          title: item.title,
+          // 【新增】热度值占位 (100 - 9999 随机数)
+          heat: Math.floor(Math.random() * 9000) + 100
         }));
         this.setData({ markers });
       }

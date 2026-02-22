@@ -1,14 +1,28 @@
 page {
-  background-color: #ffffff; /* 改为纯白背景，更干净 */
+  background-color: #f7f8fa;
 }
 
 .container {
   padding-bottom: 40rpx;
 }
 
-/* --- Hero 区域 --- */
+/* --- Sticky Header --- */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  background-color: #fff;
+  padding-bottom: 10rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
+}
+
+/* --- Top Bar (Title + Search) --- */
 .hero-area {
-  padding: 40rpx 40rpx 20rpx;
+  padding: 30rpx 40rpx 10rpx;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
 }
 
 .hero-title {
@@ -17,9 +31,12 @@ page {
   color: #2C2C2C;
   line-height: 1.1;
   letter-spacing: -1px;
-  margin-bottom: 40rpx;
-  display: block;
+  margin-bottom: 30rpx;
   font-family: 'Helvetica Neue', sans-serif;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .search-box {
@@ -28,6 +45,7 @@ page {
   padding: 24rpx 30rpx;
   display: flex;
   align-items: center;
+  transition: all 0.3s ease;
 }
 
 .ph-style {
@@ -36,12 +54,33 @@ page {
   margin-left: 20rpx;
 }
 
+/* --- Shrunk State --- */
+.sticky-header.shrunk .hero-area {
+  padding: 10rpx 30rpx 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.sticky-header.shrunk .hero-title {
+  font-size: 32rpx;
+  margin-bottom: 0;
+  margin-right: 20rpx;
+  max-width: 300rpx; 
+}
+
+.sticky-header.shrunk .search-box {
+  flex: 1;
+  padding: 12rpx 24rpx;
+  height: 64rpx;
+}
+
 /* --- 分类滚动栏 --- */
 .category-scroll {
   display: flex;
   white-space: nowrap;
   padding: 20rpx 40rpx;
-  height: 100rpx; /* 给足够的高度放阴影和圆点 */
+  height: 90rpx;
   box-sizing: border-box;
 }
 
@@ -51,7 +90,7 @@ page {
   align-items: center;
   margin-right: 50rpx;
   color: #999;
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 500;
   position: relative;
   transition: all 0.3s;
@@ -59,41 +98,40 @@ page {
 
 .category-item.active {
   color: #2C2C2C;
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: bold;
 }
 
-.active-dot {
-  width: 8rpx;
-  height: 8rpx;
-  background: #C1A06E; /* 品牌金 */
-  border-radius: 50%;
-  margin-top: 10rpx;
-  position: absolute;
-  bottom: -15rpx;
-}
-
-/* --- 沉浸式卡片流 --- */
+/* --- 沉浸式卡片流 (双列) --- */
 .feed-list {
-  padding: 20rpx 40rpx;
+  padding: 20rpx;
+  column-count: 2;
+  column-gap: 20rpx;
 }
 
 .card {
+  break-inside: avoid;
   background: #fff;
-  border-radius: 24rpx; /* 大圆角 */
+  border-radius: 16rpx;
   overflow: hidden;
-  margin-bottom: 60rpx; /* 卡片间距拉大，呼吸感 */
-  box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.06); /* 高级感的弥散阴影 */
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
+  width: 100%;
+  
+  /* Fix layout issues in column-count */
+  display: inline-block;
+  vertical-align: top;
 }
 
 .card-cover {
   width: 100%;
-  height: 420rpx; /* 图片加高，视觉冲击力 */
+  height: auto; 
+  aspect-ratio: 3/4; /* 保持竖图比例，或根据需要调整 */
   display: block;
 }
 
 .card-info {
-  padding: 30rpx;
+  padding: 20rpx;
 }
 
 .card-tag {

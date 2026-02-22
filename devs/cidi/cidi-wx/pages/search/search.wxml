@@ -1,36 +1,56 @@
 <view class="container">
   <view class="search-header">
     <view class="input-box">
-      <icon type="search" size="16" color="#999"/>
-      <input class="input" 
-             placeholder="搜索帖子 / 地点" 
-             focus="{{true}}" 
-             confirm-type="search" 
-             bindconfirm="doSearch" 
+      <icon type="search" size="16" color="#A0A6B0"/>
+      <input class="input"
+             placeholder="搜索帖子 / 地点"
+             focus="{{true}}"
+             confirm-type="search"
+             bindconfirm="doSearch"
              bindinput="onInput"
              value="{{keyword}}" />
       <icon type="clear" size="16" color="#ccc" wx:if="{{keyword}}" bindtap="clearInput"/>
     </view>
-    <view class="cancel-btn" bindtap="goBack">取消</view>
   </view>
 
-  <view class="history-panel" wx:if="{{!hasResult && historyList.length > 0}}">
-    <view class="panel-header">
-      <text class="panel-title">历史搜索</text>
-      <icon type="warn" size="14" color="#ccc" bindtap="clearHistory"/> </view>
-    <view class="tags-row">
-      <block wx:for="{{historyList}}" wx:key="*this">
-        <view class="tag" bindtap="tapHistory" data-val="{{item}}">{{item}}</view>
+  <view class="discover-wrap" wx:if="{{!hasSearched}}">
+    <view class="history-panel">
+      <view class="panel-header">
+        <text class="panel-title">搜索历史</text>
+        <text class="clear-history" bindtap="clearHistory">清空</text>
+      </view>
+      <view class="tags-row" wx:if="{{historyList.length > 0}}">
+        <block wx:for="{{historyList}}" wx:key="*this">
+          <view class="tag" bindtap="tapHistory" data-val="{{item}}">{{item}}</view>
+        </block>
+      </view>
+      <view class="empty-history" wx:else>暂无历史记录，试试热门搜索</view>
+    </view>
+
+    <view class="hot-panel">
+      <view class="panel-header">
+        <text class="panel-title">热榜</text>
+        <text class="hot-subtitle">实时热点</text>
+      </view>
+      <block wx:for="{{hotList}}" wx:key="text">
+        <view class="hot-item" bindtap="tapHotItem" data-val="{{item.text}}">
+          <text class="hot-rank hot-rank-{{item.rank <= 3 ? 'top' : 'normal'}}">{{item.rank}}</text>
+          <text class="hot-text">{{item.text}}</text>
+          <text class="hot-num">{{item.hot}}</text>
+        </view>
       </block>
     </view>
   </view>
 
-  <scroll-view scroll-y class="result-list" wx:if="{{hasResult}}">
-    
+  <view class="result-wrap" wx:if="{{hasSearched}}">
+    <view class="state-tip" wx:if="{{isLoading}}">正在搜索，请稍候...</view>
+    <view class="state-tip error" wx:if="{{!isLoading && errorMsg}}">{{errorMsg}}</view>
+
+    <block wx:if="{{!isLoading && !errorMsg}}">
     <view class="section" wx:if="{{results.locations.length > 0}}">
       <view class="section-title">相关地点</view>
       <block wx:for="{{results.locations}}" wx:key="id">
-        <view class="res-item location-item" bindtap="goLocation" data-id="{{item.id}}">
+        <view class="res-item location-item card" bindtap="goLocation" data-id="{{item.id}}">
           <view class="loc-icon">📍</view>
           <view class="res-info">
             <text class="res-title">{{item.title}}</text>
@@ -43,7 +63,7 @@
     <view class="section" wx:if="{{results.articles.length > 0}}">
       <view class="section-title">相关帖子</view>
       <block wx:for="{{results.articles}}" wx:key="id">
-        <view class="res-item article-item" bindtap="goArticle" data-id="{{item.id}}">
+        <view class="res-item article-item card" bindtap="goArticle" data-id="{{item.id}}">
           <image class="res-cover" src="{{item.coverUrl}}" mode="aspectFill"/>
           <view class="res-info">
             <text class="res-title">{{item.title}}</text>
@@ -53,8 +73,9 @@
       </block>
     </view>
 
-    <view class="empty-tip" wx:if="{{results.articles.length === 0 && results.locations.length === 0}}">
-      未找到相关内容
-    </view>
-  </scroll-view>
+      <view class="empty-tip" wx:if="{{results.articles.length === 0 && results.locations.length === 0}}">
+        未找到相关内容，试试更换关键词
+      </view>
+    </block>
+  </view>
 </view>

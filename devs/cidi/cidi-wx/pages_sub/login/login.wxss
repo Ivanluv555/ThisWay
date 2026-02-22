@@ -29,7 +29,7 @@ page {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.8));
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6)); /* 稍微调低遮罩浓度，通透一点 */
   z-index: -1;
 }
 
@@ -57,7 +57,7 @@ page {
   background: rgba(255,255,255,0.2); /* 半透明玻璃感 */
   backdrop-filter: blur(10px); /* 磨砂效果 (iOS支持较好) */
   border: 1rpx solid rgba(255,255,255,0.3);
-  border-radius: 24rpx;
+  border-radius: 24rpx; /* 统一为 24rpx 小圆角 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,15 +78,15 @@ page {
 .app-en {
   font-size: 48rpx;
   font-weight: 900;
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   line-height: 1;
-  margin-bottom: 10rpx;
+  margin-bottom: 8rpx;
 }
 
 .app-cn {
   font-size: 24rpx;
   letter-spacing: 2px;
-  opacity: 0.8;
+  opacity: 0.9;
   font-weight: 300;
 }
 
@@ -102,22 +102,24 @@ page {
 
 .slogan-main {
   display: block;
-  font-size: 56rpx;
-  font-weight: bold;
-  margin-bottom: 16rpx;
+  font-size: 60rpx; /* 加大字号 */
+  font-weight: 700;
+  margin-bottom: 20rpx;
+  line-height: 1.2;
 }
 
 .slogan-sub {
   display: block;
   font-size: 28rpx;
-  opacity: 0.7;
+  opacity: 0.8;
+  letter-spacing: 1px;
 }
 
 /* 微信按钮 */
 .btn-wx {
   background: #07C160 !important;
   color: #fff;
-  border-radius: 100rpx;
+  border-radius: 999rpx; /* 全圆角胶囊 */
   padding: 0;
   height: 100rpx;
   display: flex;
@@ -126,7 +128,7 @@ page {
   font-size: 32rpx;
   font-weight: 600;
   width: 100% !important;
-  box-shadow: 0 10rpx 30rpx rgba(7, 193, 96, 0.4); /* 绿色发光阴影 */
+  box-shadow: 0 16rpx 32rpx rgba(7, 193, 96, 0.25); /* 更柔和的投影 */
   border: none;
   position: relative;
 }
@@ -156,7 +158,8 @@ page {
 
 .agree-text {
   font-size: 22rpx;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
 }
 
 /* 动画定义 */

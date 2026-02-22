@@ -46,7 +46,7 @@
       },
       {
         "pagePath": "pages/map/map",
-        "text": "地图",
+        "text": "附近",
         "iconPath": "images/tab_map.png",
         "selectedIconPath": "images/tab_map_active.png"
       },
