@@ -1,15 +1,10 @@
 package org.daiso.cidi.modules.user.repository;
 
-import org.daiso.cidi.modules.user.entity.user;
+import org.daiso.cidi.modules.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface userRepository extends JpaRepository<user,Long> {
-    user findByuserID(Long userID);
-
-    Long userID(Long userID);
-
-
-    Optional<user> findByWechatUnionID(String wid);
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByOpenid(String openid);
 }

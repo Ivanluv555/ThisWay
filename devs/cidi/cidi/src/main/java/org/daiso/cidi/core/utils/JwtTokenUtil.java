@@ -4,7 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import org.daiso.cidi.core.properties.Jwtproperties;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -13,14 +13,15 @@ import java.util.function.Function;
 @Component // 注册为 Spring 组件
 public class JwtTokenUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final Jwtproperties jwtproperties;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    public JwtTokenUtil(Jwtproperties jwtproperties) {
+        this.jwtproperties = jwtproperties;
+    }
 
     // 1. 根据 secret 生成一个安全的密钥
     private SecretKey getKey() {
+        String secret = jwtproperties.getSecret();
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
@@ -31,6 +32,7 @@ public class JwtTokenUtil {
      */
     public String generateToken(String userId) {
         Date now = new Date();
+        long expiration = jwtproperties.getExpiration();
         Date expiryDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
@@ -39,6 +41,11 @@ public class JwtTokenUtil {
                 .setExpiration(expiryDate) // 过期时间
                 .signWith(getKey(), SignatureAlgorithm.HS512) // 签名
                 .compact();
+    }
+
+    // expose configured expiration in milliseconds
+    public Long getExpirationMillis() {
+        return jwtproperties.getExpiration();
     }
 
     // (后续需要) 从 Token 中解析出用户ID

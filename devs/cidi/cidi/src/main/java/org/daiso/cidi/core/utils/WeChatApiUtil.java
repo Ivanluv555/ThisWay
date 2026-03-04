@@ -1,6 +1,6 @@
 package org.daiso.cidi.core.utils;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.daiso.cidi.core.properties.Wxproperties;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,12 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Component // 注册为 Spring 组件，这样 Service 才能“注入” 它
 public class WeChatApiUtil {
 
-    // 1. 从 application.properties “注入” 配置
-    @Value("${wx.appid}")
-    private String appid;
-
-    @Value("${wx.secret}")
-    private String secret;
+    private final Wxproperties wxproperties;
 
     // 2. 准备一个 HTTP 请求工具
     private final RestTemplate restTemplate = new RestTemplate();
@@ -24,12 +19,16 @@ public class WeChatApiUtil {
     private static final String WECHAT_API_URL = "https://api.weixin.qq.com/sns/jscode2session" +
             "?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code";
 
+    public WeChatApiUtil(Wxproperties wxproperties) {
+        this.wxproperties = wxproperties;
+    }
+
     /**
      * 这就是您在 UserService 中调用的方法
      */
     public String getUnionIdFromCode(String code) throws Exception {
         // 3. 拼接请求 URL
-        String url = String.format(WECHAT_API_URL, appid, secret, code);
+        String url = String.format(WECHAT_API_URL, wxproperties.getAppid(), wxproperties.getSecret(), code);
 
         // 4. 从您的后端服务器“发起”对微信服务器的 GET 请求
         String responseJson = restTemplate.getForObject(url, String.class);

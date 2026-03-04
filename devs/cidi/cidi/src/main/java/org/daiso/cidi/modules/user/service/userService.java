@@ -1,27 +1,28 @@
 package org.daiso.cidi.modules.user.service;
 
-import org.daiso.cidi.modules.user.entity.user;
-import org.daiso.cidi.modules.user.repository.userRepository;
-// 假设您有这些工具类，用于调用微信API和生成JWT
+import org.daiso.cidi.modules.user.dto.UserCreateDto;
+import org.daiso.cidi.modules.user.entity.User;
+import org.daiso.cidi.modules.user.repository.UserRepository;
 import org.daiso.cidi.core.utils.WeChatApiUtil;
 import org.daiso.cidi.core.utils.JwtTokenUtil;
+import org.daiso.cidi.core.exception.WechatLoginException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
-class userService {
-    private final userRepository userRepository; //注入控制器
-
-    @Autowired
+public class UserService {
+    private final UserRepository userRepository;
     private final WeChatApiUtil weChatApiUtil;
     private final JwtTokenUtil jwtTokenUtil;
 
-    // 使用构造函数注入依赖
     @Autowired
-    public userService(userRepository userRepository,
+    public UserService(UserRepository userRepository,
                        WeChatApiUtil weChatApiUtil,
                        JwtTokenUtil jwtTokenUtil) {
         this.userRepository = userRepository;
@@ -30,47 +31,73 @@ class userService {
     }
 
     /**
-     * 这就是承接微信登录的核心方法
-     * @param code 小程序 wx.login() 拿到的临时 code
-     * @return 返回给小程序我们自己 App 的 JWT Token
+     * Login by WeChat code: obtain openid/unionid and create/retrieve user record
      */
-    public String loginWithWechat(String code) throws Exception {
-
-        // 1. 调用微信 API，用 code 换取 UnionID
-        // (weChatApiUtil 是您需要自己封装的工具类，它会请求 code2Session 接口)
-        String unionId = weChatApiUtil.getUnionIdFromCode(code);
-        if (unionId == null || unionId.isEmpty()) {
-            throw new RuntimeException("微信登录失败，无法获取 UnionID");
+    public String loginWithWechat(String code) {
+        if (code == null || code.isEmpty()) {
+            throw new IllegalArgumentException("code cannot be null or empty");
         }
 
-        // 2. 使用 UnionID 查询我们的数据库
-        Optional<user> userOptional = userRepository.findByWechatUnionID(unionId);
+        String openid;
+        try {
+            openid = weChatApiUtil.getUnionIdFromCode(code);
+        } catch (Exception e) {
+            throw new WechatLoginException("微信登录失败", e);
+        }
+        if (openid == null || openid.isEmpty()) {
+            throw new WechatLoginException("微信未返回 openid/unionid");
+        }
 
-        user user;
-        if (userOptional.isEmpty()) {
-            // 3. 用户不存在 (新用户)，自动为他注册
-            user = new user();
-            user.setWechatUnionID(unionId);
-            user.setNickName("微信用户"); // 设置一个默认昵称
-            user.setSignupTime(LocalDateTime.now()); // 设置注册时间
-            user.setBan(false); // 默认不封禁
-            // 电话号码 等其他信息可以留空，等用户以后自己填
-
-            user = userRepository.save(user); // 保存新用户到数据库
+        Optional<User> ou = userRepository.findByOpenid(openid);
+        User u;
+        if (ou.isEmpty()) {
+            // create new user with minimal fields
+            u = new User();
+            u.setOpenid(openid);
+            u.setUsername("微信用户");
+            u.setCreateTime(LocalDateTime.now());
+            u = userRepository.save(u);
         } else {
-            // 4. 用户已存在 (老用户)
-            user = userOptional.get();
+            u = ou.get();
         }
 
-        // 5. 检查封禁状态
-        if (user.isBan()) { //
-            throw new RuntimeException("登录失败：该账户已被封禁");
-        }
+        // generate token with user id as subject
+        String token = jwtTokenUtil.generateToken(u.getId().toString());
+        return token;
+    }
 
-        // 6. 登录成功，生成我们自己的 JWT Token 并返回
-        // Token 中应包含 user.getUserID() 作为身份标识
-        String jwtToken = jwtTokenUtil.generateToken(user.getUserID().toString());
+    // CRUD methods used by controller
+    public User findById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+    }
 
-        return jwtToken;
+    public Page<User> list(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    public User create(UserCreateDto dto) {
+        User u = new User();
+        u.setOpenid(dto.getOpenid());
+        u.setUsername(dto.getUsername());
+        u.setAvatarUrl(dto.getAvatarUrl());
+        u.setBio(dto.getBio());
+        return userRepository.save(u);
+    }
+
+    public User update(Long id, UserCreateDto dto) {
+        User u = findById(id);
+        if (dto.getUsername() != null) u.setUsername(dto.getUsername());
+        if (dto.getAvatarUrl() != null) u.setAvatarUrl(dto.getAvatarUrl());
+        if (dto.getBio() != null) u.setBio(dto.getBio());
+        return userRepository.save(u);
+    }
+
+    public void delete(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    public void deleteAll(List<Long> ids) {
+        List<User> list = userRepository.findAllById(ids);
+        userRepository.deleteAll(list);
     }
 }
