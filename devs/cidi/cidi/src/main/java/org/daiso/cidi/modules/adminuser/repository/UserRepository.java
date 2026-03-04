@@ -1,6 +1,6 @@
-package org.daiso.cidi.modules.user.repository;
+package org.daiso.cidi.modules.adminuser.repository;
 
-import org.daiso.cidi.modules.user.entity.User;
+import org.daiso.cidi.modules.adminuser.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

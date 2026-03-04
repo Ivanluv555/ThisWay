@@ -1,4 +1,4 @@
-package org.daiso.cidi.modules.user.entity;
+package org.daiso.cidi.modules.adminuser.entity;
 
 import jakarta.persistence.*;
 

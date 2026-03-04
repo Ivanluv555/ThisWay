@@ -1,8 +1,8 @@
-package org.daiso.cidi.modules.user.service;
+package org.daiso.cidi.modules.adminuser.service;
 
-import org.daiso.cidi.modules.user.dto.UserCreateDto;
-import org.daiso.cidi.modules.user.entity.User;
-import org.daiso.cidi.modules.user.repository.UserRepository;
+import org.daiso.cidi.modules.adminuser.dto.UserCreateDto;
+import org.daiso.cidi.modules.adminuser.entity.User;
+import org.daiso.cidi.modules.adminuser.repository.UserRepository;
 import org.daiso.cidi.core.utils.WeChatApiUtil;
 import org.daiso.cidi.core.utils.JwtTokenUtil;
 import org.daiso.cidi.core.exception.WechatLoginException;
