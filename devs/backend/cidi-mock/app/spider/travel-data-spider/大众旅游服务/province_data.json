@@ -1,0 +1,138 @@
+[
+    {
+        "data-key": "anhui",
+        "province-text": "安徽"
+    },
+    {
+        "data-key": "neimenggu",
+        "province-text": "内蒙古"
+    },
+    {
+        "data-key": "sx",
+        "province-text": "山西"
+    },
+    {
+        "data-key": "shandong",
+        "province-text": "山东"
+    },
+    {
+        "data-key": "henan",
+        "province-text": "河南"
+    },
+    {
+        "data-key": "hunan",
+        "province-text": "湖南"
+    },
+    {
+        "data-key": "hebei",
+        "province-text": "河北"
+    },
+    {
+        "data-key": "ningxia",
+        "province-text": "宁夏"
+    },
+    {
+        "data-key": "hubei",
+        "province-text": "湖北"
+    },
+    {
+        "data-key": "chongqing",
+        "province-text": "重庆"
+    },
+    {
+        "data-key": "guizhou",
+        "province-text": "贵州"
+    },
+    {
+        "data-key": "sichuan",
+        "province-text": "四川"
+    },
+    {
+        "data-key": "gansu",
+        "province-text": "甘肃"
+    },
+    {
+        "data-key": "xinjiang",
+        "province-text": "新疆"
+    },
+    {
+        "data-key": "qinghai",
+        "province-text": "青海"
+    },
+    {
+        "data-key": "xizang",
+        "province-text": "西藏"
+    },
+    {
+        "data-key": "heilongjiang",
+        "province-text": "黑龙江"
+    },
+    {
+        "data-key": "jilin",
+        "province-text": "吉林"
+    },
+    {
+        "data-key": "liaoning",
+        "province-text": "辽宁"
+    },
+    {
+        "data-key": "beijing",
+        "province-text": "北京"
+    },
+    {
+        "data-key": "tianjin",
+        "province-text": "天津"
+    },
+    {
+        "data-key": "jiangsu",
+        "province-text": "江苏"
+    },
+    {
+        "data-key": "shanghai",
+        "province-text": "上海"
+    },
+    {
+        "data-key": "zhejiang",
+        "province-text": "浙江"
+    },
+    {
+        "data-key": "taiwan",
+        "province-text": "台湾"
+    },
+    {
+        "data-key": "shanxi",
+        "province-text": "陕西"
+    },
+    {
+        "data-key": "fujian",
+        "province-text": "福建"
+    },
+    {
+        "data-key": "jiangxi",
+        "province-text": "江西"
+    },
+    {
+        "data-key": "guangdong",
+        "province-text": "广东"
+    },
+    {
+        "data-key": "hainan",
+        "province-text": "海南"
+    },
+    {
+        "data-key": "guangxi",
+        "province-text": "广西"
+    },
+    {
+        "data-key": "yunnan",
+        "province-text": "云南"
+    },
+    {
+        "data-key": "xianggang",
+        "province-text": "香港"
+    },
+    {
+        "data-key": "aomen",
+        "province-text": "澳门"
+    }
+]
