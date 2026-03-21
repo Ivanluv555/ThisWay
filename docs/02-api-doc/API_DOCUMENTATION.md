@@ -48,7 +48,7 @@
 *   **Response**: `token`, `admin_info`
 
 ### 2.2 微信用户登录
-*   **POST** `/auth/wechat/login`
+*   **POST** `/api/auth/wechat/login`
 *   **描述**: 小程序端用户登录/注册。根据 `wx.login` 获取的 code 换取 openid，自动注册或登录。
 *   **Body**:
     ```json
@@ -56,7 +56,19 @@
       "code": "061......" // 微信临时登录凭证
     }
     ```
-*   **Response**: `token`, `user_info`
+*   **Response**: `token`, `expiresAt`, `wechatEnv`, `user`
+
+### 2.3 微信手机号绑定
+*   **POST** `/api/auth/wechat/phone/bind`
+*   **描述**: 小程序端通过 `getPhoneNumber` 获取的 `code` 绑定手机号。
+*   **Body**:
+    ```json
+    {
+      "userId": 1001,
+      "code": "123abc"
+    }
+    ```
+*   **Response**: `userId`, `phone`, `newlyBound`
 
 ---
 

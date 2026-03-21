@@ -16,6 +16,7 @@ public class UserDTO {
 
     private Long id;
     private String openid;
+    private String phone;
     private String nickname;
     private String avatarUrl;
     private Integer status;

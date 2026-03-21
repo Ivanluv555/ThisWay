@@ -1,4 +1,5 @@
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/CidiApplication.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/config/HttpClientConfig.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/error/CidiException.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/error/ErrorCode.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/error/ErrorResponse.java
@@ -72,11 +73,17 @@
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/spottrafficprediction/entity/SpotTrafficPrediction.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/spottrafficprediction/repository/SpotTrafficPredictionRepository.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/spottrafficprediction/service/SpotTrafficPredictionService.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/controller/AuthController.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/controller/UserController.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/dto/UserDTO.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/dto/WechatBindPhoneRequest.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/dto/WechatBindPhoneResponse.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/dto/WechatLoginRequest.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/dto/WechatLoginResponse.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/entity/User.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/repository/UserRepository.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/service/UserService.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/user/service/WechatAuthService.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/userfollow/controller/UserFollowController.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/userfollow/dto/UserFollowDTO.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/modules/userfollow/entity/UserFollow.java

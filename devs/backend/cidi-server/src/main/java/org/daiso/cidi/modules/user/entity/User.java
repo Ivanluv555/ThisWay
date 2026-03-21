@@ -34,6 +34,9 @@ public class User {
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
 
+    @Column(name = "phone", unique = true, length = 20)
+    private String phone;
+
     @Column(nullable = false)
     private Integer status;
 

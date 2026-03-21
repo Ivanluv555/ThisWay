@@ -14,7 +14,11 @@ public enum ErrorCode {
     UNSUPPORTED_MEDIA_TYPE("REQ-415", "不支持的请求体类型", HttpStatus.UNSUPPORTED_MEDIA_TYPE),
 
     WECHAT_API_ERROR("WX-502", "微信接口调用失败", HttpStatus.BAD_GATEWAY),
-    WECHAT_IDENTIFIER_MISSING("WX-503", "微信接口未返回可用标识", HttpStatus.BAD_GATEWAY);
+    WECHAT_IDENTIFIER_MISSING("WX-503", "微信接口未返回可用标识", HttpStatus.BAD_GATEWAY),
+    WECHAT_CONFIG_MISSING("WX-504", "微信配置缺失", HttpStatus.INTERNAL_SERVER_ERROR),
+    WECHAT_INVALID_CODE("WX-505", "微信登录凭证无效", HttpStatus.BAD_REQUEST),
+    WECHAT_PHONE_NUMBER_MISSING("WX-506", "微信接口未返回手机号", HttpStatus.BAD_GATEWAY),
+    PHONE_ALREADY_BOUND("USR-409", "手机号已绑定其他用户", HttpStatus.CONFLICT);
 
     private final String code;
     private final String message;

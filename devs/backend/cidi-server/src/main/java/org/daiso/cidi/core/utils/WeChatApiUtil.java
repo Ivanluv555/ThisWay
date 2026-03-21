@@ -1,68 +1,162 @@
 package org.daiso.cidi.core.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import org.daiso.cidi.core.error.CidiException;
 import org.daiso.cidi.core.error.ErrorCode;
 import org.daiso.cidi.core.properties.Wxproperties;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.client.RestTemplate;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component // 注册为 Spring 组件，这样 Service 才能“注入” 它
+@Component
 public class WeChatApiUtil {
 
     private final Wxproperties wxproperties;
-
-    // 2. 准备一个 HTTP 请求工具
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+    private final WebClient webClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // 微信 code2Session API 地址
+    private String cachedAccessToken;
+    private long accessTokenExpireAt;
+
     private static final String WECHAT_API_URL = "https://api.weixin.qq.com/sns/jscode2session" +
             "?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code";
+    private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token" +
+            "?grant_type=client_credential&appid=%s&secret=%s";
 
-    public WeChatApiUtil(Wxproperties wxproperties) {
+    public record WeChatSessionInfo(String openid, String unionid, String sessionKey) {}
+
+    public WeChatApiUtil(Wxproperties wxproperties, RestTemplate restTemplate, WebClient.Builder webClientBuilder) {
         this.wxproperties = wxproperties;
+        this.restTemplate = restTemplate;
+        this.webClient = webClientBuilder.build();
     }
 
-    /**
-     * 这就是您在 UserService 中调用的方法
-     */
-    public String getUnionIdFromCode(String code) {
-        // 3. 拼接请求 URL
-        String url = String.format(WECHAT_API_URL, wxproperties.getAppid(), wxproperties.getSecret(), code);
+    public WeChatSessionInfo getSessionInfoFromCode(String code) {
+        validateConfig();
+        if (!StringUtils.hasText(code)) {
+            throw new CidiException(ErrorCode.BAD_REQUEST, "微信登录 code 不能为空");
+        }
+        String encodedCode = URLEncoder.encode(code, StandardCharsets.UTF_8);
+        String url = String.format(WECHAT_API_URL, wxproperties.getAppid(), wxproperties.getSecret(), encodedCode);
 
         try {
-            // 4. 从您的后端服务器“发起”对微信服务器的 GET 请求
             String responseJson = restTemplate.getForObject(url, String.class);
-
-            // 5. 解析微信返回的 JSON 数据
             JsonNode rootNode = objectMapper.readTree(responseJson);
 
-            if (rootNode.has("errcode") && rootNode.get("errcode").asInt() != 0) {
-                // 如果微信返回错误
-                throw new CidiException(
-                        ErrorCode.WECHAT_API_ERROR,
-                        "微信 code2Session 失败: " + rootNode.path("errmsg").asText("unknown")
-                );
+            handleWeChatError(rootNode, "code2Session");
+
+            String openid = rootNode.path("openid").asText();
+            if (!StringUtils.hasText(openid)) {
+                throw new CidiException(ErrorCode.WECHAT_IDENTIFIER_MISSING);
             }
 
-            // 6. 成功，返回 UnionID
-            // 注意：您需要确保您的小程序已绑定到“微信开放平台”才能获取 UnionID，
-            // 否则这里应该获取 "openid"
-            if (rootNode.has("unionid")) {
-                return rootNode.get("unionid").asText();
-            }
-            // 如果没有 unionid，退而求其次使用 openid
-            if (rootNode.has("openid")) {
-                return rootNode.get("openid").asText(); // 您需要修改数据库字段来存 openid
-            }
-
-            throw new CidiException(ErrorCode.WECHAT_IDENTIFIER_MISSING);
+            return new WeChatSessionInfo(
+                    openid,
+                    rootNode.path("unionid").asText(null),
+                    rootNode.path("session_key").asText(null)
+            );
         } catch (CidiException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new CidiException(ErrorCode.WECHAT_API_ERROR, "调用微信接口异常", ex);
         }
+    }
+
+    public String getPhoneNumberByCode(String phoneCode) {
+        validateConfig();
+        if (!StringUtils.hasText(phoneCode)) {
+            throw new CidiException(ErrorCode.BAD_REQUEST, "手机号 code 不能为空");
+        }
+        String accessToken = getAccessToken();
+        String apiUrl = wxproperties.getPhoneApiUrl();
+        if (!StringUtils.hasText(apiUrl)) {
+            throw new CidiException(ErrorCode.WECHAT_CONFIG_MISSING, "微信手机号接口地址未配置");
+        }
+
+        try {
+            String responseJson = webClient.post()
+                    .uri(apiUrl + "?access_token=" + URLEncoder.encode(accessToken, StandardCharsets.UTF_8))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue("{\"code\":\"" + escapeJson(phoneCode) + "\"}")
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            JsonNode rootNode = objectMapper.readTree(responseJson);
+            handleWeChatError(rootNode, "getPhoneNumber");
+
+            JsonNode phoneInfo = rootNode.path("phone_info");
+            String phoneNumber = phoneInfo.path("purePhoneNumber").asText();
+            if (!StringUtils.hasText(phoneNumber)) {
+                phoneNumber = phoneInfo.path("phoneNumber").asText();
+            }
+            if (!StringUtils.hasText(phoneNumber)) {
+                throw new CidiException(ErrorCode.WECHAT_PHONE_NUMBER_MISSING);
+            }
+            return phoneNumber;
+        } catch (CidiException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new CidiException(ErrorCode.WECHAT_API_ERROR, "调用微信手机号接口异常", ex);
+        }
+    }
+
+    private synchronized String getAccessToken() {
+        long now = System.currentTimeMillis();
+        if (StringUtils.hasText(cachedAccessToken) && now < accessTokenExpireAt) {
+            return cachedAccessToken;
+        }
+
+        String url = String.format(ACCESS_TOKEN_URL, wxproperties.getAppid(), wxproperties.getSecret());
+        try {
+            String responseJson = restTemplate.getForObject(url, String.class);
+            JsonNode rootNode = objectMapper.readTree(responseJson);
+            handleWeChatError(rootNode, "accessToken");
+
+            String token = rootNode.path("access_token").asText();
+            int expiresIn = rootNode.path("expires_in").asInt(7200);
+            if (!StringUtils.hasText(token)) {
+                throw new CidiException(ErrorCode.WECHAT_API_ERROR, "微信 access_token 缺失");
+            }
+
+            this.cachedAccessToken = token;
+            this.accessTokenExpireAt = now + Math.max(expiresIn - 300, 60) * 1000L;
+            return token;
+        } catch (CidiException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new CidiException(ErrorCode.WECHAT_API_ERROR, "获取微信 access_token 失败", ex);
+        }
+    }
+
+    private void validateConfig() {
+        if (!StringUtils.hasText(wxproperties.getAppid()) || !StringUtils.hasText(wxproperties.getSecret())) {
+            throw new CidiException(ErrorCode.WECHAT_CONFIG_MISSING, "请检查 WX_APPID/WX_SECRET 配置");
+        }
+    }
+
+    private void handleWeChatError(JsonNode rootNode, String operation) {
+        int errCode = rootNode.path("errcode").asInt(0);
+        if (errCode == 0) {
+            return;
+        }
+        String errMsg = rootNode.path("errmsg").asText("unknown");
+        if (errCode == 40029 || errCode == 40163) {
+            throw new CidiException(ErrorCode.WECHAT_INVALID_CODE, "微信 " + operation + " 失败: " + errMsg);
+        }
+        throw new CidiException(ErrorCode.WECHAT_API_ERROR, "微信 " + operation + " 失败: " + errMsg);
+    }
+
+    private String escapeJson(String raw) {
+        if (raw == null) {
+            throw new CidiException(ErrorCode.BAD_REQUEST, "请求参数不能为空");
+        }
+        return raw.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
