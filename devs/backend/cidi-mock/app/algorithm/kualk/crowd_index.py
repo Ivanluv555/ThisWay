@@ -5,32 +5,32 @@ from typing import Optional, List, Union
 
 class SpotType(Enum):
     """景区类型 (用于计算综合负荷指数权重)"""
-    NATURAL = "natural"         # 自然景区（空间优先）
-    CULTURAL = "cultural"       # 人文景区（服务 + 设施优先）
-    COMPREHENSIVE = "comprehensive" # 综合景区（均衡型）
+    NATURAL = "natural"  # 自然景区（空间优先）
+    CULTURAL = "cultural"  # 人文景区（服务 + 设施优先）
+    COMPREHENSIVE = "comprehensive"  # 综合景区（均衡型）
 
 
 class InfraSpotType(Enum):
     """基础设施景区类型 (用于计算基础设施负荷指数权重)"""
-    LEISURE = "leisure"         # 休闲型景区（侧重便利）
-    EXPERIENCE = "experience"   # 体验型景区（侧重项目）
-    COMPREHENSIVE = "comprehensive" # 综合型景区
+    LEISURE = "leisure"  # 休闲型景区（侧重便利）
+    EXPERIENCE = "experience"  # 体验型景区（侧重项目）
+    COMPREHENSIVE = "comprehensive"  # 综合型景区
 
 
 class ActivityType(Enum):
     """活动类型 (用于计算人均合理活动面积)"""
-    DYNAMIC = "dynamic"         # 动态活动类（如游乐设施、互动体验项目）
-    STATIC = "static"           # 静态观赏类（如观景台、花卉园、展馆）
-    LINEAR = "linear"           # 线性步道类（如登山步道、玻璃栈道）
+    DYNAMIC = "dynamic"  # 动态活动类（如游乐设施、互动体验项目）
+    STATIC = "static"  # 静态观赏类（如观景台、花卉园、展馆）
+    LINEAR = "linear"  # 线性步道类（如登山步道、玻璃栈道）
 
 
 @dataclass
 class CrowdIndexResult:
-    ci: float               # 综合承载压力指数
-    v_index: float          # 游客承载压力指数
-    s_index: float          # 服务人员承载压力指数
-    i_index: float          # 基础设施承载压力指数
-    level: str              # 拥挤等级 (宽松, 适中, 轻度超载, 严重超载)
+    ci: float  # 综合承载压力指数
+    v_index: float  # 游客承载压力指数
+    s_index: float  # 服务人员承载压力指数
+    i_index: float  # 基础设施承载压力指数
+    level: str  # 拥挤等级 (宽松, 适中, 轻度超载, 严重超载)
 
 
 class CrowdIndexCalculator:
@@ -64,6 +64,8 @@ class CrowdIndexCalculator:
         :param infra_type: 基础设施景区类型
         :return: (Wip, Wit)
         """
+        # TODO: 压力指数有问题。加入工作人员远大于游客人数，然后游客人数也很多，工作人员数量不应该与游客人数抵消计算，
+        #  只有有游客，一定的基数，就会有压力，基础设施的压力不可能为 0
         if infra_type == InfraSpotType.LEISURE:
             return 0.6, 0.4
         elif infra_type == InfraSpotType.EXPERIENCE:
@@ -103,7 +105,7 @@ class CrowdIndexCalculator:
 
     @classmethod
     def calculate_visitor_index(cls, N: int, S_e: float, activity_type: ActivityType,
-                              alpha: float = 1.0, beta: float = 1.0) -> float:
+                                alpha: float = 1.0, beta: float = 1.0) -> float:
         """
         计算游客承载压力指数 (V)
         V = min(10, 10 * (N/C) * alpha * beta)
@@ -117,11 +119,11 @@ class CrowdIndexCalculator:
         :return: V (0~10)
         """
         s_bar = cls.get_avg_area_per_person(activity_type)
-        if s_bar <= 0: return 10.0 # Prevent division by zero
-        
+        if s_bar <= 0: return 10.0  # Prevent division by zero
+
         C = S_e / s_bar
-        if C <= 0: return 10.0 # Should not happen if S_e > 0
-        
+        if C <= 0: return 10.0  # Should not happen if S_e > 0
+
         V = 10 * (N / C) * alpha * beta
         return min(10.0, V)
 
@@ -136,15 +138,15 @@ class CrowdIndexCalculator:
         :param S_n: 每名工作人员警戒服务配比 (人/人)
         :return: S (0~10)
         """
-        if M <= 0: return 10.0 # No staff means max pressure if there are visitors
+        if M <= 0: return 10.0  # No staff means max pressure if there are visitors
         if N <= 0: return 0.0
-        
+
         # 避免除零错误 (S_n - S_y should be > 0)
         if S_n <= S_y: S_n = S_y + 1
-        
+
         val_Sy = M * S_y
         val_Sn = M * S_n
-        
+
         if N <= val_Sy:
             return 0.0
         elif N <= val_Sn:
@@ -153,9 +155,9 @@ class CrowdIndexCalculator:
             return 10.0
 
     @classmethod
-    def calculate_infrastructure_index(cls, N: int, 
-                                     F_p: int, F_t: int, 
-                                     infra_type: InfraSpotType) -> float:
+    def calculate_infrastructure_index(cls, N: int,
+                                       F_p: int, F_t: int,
+                                       infra_type: InfraSpotType) -> float:
         """
         计算基础设施承载压力指数 (I)
         I = Wip * Ip + Wit * It
@@ -167,7 +169,7 @@ class CrowdIndexCalculator:
         :return: I (0~10)
         """
         W_ip, W_it = cls.get_infra_weights(infra_type)
-        
+
         # 计算 Ip (公共设施负载指数)
         # N <= Fp * 0.7 -> 0
         # Fp * 0.7 < N <= Fp * 1.4 -> linear 0~10
@@ -176,7 +178,7 @@ class CrowdIndexCalculator:
         if F_p > 0:
             limit_low_p = F_p * 0.7
             limit_high_p = F_p * 1.4
-            
+
             if N <= limit_low_p:
                 I_p = 0.0
             elif N <= limit_high_p:
@@ -185,7 +187,7 @@ class CrowdIndexCalculator:
                 I_p = 10.0
         else:
             I_p = 10.0 if N > 0 else 0.0
-            
+
         # 计算 It (旅游设施负载指数)
         # N <= Ft * 0.6 -> 0
         # Ft * 0.6 < N <= Ft * 1.2 -> linear 0~10
@@ -195,7 +197,7 @@ class CrowdIndexCalculator:
         if F_t > 0:
             limit_low_t = F_t * 0.6
             limit_high_t = F_t * 1.2
-            
+
             if N <= limit_low_t:
                 I_t = 0.0
             elif N <= limit_high_t:
@@ -204,11 +206,11 @@ class CrowdIndexCalculator:
                 I_t = 10.0
         else:
             I_t = 10.0 if N > 0 else 0.0
-            
+
         return W_ip * I_p + W_it * I_t
 
     @classmethod
-    def calculate(cls, 
+    def calculate(cls,
                   spot_type: SpotType,
                   infra_type: InfraSpotType,
                   activity_type: ActivityType,
@@ -238,18 +240,18 @@ class CrowdIndexCalculator:
         :param S_n: 工作人员警戒服务配比
         :return: CrowdIndexResult
         """
-        
+
         # 1. Calculate Weights
         W_v, W_s, W_i = cls.get_ci_weights(spot_type)
-        
+
         # 2. Calculate Individual Indices
         V = cls.calculate_visitor_index(N, S_e, activity_type, alpha, beta)
         S = cls.calculate_staff_index(N, M, S_y, S_n)
         I = cls.calculate_infrastructure_index(N, F_p, F_t, infra_type)
-        
+
         # 3. Calculate CI
         CI = W_v * V + W_s * S + W_i * I
-        
+
         # 4. Result
         return CrowdIndexResult(
             ci=round(CI, 2),
@@ -259,20 +261,21 @@ class CrowdIndexCalculator:
             level=cls.get_crowd_level(CI)
         )
 
+
 if __name__ == '__main__':
     # Test case based on example values
     result = CrowdIndexCalculator.calculate(
         spot_type=SpotType.COMPREHENSIVE,
         infra_type=InfraSpotType.COMPREHENSIVE,
         activity_type=ActivityType.STATIC,
-        N=5000,         # 5000 visitors
-        S_e=50000.0,    # 50000 m^2
-        M=100,          # 100 staff
-        F_p=4000,       # Public infra capacity 4000
-        F_t=4500,       # Tourist infra capacity 4500
-        alpha=1.2,      # Local crowding
-        beta=1.2        # Peak hour
+        N=5000,  # 5000 visitors
+        S_e=50000.0,  # 50000 m^2
+        M=100,  # 100 staff
+        F_p=4000,  # Public infra capacity 4000
+        F_t=4500,  # Tourist infra capacity 4500
+        alpha=1.2,  # Local crowding
+        beta=1.2  # Peak hour
     )
-    
+
     print(f"CI: {result.ci} ({result.level})")
     print(f"V: {result.v_index}, S: {result.s_index}, I: {result.i_index}")
