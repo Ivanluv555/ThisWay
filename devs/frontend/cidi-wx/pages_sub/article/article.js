@@ -1,4 +1,5 @@
 const app = getApp();
+const cidiApi = require('../../api/cidi');
 
 Page({
   data: { 
@@ -19,14 +20,9 @@ Page({
 
   // 1. 获取详情 (包含点赞/收藏状态)
   fetchDetail() {
-    wx.cloud.callFunction({
-      name: 'cidi-api',
-      data: { 
-          action: 'getArticleDetail', 
-          payload: { id: this.articleId } 
-      }
-    }).then(res => {
-      const { post, isLiked, isCollected } = res.result;
+    const currentUserId = app.globalData.userInfo ? app.globalData.userInfo.id : null;
+    cidiApi.getArticleDetail(this.articleId, currentUserId).then(result => {
+      const { post, isLiked, isCollected } = result;
       
       // 容错处理：确保 images 字段存在
       let images = post.images || [];
@@ -49,15 +45,7 @@ Page({
 
   // 2. 获取评论列表
   fetchComments() {
-    wx.cloud.callFunction({
-      name: 'cidi-api',
-      data: { action: 'getComments', payload: { postId: this.articleId } }
-    }).then(res => {
-       const comments = res.result.data.map(c => ({
-           userInfo: c.userInfo || { username: '匿名', avatarUrl: '' },
-           user: c.userInfo ? c.userInfo.username : '匿名', 
-           text: c.content
-       }));
+    cidiApi.getCommentsByPostId(this.articleId).then(comments => {
        this.setData({ comments });
     });
   },
@@ -77,12 +65,10 @@ Page({
     });
 
     // 后台默默发请求
-    wx.cloud.callFunction({
-        name: 'cidi-api',
-        data: { 
-            action: 'toggleAction', 
-            payload: { postId: this.articleId, type: 'like' } 
-        }
+    cidiApi.togglePostAction({
+      postId: this.articleId,
+      userId: app.globalData.userInfo.id,
+      type: 'like'
     }).catch(err => {
         // 如果失败了，悄悄改回来
         console.error(err);
@@ -97,14 +83,12 @@ Page({
     const oldStatus = this.data.isCollected;
     this.setData({ isCollected: !oldStatus });
     
-    wx.cloud.callFunction({
-      name: 'cidi-api',
-      data: { 
-          action: 'toggleAction', 
-          payload: { postId: this.articleId, type: 'collect' } 
-      }
-    }).then(res => {
-      const msg = res.result.status ? '收藏成功' : '取消收藏';
+    cidiApi.togglePostAction({
+      postId: this.articleId,
+      userId: app.globalData.userInfo.id,
+      type: 'collect'
+    }).then(status => {
+      const msg = status ? '收藏成功' : '取消收藏';
       wx.showToast({ title: msg, icon: 'none' });
     }).catch(() => {
       this.setData({ isCollected: oldStatus });
@@ -131,16 +115,10 @@ Page({
     
     wx.showLoading({ title: '发送中' });
     
-    wx.cloud.callFunction({
-        name: 'cidi-api',
-        data: {
-            action: 'addComment',
-            payload: {
-                postId: this.articleId,
-                content: text,
-                userInfo: app.globalData.userInfo
-            }
-        }
+    cidiApi.addComment({
+      postId: this.articleId,
+      userId: app.globalData.userInfo.id,
+      content: text
     }).then(() => {
         wx.hideLoading();
         this.setData({ showInput: false, commentVal: '' });

@@ -1,4 +1,5 @@
 const app = getApp();
+const cidiApi = require('../../api/cidi');
 
 Page({
   data: { 
@@ -35,28 +36,11 @@ Page({
   },
 
   fetchData: function (isRefresh = false) {
-    wx.cloud.callFunction({
-      name: 'cidi-api',
-      data: { 
-          action: 'getHomeList',
-          payload: { offset: 0, limit: 20 } 
-      }
-    }).then(res => {
-      // 数据库返回的数据在 res.result.data 里
-      const posts = res.result.data;
-      
-      // 数据映射 (Mapping): 把数据库字段转成 UI 需要的字段
-      const uiList = posts.map(item => ({
-          id: item._id, // 云数据库的 ID 是 _id
-          title: item.title,
-          coverUrl: item.images[0], // 取第一张图做封面
-          author: item.author,
-          authorAvatar: item.authorAvatar,
-          likes: item.likeCount,
-          date: '刚刚' // 暂时简写，后面可以用日期库格式化 item.createTime
-      }));
-
+    cidiApi.getHomeFeed(20).then(uiList => {
       this.setData({ contentList: uiList });
+    }).catch(err => {
+      console.error(err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
     }).finally(() => {
         if (isRefresh) wx.stopPullDownRefresh();
     });

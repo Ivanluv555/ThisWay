@@ -1,4 +1,5 @@
 const app = getApp();
+const cidiApi = require('../../api/cidi');
 
 Page({
   data: { leftList: [], rightList: [] },
@@ -10,23 +11,16 @@ Page({
   
   fetchData: function () {
     wx.showNavigationBarLoading(); // 顶部加载转圈
-    wx.cloud.callFunction({
-      name: 'cidi-api', // 记得确认你的云函数叫 cidi-api
-      data: { 
-        action: 'getHomeList', // 复用获取列表的接口
-        payload: { limit: 20 } 
-      }
-    }).then(res => {
+    cidiApi.getUpdatesFeed(20).then(list => {
       wx.hideNavigationBarLoading();
-      const list = res.result.data || [];
       
       // 数据映射：适配瀑布流需要的字段
       const uiList = list.map(item => ({
-        id: item._id,
-        imageUrl: item.images[0], // 取第一张图
+        id: item.id,
+        imageUrl: item.coverUrl,
         title: item.title,
         authorAvatar: item.authorAvatar,
-        likes: item.likeCount || 0
+        likes: item.likeCount || item.likes || 0
       }));
 
       // 简单的左右分栏算法
@@ -37,6 +31,7 @@ Page({
     }).catch(err => {
       wx.hideNavigationBarLoading();
       console.error(err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
     });
   },
   

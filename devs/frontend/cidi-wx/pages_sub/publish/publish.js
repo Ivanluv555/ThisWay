@@ -1,4 +1,5 @@
 const app = getApp();
+const cidiApi = require('../../api/cidi');
 
 Page({
   data: {
@@ -41,36 +42,16 @@ Page({
     wx.showLoading({ title: '上传中...', mask: true });
 
     try {
-      const cloudImageIds = [];
-      
-      // 1. 并发上传图片到云存储
-      const uploadTasks = this.data.images.map((filePath, index) => {
-        // 生成唯一文件名: posts/时间戳-索引.ext
-        const ext = filePath.match(/\.[^.]+?$/)[0]; 
-        const cloudPath = `posts/${Date.now()}-${index}${ext}`;
-        
-        return wx.cloud.uploadFile({
-          cloudPath: cloudPath,
-          filePath: filePath
-        }).then(res => res.fileID); // 返回云端ID
+      await cidiApi.createPost({
+        title: this.data.title || '分享图片',
+        content: this.data.content,
+        images: this.data.images,
+        userId: app.globalData.userInfo.id
       });
 
-      // 等待所有图片传完
-      const uploadedIds = await Promise.all(uploadTasks);
-      
-      // 2. 写入数据库 (调用 cidi-api 云函数)
-      await wx.cloud.callFunction({
-        name: 'cidi-api',
-        data: {
-          action: 'createPost',
-          payload: {
-            title: this.data.title || '分享图片', // 没标题就给个默认
-            content: this.data.content,
-            images: uploadedIds,
-            userInfo: app.globalData.userInfo
-          }
-        }
-      });
+      if (this.data.images.length > 0) {
+        wx.showToast({ title: '已发布，图片需公网URL才会入库', icon: 'none' });
+      }
 
       wx.hideLoading();
       wx.showToast({ title: '发布成功', icon: 'success' });

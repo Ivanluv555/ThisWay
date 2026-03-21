@@ -1,4 +1,5 @@
 const app = getApp();
+const cidiApi = require('../../api/cidi');
 
 Page({
   data: { 
@@ -21,31 +22,12 @@ Page({
 
     wx.showLoading({ title: '加载收藏...' });
 
-    // 【核心修改】调用云函数 cidi-api
-    wx.cloud.callFunction({
-      name: 'cidi-api',
-      data: { 
-        action: 'getUserCollections' 
-      }
-    }).then(res => {
+    cidiApi.getUserCollections(app.globalData.userInfo.id).then(list => {
       wx.hideLoading();
-      const result = res.result;
-      
-      if (result.code === 0) {
-        // 数据映射：转换成 UI 需要的格式
-        const uiList = result.data.map(item => ({
-          id: item._id, // 云数据库 ID
-          title: item.title,
-          coverUrl: item.images[0], // 取第一张图
-          author: item.author,
-          date: '收藏于近日' // 这里可以加个时间格式化函数
-        }));
-
-        this.setData({ 
-          list: uiList,
-          loading: false 
-        });
-      }
+      this.setData({ 
+        list,
+        loading: false 
+      });
     }).catch(err => {
       wx.hideLoading();
       console.error('加载收藏失败', err);

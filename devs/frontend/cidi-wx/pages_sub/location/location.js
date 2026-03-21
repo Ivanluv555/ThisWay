@@ -1,5 +1,5 @@
-const app = getApp();
-import { getFuturePrediction } from '../../api/prediction.js';
+const { getFuturePrediction } = require('../../api/prediction');
+const cidiApi = require('../../api/cidi');
 
 Page({
   data: { 
@@ -15,24 +15,12 @@ Page({
     }
   },
   
-  // 【核心修改】改为调用云函数
   fetchDetail: function (id) {
     wx.showLoading({ title: '加载中...' });
-    
-    wx.cloud.callFunction({
-      name: 'getMockData',
-      data: { 
-        type: 'location', // 告诉云函数我要查地点详情
-        id: id            // 把当前地点的 ID 传过去
-      }
-    }).then(res => {
+
+    cidiApi.getLocationDetail(id).then(location => {
       wx.hideLoading();
-      const result = res.result;
-      if(result.code === 0) {
-        this.setData({ location: result.data });
-      } else {
-        wx.showToast({ title: '未找到地点信息', icon: 'none' });
-      }
+      this.setData({ location });
     }).catch(err => {
       wx.hideLoading();
       wx.showToast({ title: '加载失败', icon: 'none' });

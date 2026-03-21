@@ -1,4 +1,5 @@
 const app = getApp();
+const cidiApi = require('../../api/cidi');
 
 Page({
   data: {
@@ -22,6 +23,22 @@ Page({
   onLoad: function () {
     const history = wx.getStorageSync('search_history') || [];
     this.setData({ historyList: history });
+
+    const userId = app.globalData.userInfo ? app.globalData.userInfo.id : null;
+    if (userId) {
+      cidiApi.getSearchHistory(userId).then((remoteHistory) => {
+        if (remoteHistory.length) {
+          this.setData({ historyList: remoteHistory });
+          wx.setStorageSync('search_history', remoteHistory);
+        }
+      }).catch(() => {});
+    }
+
+    cidiApi.getHotSearchList().then((hotList) => {
+      if (hotList.length) {
+        this.setData({ hotList });
+      }
+    }).catch(() => {});
   },
 
   onInput: function(e) {
@@ -81,22 +98,9 @@ Page({
       errorMsg: ''
     });
 
-    wx.cloud.callFunction({
-      name: 'getMockData',
-      data: { type: 'search', keyword: normalizedKeyword }
-    }).then(res => {
+    const userId = app.globalData.userInfo ? app.globalData.userInfo.id : null;
+    cidiApi.searchKeyword(normalizedKeyword, userId).then(resultData => {
       if (serial !== this._requestSerial) return;
-
-      const success = res && res.result && res.result.code === 0;
-      if (!success) {
-        this.setData({
-          results: { articles: [], locations: [] },
-          errorMsg: '搜索服务暂时不可用，请稍后重试'
-        });
-        return;
-      }
-
-      const resultData = res.result.data || {};
       this.setData({
         results: {
           articles: resultData.articles || [],
@@ -138,5 +142,9 @@ Page({
   clearHistory: function() {
     this.setData({ historyList: [] });
     wx.removeStorageSync('search_history');
+    const userId = app.globalData.userInfo ? app.globalData.userInfo.id : null;
+    if (userId) {
+      cidiApi.clearSearchHistory(userId).catch(() => {});
+    }
   }
 })

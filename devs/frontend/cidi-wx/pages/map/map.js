@@ -1,4 +1,5 @@
 const app = getApp();
+const cidiApi = require('../../api/cidi');
 
 Page({
   data: {
@@ -42,36 +43,22 @@ Page({
   },
   
   fetchMarkers: function () {
-    // 【修改】改为调用云函数 getMockData
-    wx.cloud.callFunction({
-      name: 'getMockData',
-      data: { type: 'map' } // 告诉云函数我要地图数据
-    }).then(res => {
-      const result = res.result;
-      if (result.code === 0) {
-        // 下面这段数据处理逻辑保持不变
-        const markers = result.data.map(item => ({
-          ...item,
-          // 【修改】将 width/height 设为 0，隐藏默认的大头针
-          width: 0, 
-          height: 0,
-          // 设置自定义气泡（作为新的 Marker 视觉）
-          customCallout: {
-            display: 'ALWAYS',
-            anchorX: 0,
-            anchorY: 0,
-          },
-          // 适配列表展示需要的字段
-          image: item.images ? item.images[0] : '', // 用于左图右文
-          desc: item.desc || '暂无简介',           // 描述文本
-          title: item.title,
-          // 【新增】热度值占位 (100 - 9999 随机数)
-          heat: Math.floor(Math.random() * 9000) + 100
-        }));
-        this.setData({ markers });
-      }
+    cidiApi.getMapLocations().then(list => {
+      const markers = list.map(item => ({
+        ...item,
+        width: 0,
+        height: 0,
+        customCallout: {
+          display: 'ALWAYS',
+          anchorX: 0,
+          anchorY: 0,
+        },
+        heat: Math.floor(Math.random() * 9000) + 100
+      }));
+      this.setData({ markers });
     }).catch(err => {
        console.error(err);
+       wx.showToast({ title: '地图加载失败', icon: 'none' });
     });
   },
   
