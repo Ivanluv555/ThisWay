@@ -1,5 +1,8 @@
 package org.daiso.cidi.modules.hotsearch.controller;
 
+import org.daiso.cidi.core.error.CidiException;
+import org.daiso.cidi.core.error.ErrorCode;
+
 import org.daiso.cidi.modules.hotsearch.entity.HotSearch;
 import org.daiso.cidi.modules.hotsearch.service.HotSearchService;
 import java.util.List;
@@ -30,7 +33,7 @@ public class HotSearchController {
     public ResponseEntity<HotSearch> getById(@PathVariable Integer id) {
         return service.findById(id)
             .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
+            .orElseThrow(() -> new CidiException(ErrorCode.RESOURCE_NOT_FOUND, "资源不存在: id=" + id));
     }
 
     @PostMapping
@@ -45,13 +48,13 @@ public class HotSearchController {
                 entity.setId(id);
                 return ResponseEntity.ok(service.save(entity));
             })
-            .orElseGet(() -> ResponseEntity.notFound().build());
+            .orElseThrow(() -> new CidiException(ErrorCode.RESOURCE_NOT_FOUND, "资源不存在: id=" + id));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (service.findById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
+            throw new CidiException(ErrorCode.RESOURCE_NOT_FOUND, "资源不存在: id=" + id);
         }
         service.deleteById(id);
         return ResponseEntity.noContent().build();

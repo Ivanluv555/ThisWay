@@ -1,5 +1,7 @@
 package org.daiso.cidi.core.utils;
 
+import org.daiso.cidi.core.error.CidiException;
+import org.daiso.cidi.core.error.ErrorCode;
 import org.daiso.cidi.core.properties.Wxproperties;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -26,32 +28,41 @@ public class WeChatApiUtil {
     /**
      * 这就是您在 UserService 中调用的方法
      */
-    public String getUnionIdFromCode(String code) throws Exception {
+    public String getUnionIdFromCode(String code) {
         // 3. 拼接请求 URL
         String url = String.format(WECHAT_API_URL, wxproperties.getAppid(), wxproperties.getSecret(), code);
 
-        // 4. 从您的后端服务器“发起”对微信服务器的 GET 请求
-        String responseJson = restTemplate.getForObject(url, String.class);
+        try {
+            // 4. 从您的后端服务器“发起”对微信服务器的 GET 请求
+            String responseJson = restTemplate.getForObject(url, String.class);
 
-        // 5. 解析微信返回的 JSON 数据
-        JsonNode rootNode = objectMapper.readTree(responseJson);
+            // 5. 解析微信返回的 JSON 数据
+            JsonNode rootNode = objectMapper.readTree(responseJson);
 
-        if (rootNode.has("errcode") && rootNode.get("errcode").asInt() != 0) {
-            // 如果微信返回错误
-            throw new RuntimeException("微信 code2Session 失败: " + rootNode.get("errmsg").asText());
+            if (rootNode.has("errcode") && rootNode.get("errcode").asInt() != 0) {
+                // 如果微信返回错误
+                throw new CidiException(
+                        ErrorCode.WECHAT_API_ERROR,
+                        "微信 code2Session 失败: " + rootNode.path("errmsg").asText("unknown")
+                );
+            }
+
+            // 6. 成功，返回 UnionID
+            // 注意：您需要确保您的小程序已绑定到“微信开放平台”才能获取 UnionID，
+            // 否则这里应该获取 "openid"
+            if (rootNode.has("unionid")) {
+                return rootNode.get("unionid").asText();
+            }
+            // 如果没有 unionid，退而求其次使用 openid
+            if (rootNode.has("openid")) {
+                return rootNode.get("openid").asText(); // 您需要修改数据库字段来存 openid
+            }
+
+            throw new CidiException(ErrorCode.WECHAT_IDENTIFIER_MISSING);
+        } catch (CidiException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new CidiException(ErrorCode.WECHAT_API_ERROR, "调用微信接口异常", ex);
         }
-
-        // 6. 成功，返回 UnionID
-        // 注意：您需要确保您的小程序已绑定到“微信开放平台”才能获取 UnionID，
-        // 否则这里应该获取 "openid"
-        if (rootNode.has("unionid")) {
-            return rootNode.get("unionid").asText();
-        }
-        // 如果没有 unionid，退而求其次使用 openid
-        if (rootNode.has("openid")) {
-            return rootNode.get("openid").asText(); // 您需要修改数据库字段来存 openid
-        }
-
-        throw new RuntimeException("微信 API 未返回 unionid 或 openid");
     }
 }

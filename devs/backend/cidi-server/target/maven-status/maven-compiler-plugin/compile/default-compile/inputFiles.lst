@@ -1,4 +1,8 @@
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/CidiApplication.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/error/CidiException.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/error/ErrorCode.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/error/ErrorResponse.java
+/home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/error/GlobalExceptionHandler.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/properties/Jwtproperties.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/properties/Wxproperties.java
 /home/ivan/CodeHome/Javaprojects/daiso/devs/backend/cidi-server/src/main/java/org/daiso/cidi/core/utils/JwtTokenUtil.java
