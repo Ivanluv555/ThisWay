@@ -1,0 +1,37 @@
+package org.daiso.cidi.modules.userfollow.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "user_follows")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserFollow {
+
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "follower_id", nullable = false)
+    private Long followerId;
+
+    @Column(name = "followee_id", nullable = false)
+    private Long followeeId;
+
+    @Column(name = "create_time", nullable = false)
+    private LocalDateTime createTime;
+
+}
