@@ -15,8 +15,11 @@ public class SpotTrafficPredictionDTO {
 
 
     private Long id;
-    private Long locationId;
-    private LocalDateTime predictionTime;
+    private Long spotId;
+    private LocalDateTime predictTime;
+    private Integer visitorCount;
+    private Integer congestionLevel;
+    private String trend;
     private Integer trafficLevel;
     private BigDecimal crowdDensity;
     private LocalDateTime createTime;

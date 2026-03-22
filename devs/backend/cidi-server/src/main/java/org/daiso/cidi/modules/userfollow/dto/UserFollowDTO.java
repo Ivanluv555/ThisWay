@@ -1,6 +1,5 @@
 package org.daiso.cidi.modules.userfollow.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +15,7 @@ public class UserFollowDTO {
 
     private Long id;
     private Long followerId;
-    private Long followeeId;
+    private Long followedId;
     private LocalDateTime createTime;
 
 }

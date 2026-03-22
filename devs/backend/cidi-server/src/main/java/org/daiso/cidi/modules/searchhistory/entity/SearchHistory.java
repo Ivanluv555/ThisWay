@@ -31,6 +31,9 @@ public class SearchHistory {
     @Column(nullable = false, length = 64)
     private String keyword;
 
+    @Column(name = "is_deleted", nullable = false)
+    private Integer isDeleted;
+
     @Column(name = "create_time", nullable = false)
     private LocalDateTime createTime;
 

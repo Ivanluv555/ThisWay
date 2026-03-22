@@ -35,7 +35,11 @@
 | REQ-405 | METHOD_NOT_ALLOWED | 405 | HTTP 方法不被允许 |
 | REQ-415 | UNSUPPORTED_MEDIA_TYPE | 415 | 不支持的请求内容类型 |
 | WX-502 | WECHAT_API_ERROR | 502 | 微信接口调用失败 |
-| WX-503 | WECHAT_IDENTIFIER_MISSING | 502 | 微信接口未返回 unionid/openid |
+| WX-503 | WECHAT_IDENTIFIER_MISSING | 502 | 微信接口未返回可用标识 |
+| WX-504 | WECHAT_CONFIG_MISSING | 500 | 微信配置缺失 |
+| WX-505 | WECHAT_INVALID_CODE | 400 | 微信登录凭证无效 |
+| WX-506 | WECHAT_PHONE_NUMBER_MISSING | 502 | 微信接口未返回手机号 |
+| USR-409 | PHONE_ALREADY_BOUND | 409 | 手机号已绑定其他用户 |
 
 ## 使用约定
 

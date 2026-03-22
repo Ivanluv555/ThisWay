@@ -1,9 +1,6 @@
 const { request } = require('./http');
 
 const DEFAULT_COVER = 'https://picsum.photos/640/480?blur=1';
-const POST_TARGET_TYPE = 1;
-const LIKE_ACTION_TYPE = 1;
-const COLLECT_ACTION_TYPE = 2;
 
 function formatDateTime(value) {
   if (!value) return '刚刚';
@@ -20,9 +17,9 @@ function formatDateTime(value) {
 function getDisplayUser(user) {
   return {
     id: user.id,
-    username: user.nickname || '匿名用户',
-    avatarUrl: user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nickname || 'User')}`,
-    bio: '登录探索更多精彩'
+    username: user.username || '匿名用户',
+    avatarUrl: user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || 'User')}`,
+    bio: user.bio || '登录探索更多精彩'
   };
 }
 
@@ -64,8 +61,8 @@ function mapPostToCard(post, usersMap, postImageMap) {
     content: post.content,
     coverUrl: images[0] || DEFAULT_COVER,
     images,
-    author: user.nickname || '匿名用户',
-    authorAvatar: user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nickname || 'U')}`,
+    author: user.username || '匿名用户',
+    authorAvatar: user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || 'U')}`,
     likes: post.likeCount || 0,
     likeCount: post.likeCount || 0,
     date: formatDateTime(post.createTime),
@@ -109,13 +106,13 @@ async function getMapLocations() {
       id: item.id,
       latitude: Number(item.latitude),
       longitude: Number(item.longitude),
-      title: item.name,
+      title: item.title,
       address: item.address || '',
       desc: `${item.category || '未知分类'} · 评分 ${item.rating || '-'} `,
       images: imgs,
       image: imgs[0] || DEFAULT_COVER,
       callout: {
-        content: item.name,
+        content: item.title,
         display: 'NONE'
       }
     };
@@ -135,7 +132,7 @@ async function getLocationDetail(locationId) {
 
   return {
     id: location.id,
-    title: location.name,
+    title: location.title,
     address: location.address || '',
     desc: `${location.category || '未知分类'} · 评分 ${location.rating || '-'} `,
     latitude: Number(location.latitude),
@@ -147,12 +144,13 @@ async function getLocationDetail(locationId) {
 async function getHotSearchList() {
   const list = await request({ path: '/api/hot-searches' });
   return (list || [])
-    .sort((a, b) => (b.scount || 0) - (a.scount || 0))
+    .filter((item) => Number(item.isActive || 0) === 1)
+    .sort((a, b) => (b.hotValue || 0) - (a.hotValue || 0))
     .slice(0, 10)
     .map((item, index) => ({
       rank: index + 1,
       text: item.keyword,
-      hot: `${item.scount || 0}`
+      hot: `${item.hotValue || 0}`
     }));
 }
 
@@ -178,11 +176,11 @@ async function searchKeyword(keyword, userId) {
     .map((post) => mapPostToCard(post, usersMap, postImageMap));
 
   const locationResults = (locations || [])
-    .filter((item) => `${item.name || ''} ${item.address || ''} ${item.category || ''}`.toLowerCase().includes(q))
+    .filter((item) => `${item.title || ''} ${item.address || ''} ${item.category || ''}`.toLowerCase().includes(q))
     .slice(0, 20)
     .map((item) => ({
       id: item.id,
-      title: item.name,
+      title: item.title,
       address: item.address || ''
     }));
 
@@ -193,6 +191,7 @@ async function searchKeyword(keyword, userId) {
       data: {
         userId,
         keyword,
+        isDeleted: 0,
         createTime: new Date().toISOString()
       }
     }).catch(() => {});
@@ -208,7 +207,7 @@ async function getSearchHistory(userId) {
   if (!userId) return [];
   const list = await request({ path: '/api/search-history' });
   const result = (list || [])
-    .filter((item) => `${item.userId}` === `${userId}`)
+    .filter((item) => `${item.userId}` === `${userId}` && Number(item.isDeleted || 0) === 0)
     .sort((a, b) => new Date(b.createTime || 0) - new Date(a.createTime || 0))
     .map((item) => item.keyword)
     .filter(Boolean);
@@ -225,46 +224,21 @@ async function clearSearchHistory(userId) {
 }
 
 async function loginWithWeChatCode(code, profile = {}) {
-  const users = await request({ path: '/api/users' });
-  let openid = wx.getStorageSync('openid');
-  if (!openid) {
-    openid = `wx_${code}_${Date.now()}`;
-    wx.setStorageSync('openid', openid);
-  }
-
-  let user = (users || []).find((item) => item.openid === openid);
-  const nickname = profile.nickName || profile.nickname || user?.nickname || '微信用户';
-  const avatarUrl = profile.avatarUrl || user?.avatarUrl || '';
-  const now = new Date().toISOString();
-
-  if (!user) {
-    user = await request({
-      path: '/api/users',
-      method: 'POST',
-      data: {
-        openid,
-        nickname,
-        avatarUrl,
-        status: 1,
-        createTime: now,
-        lastLoginTime: now
-      }
-    });
-  } else {
-    user = await request({
-      path: `/api/users/${user.id}`,
-      method: 'PUT',
-      data: {
-        ...user,
-        nickname,
-        avatarUrl,
-        lastLoginTime: now
-      }
-    });
-  }
+  const username = profile.nickName || profile.nickname || '微信用户';
+  const avatarUrl = profile.avatarUrl || '';
+  const loginRes = await request({
+    path: '/api/auth/wechat/login',
+    method: 'POST',
+    data: {
+      code,
+      nickname: username,
+      avatarUrl
+    }
+  });
+  const user = loginRes && loginRes.user ? loginRes.user : {};
 
   return {
-    token: `user-token-${user.id}`,
+    token: (loginRes && loginRes.token) || '',
     userInfo: getDisplayUser(user)
   };
 }
@@ -282,13 +256,13 @@ async function getArticleDetail(postId, currentUserId) {
   const mapped = mapPostToCard(post, usersMap, postImageMap);
 
   const myActions = (actions || []).filter((item) =>
-    `${item.userId}` === `${currentUserId}` && `${item.targetId}` === `${postId}` && item.targetType === POST_TARGET_TYPE
+    `${item.userId}` === `${currentUserId}` && `${item.postId}` === `${postId}`
   );
 
   return {
     post: mapped,
-    isLiked: myActions.some((item) => item.actionType === LIKE_ACTION_TYPE),
-    isCollected: myActions.some((item) => item.actionType === COLLECT_ACTION_TYPE)
+    isLiked: myActions.some((item) => item.type === 'like'),
+    isCollected: myActions.some((item) => item.type === 'collect')
   };
 }
 
@@ -307,23 +281,21 @@ async function getCommentsByPostId(postId) {
       return {
         id: item.id,
         userInfo: {
-          username: user.nickname || '匿名',
+          username: user.username || '匿名',
           avatarUrl: user.avatarUrl || ''
         },
-        user: user.nickname || '匿名',
+        user: user.username || '匿名',
         text: item.content
       };
     });
 }
 
 async function togglePostAction({ postId, userId, type }) {
-  const actionType = type === 'collect' ? COLLECT_ACTION_TYPE : LIKE_ACTION_TYPE;
   const actions = await request({ path: '/api/actions' });
   const existed = (actions || []).find((item) =>
     `${item.userId}` === `${userId}` &&
-    `${item.targetId}` === `${postId}` &&
-    item.targetType === POST_TARGET_TYPE &&
-    item.actionType === actionType
+    `${item.postId}` === `${postId}` &&
+    item.type === type
   );
 
   if (existed) {
@@ -336,9 +308,8 @@ async function togglePostAction({ postId, userId, type }) {
     method: 'POST',
     data: {
       userId,
-      targetId: Number(postId),
-      targetType: POST_TARGET_TYPE,
-      actionType,
+      postId: Number(postId),
+      type,
       createTime: new Date().toISOString()
     }
   });
@@ -370,10 +341,9 @@ async function getUserCollections(userId) {
   const collectedIds = (actions || [])
     .filter((item) =>
       `${item.userId}` === `${userId}` &&
-      item.targetType === POST_TARGET_TYPE &&
-      item.actionType === COLLECT_ACTION_TYPE
+      item.type === 'collect'
     )
-    .map((item) => item.targetId);
+    .map((item) => item.postId);
 
   return (posts || [])
     .filter((item) => collectedIds.includes(item.id))
@@ -427,8 +397,8 @@ async function createPost({ title, content, images, userId, categoryId = 1, loca
 async function getFuturePrediction(spotId) {
   const list = await request({ path: '/api/spot-traffic-predictions' });
   const sorted = (list || [])
-    .filter((item) => `${item.locationId}` === `${spotId}`)
-    .sort((a, b) => new Date(a.predictionTime || 0) - new Date(b.predictionTime || 0));
+    .filter((item) => `${item.spotId}` === `${spotId}`)
+    .sort((a, b) => new Date(a.predictTime || 0) - new Date(b.predictTime || 0));
   const picked = sorted[0];
   if (!picked) {
     return {
@@ -440,9 +410,9 @@ async function getFuturePrediction(spotId) {
   return {
     code: 0,
     data: {
-      predictTime: formatDateTime(picked.predictionTime),
+      predictTime: formatDateTime(picked.predictTime),
       level,
-      trend: level >= 3 ? '拥挤' : level >= 2 ? '较忙' : '通畅',
+      trend: picked.trend || (level >= 3 ? '拥挤' : level >= 2 ? '较忙' : '通畅'),
       desc: `预测人流密度 ${picked.crowdDensity || '-'}，请合理规划出行时间。`
     }
   };

@@ -1,6 +1,5 @@
 package org.daiso.cidi.modules.searchhistory.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +16,7 @@ public class SearchHistoryDTO {
     private Long id;
     private Long userId;
     private String keyword;
+    private Integer isDeleted;
     private LocalDateTime createTime;
 
 }

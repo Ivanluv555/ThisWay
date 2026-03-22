@@ -6,7 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,5 +32,8 @@ public class Category {
 
     @Column(name = "sort_order", nullable = false)
     private Integer sortOrder;
+
+    @Column(name = "is_active", nullable = false)
+    private Integer isActive;
 
 }

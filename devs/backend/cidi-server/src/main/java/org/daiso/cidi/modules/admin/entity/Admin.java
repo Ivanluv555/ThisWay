@@ -22,8 +22,12 @@ public class Admin {
 
 
     @Id
+    @Column(name = "adminid")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(length = 255)
+    private String job;
 
     @Column(nullable = false, unique = true, length = 32)
     private String username;

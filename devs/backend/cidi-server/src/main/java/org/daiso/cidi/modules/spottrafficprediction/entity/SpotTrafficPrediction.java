@@ -26,11 +26,20 @@ public class SpotTrafficPrediction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "location_id", nullable = false)
-    private Long locationId;
+    @Column(name = "spot_id", nullable = false)
+    private Long spotId;
 
-    @Column(name = "prediction_time", nullable = false)
-    private LocalDateTime predictionTime;
+    @Column(name = "predict_time", nullable = false)
+    private LocalDateTime predictTime;
+
+    @Column(name = "visitor_count", nullable = false)
+    private Integer visitorCount;
+
+    @Column(name = "congestion_level", nullable = false)
+    private Integer congestionLevel;
+
+    @Column(nullable = false, length = 16)
+    private String trend;
 
     @Column(name = "traffic_level", nullable = false)
     private Integer trafficLevel;

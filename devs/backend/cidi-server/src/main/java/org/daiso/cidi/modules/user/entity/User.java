@@ -29,10 +29,13 @@ public class User {
     private String openid;
 
     @Column(nullable = false, length = 64)
-    private String nickname;
+    private String username;
 
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
+
+    @Column(length = 255)
+    private String bio;
 
     @Column(name = "phone", unique = true, length = 20)
     private String phone;

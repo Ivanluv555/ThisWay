@@ -7,7 +7,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,16 +26,16 @@ public class Location {
     private Long id;
 
     @Column(nullable = false, length = 128)
-    private String name;
+    private String title;
 
-    @Column(length = 255)
+    @Column(nullable = false, length = 255)
     private String address;
 
-    @Column(nullable = false, precision = 10, scale = 6)
-    private BigDecimal latitude;
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
-    @Column(nullable = false, precision = 10, scale = 6)
-    private BigDecimal longitude;
+    @Column(name = "heat_score", nullable = false)
+    private Integer heatScore;
 
     @Column(length = 32)
     private String category;
@@ -44,7 +43,10 @@ public class Location {
     @Column(nullable = false, precision = 2, scale = 1)
     private BigDecimal rating;
 
-    @Column(name = "create_time", nullable = false)
-    private LocalDateTime createTime;
+    @Column(nullable = false, precision = 10, scale = 6)
+    private BigDecimal latitude;
+
+    @Column(nullable = false, precision = 10, scale = 6)
+    private BigDecimal longitude;
 
 }
