@@ -42,13 +42,13 @@ public class WechatAuthService {
         User user = userRepository.findByOpenid(sessionInfo.openid())
                 .orElseGet(() -> User.builder()
                         .openid(sessionInfo.openid())
-                        .nickname(defaultNickname(sessionInfo.openid()))
+                        .username(defaultUsername(sessionInfo.openid()))
                         .status(USER_STATUS_ACTIVE)
                         .createTime(now)
                         .build());
 
         if (StringUtils.hasText(request.nickname())) {
-            user.setNickname(request.nickname());
+            user.setUsername(request.nickname());
         }
         if (StringUtils.hasText(request.avatarUrl())) {
             user.setAvatarUrl(request.avatarUrl());
@@ -92,8 +92,9 @@ public class WechatAuthService {
         return UserDTO.builder()
                 .id(user.getId())
                 .openid(user.getOpenid())
-                .nickname(user.getNickname())
+                .username(user.getUsername())
                 .avatarUrl(user.getAvatarUrl())
+                .bio(user.getBio())
                 .phone(user.getPhone())
                 .status(user.getStatus())
                 .createTime(user.getCreateTime())
@@ -101,7 +102,7 @@ public class WechatAuthService {
                 .build();
     }
 
-    private String defaultNickname(String openid) {
+    private String defaultUsername(String openid) {
         if (!StringUtils.hasText(openid)) {
             return "微信用户";
         }

@@ -45,7 +45,7 @@ public class UserSettingController {
     public ResponseEntity<UserSetting> update(@PathVariable Long id, @RequestBody UserSetting entity) {
         return service.findById(id)
             .map(existing -> {
-                entity.setId(id);
+                entity.setUserId(id);
                 return ResponseEntity.ok(service.save(entity));
             })
             .orElseThrow(() -> new CidiException(ErrorCode.RESOURCE_NOT_FOUND, "资源不存在: id=" + id));

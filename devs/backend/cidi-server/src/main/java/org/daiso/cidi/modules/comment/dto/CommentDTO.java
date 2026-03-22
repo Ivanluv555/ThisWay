@@ -1,6 +1,5 @@
 package org.daiso.cidi.modules.comment.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

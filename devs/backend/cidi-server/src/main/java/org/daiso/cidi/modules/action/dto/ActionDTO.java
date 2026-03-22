@@ -1,6 +1,5 @@
 package org.daiso.cidi.modules.action.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,9 +15,8 @@ public class ActionDTO {
 
     private Long id;
     private Long userId;
-    private Long targetId;
-    private Integer targetType;
-    private Integer actionType;
+    private Long postId;
+    private String type;
     private LocalDateTime createTime;
 
 }

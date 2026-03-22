@@ -1,6 +1,5 @@
 package org.daiso.cidi.modules.user.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,9 +15,10 @@ public class UserDTO {
 
     private Long id;
     private String openid;
+    private String username;
     private String phone;
-    private String nickname;
     private String avatarUrl;
+    private String bio;
     private Integer status;
     private LocalDateTime createTime;
     private LocalDateTime lastLoginTime;

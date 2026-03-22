@@ -28,14 +28,11 @@ public class Action {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "target_id", nullable = false)
-    private Long targetId;
+    @Column(name = "post_id", nullable = false)
+    private Long postId;
 
-    @Column(name = "target_type", nullable = false)
-    private Integer targetType;
-
-    @Column(name = "action_type", nullable = false)
-    private Integer actionType;
+    @Column(nullable = false, length = 16)
+    private String type;
 
     @Column(name = "create_time", nullable = false)
     private LocalDateTime createTime;

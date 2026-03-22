@@ -28,8 +28,8 @@ public class UserFollow {
     @Column(name = "follower_id", nullable = false)
     private Long followerId;
 
-    @Column(name = "followee_id", nullable = false)
-    private Long followeeId;
+    @Column(name = "followed_id", nullable = false)
+    private Long followedId;
 
     @Column(name = "create_time", nullable = false)
     private LocalDateTime createTime;

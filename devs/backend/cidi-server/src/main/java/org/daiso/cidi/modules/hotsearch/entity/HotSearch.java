@@ -6,7 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,10 +27,10 @@ public class HotSearch {
     @Column(nullable = false, length = 64)
     private String keyword;
 
-    @Column(name = "scount", nullable = false)
-    private Integer scount;
+    @Column(name = "hot_value", nullable = false)
+    private Integer hotValue;
 
-    @Column(name = "update_time", nullable = false)
-    private LocalDateTime updateTime;
+    @Column(name = "is_active", nullable = false)
+    private Integer isActive;
 
 }

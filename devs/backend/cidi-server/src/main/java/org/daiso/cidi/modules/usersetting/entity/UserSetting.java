@@ -2,8 +2,6 @@ package org.daiso.cidi.modules.usersetting.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -23,15 +21,18 @@ public class UserSetting {
 
     @Id
     @Column(name = "user_id")
-    private Long id;
+    private Long userId;
 
-    @Column(name = "notification_enabled", nullable = false)
-    private Integer notificationEnabled;
+    @Column(name = "is_private_account", nullable = false)
+    private Integer isPrivateAccount;
 
-    @Column(name = "privacy_level", nullable = false)
-    private Integer privacyLevel;
+    @Column(name = "push_notifications", nullable = false)
+    private Integer pushNotifications;
 
-    @Column(nullable = false, length = 16)
-    private String theme;
+    @Column(name = "theme_color", nullable = false, length = 32)
+    private String themeColor;
+
+    @Column(name = "update_time", nullable = false)
+    private LocalDateTime updateTime;
 
 }

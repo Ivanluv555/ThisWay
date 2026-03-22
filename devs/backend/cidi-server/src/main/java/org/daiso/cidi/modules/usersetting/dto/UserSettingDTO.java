@@ -1,6 +1,5 @@
 package org.daiso.cidi.modules.usersetting.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,9 +13,10 @@ import lombok.NoArgsConstructor;
 public class UserSettingDTO {
 
 
-    private Long id;
-    private Integer notificationEnabled;
-    private Integer privacyLevel;
-    private String theme;
+    private Long userId;
+    private Integer isPrivateAccount;
+    private Integer pushNotifications;
+    private String themeColor;
+    private LocalDateTime updateTime;
 
 }
