@@ -1,3 +1,10 @@
+/**
+ * SpotTrafficPrediction
+ *
+ * 说明：本文件定义了 SpotTrafficPrediction，是 cidi-server 项目中的核心代码文件之一。
+ *
+ */
+
 package org.daiso.cidi.modules.spottrafficprediction.entity;
 
 import jakarta.persistence.Column;

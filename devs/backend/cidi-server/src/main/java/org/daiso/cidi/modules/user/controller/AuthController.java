@@ -1,3 +1,10 @@
+/**
+ * AuthController
+ *
+ * 说明：本文件定义了 AuthController，是 cidi-server 项目中的核心代码文件之一。
+ *
+ */
+
 package org.daiso.cidi.modules.user.controller;
 
 import jakarta.validation.Valid;

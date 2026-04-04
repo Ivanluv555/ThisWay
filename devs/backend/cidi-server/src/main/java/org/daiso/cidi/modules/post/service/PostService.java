@@ -1,3 +1,10 @@
+/**
+ * PostService
+ *
+ * 说明：本文件定义了 PostService，是 cidi-server 项目中的核心代码文件之一。
+ *
+ */
+
 package org.daiso.cidi.modules.post.service;
 
 import org.daiso.cidi.modules.post.entity.Post;

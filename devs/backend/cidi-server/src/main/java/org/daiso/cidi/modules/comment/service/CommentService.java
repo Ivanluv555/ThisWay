@@ -1,3 +1,10 @@
+/**
+ * CommentService
+ *
+ * 说明：本文件定义了 CommentService，是 cidi-server 项目中的核心代码文件之一。
+ *
+ */
+
 package org.daiso.cidi.modules.comment.service;
 
 import org.daiso.cidi.modules.comment.entity.Comment;

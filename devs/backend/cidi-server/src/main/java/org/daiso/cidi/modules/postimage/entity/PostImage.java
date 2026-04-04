@@ -1,3 +1,10 @@
+/**
+ * PostImage
+ *
+ * 说明：本文件定义了 PostImage，是 cidi-server 项目中的核心代码文件之一。
+ *
+ */
+
 package org.daiso.cidi.modules.postimage.entity;
 
 import jakarta.persistence.Column;

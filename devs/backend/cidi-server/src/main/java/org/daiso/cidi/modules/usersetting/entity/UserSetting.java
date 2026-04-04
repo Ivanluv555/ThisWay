@@ -1,3 +1,10 @@
+/**
+ * UserSetting
+ *
+ * 说明：本文件定义了 UserSetting，是 cidi-server 项目中的核心代码文件之一。
+ *
+ */
+
 package org.daiso.cidi.modules.usersetting.entity;
 
 import jakarta.persistence.Column;

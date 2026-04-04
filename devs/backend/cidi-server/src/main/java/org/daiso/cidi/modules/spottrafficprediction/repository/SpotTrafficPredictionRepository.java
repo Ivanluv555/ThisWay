@@ -1,3 +1,10 @@
+/**
+ * SpotTrafficPredictionRepository
+ *
+ * 说明：本文件定义了 SpotTrafficPredictionRepository，是 cidi-server 项目中的核心代码文件之一。
+ *
+ */
+
 package org.daiso.cidi.modules.spottrafficprediction.repository;
 
 import org.daiso.cidi.modules.spottrafficprediction.entity.SpotTrafficPrediction;

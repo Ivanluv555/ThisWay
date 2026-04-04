@@ -1,3 +1,10 @@
+/**
+ * UserRepository
+ *
+ * 说明：本文件定义了 UserRepository，是 cidi-server 项目中的核心代码文件之一。
+ *
+ */
+
 package org.daiso.cidi.modules.user.repository;
 
 import org.daiso.cidi.modules.user.entity.User;
