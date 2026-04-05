@@ -66,4 +66,26 @@ public class SpotTrafficPredictionController {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * 批量写入预测结果（供 FastAPI 调用，每次写 21 条）
+     */
+    @PostMapping("/batch")
+    public ResponseEntity<List<SpotTrafficPrediction>> batchCreate(
+            @RequestBody List<SpotTrafficPrediction> entities) {
+        entities.forEach(e -> {
+            if (e.getCreateTime() == null) {
+                e.setCreateTime(java.time.LocalDateTime.now());
+            }
+        });
+        return ResponseEntity.ok(service.batchSave(entities));
+    }
+
+    /**
+     * 获取最新一轮预测结果（predictTime 最大的那批）
+     */
+    @GetMapping("/latest")
+    public List<SpotTrafficPrediction> getLatest() {
+        return service.findLatestRound();
+    }
 }

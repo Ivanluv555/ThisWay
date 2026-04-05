@@ -35,4 +35,12 @@ public class SpotTrafficPredictionService {
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
+
+    public List<SpotTrafficPrediction> batchSave(List<SpotTrafficPrediction> entities) {
+        return repository.saveAll(entities);
+    }
+
+    public List<SpotTrafficPrediction> findLatestRound() {
+        return repository.findLatestRound();
+    }
 }

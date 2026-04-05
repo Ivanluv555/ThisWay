@@ -1,0 +1,1 @@
+"""cidi-model app package"""

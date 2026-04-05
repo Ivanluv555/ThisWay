@@ -1,0 +1,23 @@
+[
+    { "id": 1, "title": "洪崖洞", "latitude": 29.561147, "longitude": 106.579508 },
+    { "id": 2, "title": "解放碑", "latitude": 29.557458, "longitude": 106.577262 },
+    { "id": 3, "title": "长江索道", "latitude": 29.557368, "longitude": 106.583227 },
+    { "id": 4, "title": "朝天门广场", "latitude": 29.567106, "longitude": 106.588020 },
+    { "id": 5, "title": "江北嘴公园", "latitude": 29.567581, "longitude": 106.578313 },
+    { "id": 6, "title": "观音桥", "latitude": 29.576438, "longitude": 106.534378 },
+    { "id": 7, "title": "大礼堂", "latitude": 29.561842, "longitude": 106.553758 },
+    { "id": 8, "title": "十八梯", "latitude": 29.552311, "longitude": 106.573895 },
+    { "id": 9, "title": "白公馆渣滓洞", "latitude": 29.561612, "longitude": 106.403719 },
+    { "id": 10, "title": "歌乐山革命纪念馆", "latitude": 29.572268, "longitude": 106.442305 },
+    { "id": 11, "title": "南山植物园（北门）", "latitude": 29.556436, "longitude": 106.632417 },
+    { "id": 12, "title": "重庆大剧院", "latitude": 29.569986, "longitude": 106.581178 },
+    { "id": 13, "title": "磁器口", "latitude": 29.577684, "longitude": 106.448482 },
+    { "id": 14, "title": "建川博物馆", "latitude": 29.519989, "longitude": 106.523219 },
+    { "id": 15, "title": "鸿恩寺", "latitude": 29.570069, "longitude": 106.505315 },
+    { "id": 16, "title": "鹅岭公园", "latitude": 29.549796, "longitude": 106.536354 },
+    { "id": 17, "title": "鹅岭印刷二厂", "latitude": 29.551038, "longitude": 106.540646 },
+    { "id": 18, "title": "三峡博物馆", "latitude": 29.562078, "longitude": 106.550478 },
+    { "id": 19, "title": "龙门浩", "latitude": 29.556425, "longitude": 106.594802 },
+    { "id": 20, "title": "南滨路", "latitude": 29.543807, "longitude": 106.583700 },
+    { "id": 21, "title": "金刚碑", "latitude": 29.843229, "longitude": 106.425171 }
+  ]
