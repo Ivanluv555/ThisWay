@@ -215,3 +215,11 @@ async def get_latest_predictions():
         return resp.json()
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"获取最新预测失败: {e}")
+
+# ══════════════════════════════════════════════════════════════════
+# 接收参数，完成指定景区的拥挤指数计算（正在开发中...）
+# ══════════════════════════════════════════════════════════════════
+@app.get("/crowd-index", tags=["拥挤指数"])
+async def calculate_crowd_index():
+    
+    return {"message": "拥挤指数计算接口正在开发中，敬请期待！"}
