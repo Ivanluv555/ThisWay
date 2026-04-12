@@ -20,7 +20,9 @@ Page({
         imageUrl: item.coverUrl,
         title: item.title,
         authorAvatar: item.authorAvatar,
-        likes: item.likeCount || item.likes || 0
+        likes: item.likeCount || item.likes || 0,
+        category: item.category || '推荐',
+        location: item.location || '位置待补充'
       }));
 
       // 简单的左右分栏算法

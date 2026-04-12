@@ -18,6 +18,7 @@ public class Wxproperties {
     private String secret;
     private String miniProgramEnv;
     private String phoneApiUrl;
+    private boolean mockLoginEnabled;
 
     public String getAppid() {
         return appid;
@@ -49,5 +50,13 @@ public class Wxproperties {
 
     public void setPhoneApiUrl(String phoneApiUrl) {
         this.phoneApiUrl = phoneApiUrl;
+    }
+
+    public boolean isMockLoginEnabled() {
+        return mockLoginEnabled;
+    }
+
+    public void setMockLoginEnabled(boolean mockLoginEnabled) {
+        this.mockLoginEnabled = mockLoginEnabled;
     }
 }

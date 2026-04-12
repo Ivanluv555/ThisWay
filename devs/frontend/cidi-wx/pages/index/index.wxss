@@ -14,7 +14,7 @@ page {
   background-color: #fff;
   padding-bottom: 10rpx;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.03);
-  transition: all 0.3s ease;
+  transition: box-shadow 0.15s linear;
 }
 
 /* --- Top Bar (Title + Search) --- */
@@ -33,10 +33,8 @@ page {
   letter-spacing: -1px;
   margin-bottom: 30rpx;
   font-family: 'Helvetica Neue', sans-serif;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transition: transform 0.12s linear, font-size 0.12s linear, margin-bottom 0.12s linear;
+  white-space: pre-line;
 }
 
 .search-box {
@@ -139,7 +137,7 @@ page {
   background: rgba(0,0,0,0.03);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 10rpx;
 }
 .card-tag text {
   font-size: 22rpx;
@@ -202,4 +200,14 @@ page {
   font-size: 24rpx;
   font-weight: 500; /* 数字稍微加粗一点 */
   color: #666; /* 颜色加深一点，更清晰 */
+}
+
+.card-sub-tag {
+  display: inline-block;
+  margin-bottom: 18rpx;
+  font-size: 20rpx;
+  color: #8b6a3d;
+  background: #f8f1e6;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
 }

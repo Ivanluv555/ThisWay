@@ -1,6 +1,85 @@
-const { request } = require('./http');
+const { request, upload } = require('./http');
 
 const DEFAULT_COVER = 'https://picsum.photos/640/480?blur=1';
+const POST_EXTRA_KEY = 'post_extra_meta_map';
+const DEFAULT_CATEGORIES = [
+  { id: 1, name: '推荐' },
+  { id: 2, name: '攻略' },
+  { id: 3, name: '美食' },
+  { id: 4, name: '摄影' },
+  { id: 5, name: '避坑' }
+];
+
+function safeRequest(path, fallback = []) {
+  return request({ path }).catch(() => fallback);
+}
+
+function readPostExtrasMap() {
+  try {
+    return wx.getStorageSync(POST_EXTRA_KEY) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function writePostExtrasMap(map) {
+  try {
+    wx.setStorageSync(POST_EXTRA_KEY, map || {});
+  } catch (e) {}
+}
+
+function upsertPostExtra(postId, extra = {}) {
+  if (!postId) return;
+  const current = readPostExtrasMap();
+  current[postId] = {
+    ...(current[postId] || {}),
+    ...extra,
+    updatedAt: new Date().toISOString()
+  };
+  writePostExtrasMap(current);
+}
+
+function buildLocationsMap(locations) {
+  const map = {};
+  (locations || []).forEach((item) => {
+    map[item.id] = item;
+  });
+  return map;
+}
+
+function buildCategoriesMap(categories) {
+  const map = {};
+  (categories || []).forEach((item) => {
+    map[item.id] = item;
+  });
+  return map;
+}
+
+function toRad(value) {
+  return (Number(value) * Math.PI) / 180;
+}
+
+function calcDistanceKm(lat1, lng1, lat2, lng2) {
+  const a1 = Number(lat1);
+  const b1 = Number(lng1);
+  const a2 = Number(lat2);
+  const b2 = Number(lng2);
+  if ([a1, b1, a2, b2].some((v) => Number.isNaN(v))) return null;
+  const r = 6371;
+  const dLat = toRad(a2 - a1);
+  const dLng = toRad(b2 - b1);
+  const m =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(a1)) * Math.cos(toRad(a2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(m), Math.sqrt(1 - m));
+  return r * c;
+}
+
+function formatDistance(km) {
+  if (km == null) return '';
+  if (km < 1) return `${Math.round(km * 1000)}m`;
+  return `${km.toFixed(1)}km`;
+}
 
 function formatDateTime(value) {
   if (!value) return '刚刚';
@@ -32,12 +111,20 @@ function buildUsersMap(users) {
 }
 
 async function loadFeedMaterials() {
-  const [posts, users, postImages] = await Promise.all([
-    request({ path: '/api/posts' }),
-    request({ path: '/api/users' }),
-    request({ path: '/api/post-images' })
+  const [posts, users, postImages, locations, categories] = await Promise.all([
+    safeRequest('/api/posts', []),
+    safeRequest('/api/users', []),
+    safeRequest('/api/post-images', []),
+    safeRequest('/api/locations', []),
+    safeRequest('/api/categories', DEFAULT_CATEGORIES)
   ]);
-  return { posts: posts || [], users: users || [], postImages: postImages || [] };
+  return {
+    posts: posts || [],
+    users: users || [],
+    postImages: postImages || [],
+    locations: locations || [],
+    categories: categories || []
+  };
 }
 
 function buildPostImageMap(postImages) {
@@ -52,9 +139,29 @@ function buildPostImageMap(postImages) {
   return map;
 }
 
-function mapPostToCard(post, usersMap, postImageMap) {
+function getUploadPath() {
+  const app = getApp && getApp();
+  const uploadPath = app && app.globalData && app.globalData.uploadApiPath;
+  return uploadPath || '/api/files/upload';
+}
+
+function parseUploadUrl(result) {
+  if (!result) return '';
+  if (typeof result === 'string') return result;
+  if (result.url) return result.url;
+  if (result.imageUrl) return result.imageUrl;
+  if (result.data && result.data.url) return result.data.url;
+  if (result.data && result.data.imageUrl) return result.data.imageUrl;
+  return '';
+}
+
+function mapPostToCard(post, usersMap, postImageMap, locationsMap = {}, categoriesMap = {}, postExtras = {}) {
   const user = usersMap[post.userId] || {};
   const images = (postImageMap[post.id] || []).map((item) => item.imageUrl).filter(Boolean);
+  const location = locationsMap[post.locationId] || {};
+  const category = categoriesMap[post.categoryId] || {};
+  const extra = postExtras[post.id] || {};
+
   return {
     id: post.id,
     title: post.title,
@@ -65,20 +172,28 @@ function mapPostToCard(post, usersMap, postImageMap) {
     authorAvatar: user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || 'U')}`,
     likes: post.likeCount || 0,
     likeCount: post.likeCount || 0,
+    categoryId: post.categoryId || null,
+    category: category.name || extra.categoryName || '推荐',
+    locationId: post.locationId || null,
+    location: location.title || extra.locationName || '',
+    geo: extra.geo || null,
     date: formatDateTime(post.createTime),
     createTime: post.createTime
   };
 }
 
 async function getHomeFeed(limit = 20) {
-  const { posts, users, postImages } = await loadFeedMaterials();
+  const { posts, users, postImages, locations, categories } = await loadFeedMaterials();
   const usersMap = buildUsersMap(users);
   const postImageMap = buildPostImageMap(postImages);
+  const locationsMap = buildLocationsMap(locations);
+  const categoriesMap = buildCategoriesMap(categories);
+  const postExtras = readPostExtrasMap();
 
   return posts
     .sort((a, b) => new Date(b.createTime || 0) - new Date(a.createTime || 0))
     .slice(0, limit)
-    .map((post) => mapPostToCard(post, usersMap, postImageMap));
+    .map((post) => mapPostToCard(post, usersMap, postImageMap, locationsMap, categoriesMap, postExtras));
 }
 
 async function getUpdatesFeed(limit = 20) {
@@ -104,6 +219,7 @@ async function getMapLocations() {
     const imgs = (imagesMap[item.id] || []).map((img) => img.imageUrl).filter(Boolean);
     return {
       id: item.id,
+      markerType: 'spot',
       latitude: Number(item.latitude),
       longitude: Number(item.longitude),
       title: item.title,
@@ -117,6 +233,50 @@ async function getMapLocations() {
       }
     };
   });
+}
+
+async function getMapPostMarkers(limit = 40) {
+  const [posts, users, locations, postImages] = await Promise.all([
+    safeRequest('/api/posts', []),
+    safeRequest('/api/users', []),
+    safeRequest('/api/locations', []),
+    safeRequest('/api/post-images', [])
+  ]);
+
+  const usersMap = buildUsersMap(users);
+  const locationsMap = buildLocationsMap(locations);
+  const postImageMap = buildPostImageMap(postImages);
+  const postExtras = readPostExtrasMap();
+
+  return (posts || [])
+    .sort((a, b) => new Date(b.createTime || 0) - new Date(a.createTime || 0))
+    .slice(0, limit)
+    .map((post) => {
+      const extra = postExtras[post.id] || {};
+      const loc = locationsMap[post.locationId] || {};
+      const geo = extra.geo || {};
+      const lat = Number(loc.latitude || geo.latitude);
+      const lng = Number(loc.longitude || geo.longitude);
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+
+      const card = mapPostToCard(post, usersMap, postImageMap, locationsMap, {}, postExtras);
+      return {
+        id: 1000000 + Number(post.id),
+        markerType: 'post',
+        postId: post.id,
+        latitude: lat,
+        longitude: lng,
+        title: card.title,
+        address: card.location || extra.ipLocation || '动态位置',
+        image: card.coverUrl,
+        desc: `${card.author} · ${card.category || '推荐'}`,
+        callout: {
+          content: `帖子: ${card.title}`,
+          display: 'NONE'
+        }
+      };
+    })
+    .filter(Boolean);
 }
 
 async function getLocationDetail(locationId) {
@@ -152,6 +312,74 @@ async function getHotSearchList() {
       text: item.keyword,
       hot: `${item.hotValue || 0}`
     }));
+}
+
+async function getCategories() {
+  const categories = await safeRequest('/api/categories', DEFAULT_CATEGORIES);
+  return (categories || []).map((item, index) => ({
+    id: item.id || index + 1,
+    name: item.name || item.title || `分类${index + 1}`
+  }));
+}
+
+function getCurrentLocationInfo() {
+  return new Promise((resolve) => {
+    wx.getLocation({
+      type: 'gcj02',
+      isHighAccuracy: true,
+      success: (res) => {
+        resolve({
+          ok: true,
+          latitude: Number(res.latitude),
+          longitude: Number(res.longitude),
+          ipLocation: '当前位置',
+          source: 'gps'
+        });
+      },
+      fail: () => {
+        resolve({
+          ok: false,
+          latitude: null,
+          longitude: null,
+          ipLocation: '未授权定位',
+          source: 'none'
+        });
+      }
+    });
+  });
+}
+
+async function getPublishOptions(currentGeo = null) {
+  const [categories, locations] = await Promise.all([
+    getCategories(),
+    getMapLocations()
+  ]);
+
+  const withDistance = (locations || []).map((item) => {
+    const distanceKm = currentGeo && currentGeo.latitude && currentGeo.longitude
+      ? calcDistanceKm(currentGeo.latitude, currentGeo.longitude, item.latitude, item.longitude)
+      : null;
+    return {
+      id: item.id,
+      title: item.title,
+      distanceKm,
+      distance: formatDistance(distanceKm),
+      latitude: item.latitude,
+      longitude: item.longitude
+    };
+  });
+
+  withDistance.sort((a, b) => {
+    if (a.distanceKm == null && b.distanceKm == null) return 0;
+    if (a.distanceKm == null) return 1;
+    if (b.distanceKm == null) return -1;
+    return a.distanceKm - b.distanceKm;
+  });
+
+  return {
+    categories,
+    nearbyLocations: withDistance.slice(0, 20)
+  };
 }
 
 async function searchKeyword(keyword, userId) {
@@ -244,16 +472,21 @@ async function loginWithWeChatCode(code, profile = {}) {
 }
 
 async function getArticleDetail(postId, currentUserId) {
-  const [post, users, postImages, actions] = await Promise.all([
+  const [post, users, postImages, actions, locations, categories] = await Promise.all([
     request({ path: `/api/posts/${postId}` }),
     request({ path: '/api/users' }),
     request({ path: '/api/post-images' }),
-    request({ path: '/api/actions' })
+    request({ path: '/api/actions' }),
+    safeRequest('/api/locations', []),
+    safeRequest('/api/categories', DEFAULT_CATEGORIES)
   ]);
 
   const usersMap = buildUsersMap(users || []);
   const postImageMap = buildPostImageMap(postImages || []);
-  const mapped = mapPostToCard(post, usersMap, postImageMap);
+  const locationsMap = buildLocationsMap(locations || []);
+  const categoriesMap = buildCategoriesMap(categories || []);
+  const postExtras = readPostExtrasMap();
+  const mapped = mapPostToCard(post, usersMap, postImageMap, locationsMap, categoriesMap, postExtras);
 
   const myActions = (actions || []).filter((item) =>
     `${item.userId}` === `${currentUserId}` && `${item.postId}` === `${postId}`
@@ -359,7 +592,18 @@ async function getUserCollections(userId) {
     });
 }
 
-async function createPost({ title, content, images, userId, categoryId = 1, locationId = null }) {
+async function createPost({
+  title,
+  content,
+  images,
+  userId,
+  categoryId = 1,
+  categoryName = '推荐',
+  locationId = null,
+  locationName = '',
+  geo = null,
+  ipLocation = ''
+}) {
   const now = new Date().toISOString();
   const post = await request({
     path: '/api/posts',
@@ -376,9 +620,22 @@ async function createPost({ title, content, images, userId, categoryId = 1, loca
     }
   });
 
-  const httpImages = (images || []).filter((item) => /^https?:\/\//i.test(item));
-  if (httpImages.length) {
-    await Promise.all(httpImages.map((imageUrl, index) => request({
+  const remoteImages = (images || []).filter((item) => /^https?:\/\//i.test(item));
+  const localImages = (images || []).filter((item) => !/^https?:\/\//i.test(item));
+
+  let uploadedImages = [];
+  if (localImages.length) {
+    const uploadPath = getUploadPath();
+    const uploadResults = await Promise.all(localImages.map((filePath) =>
+      upload({ path: uploadPath, filePath, name: 'file', withAuth: true })
+    ));
+    uploadedImages = uploadResults.map((item) => parseUploadUrl(item)).filter(Boolean);
+  }
+
+  const allImageUrls = remoteImages.concat(uploadedImages);
+
+  if (allImageUrls.length) {
+    await Promise.all(allImageUrls.map((imageUrl, index) => request({
       path: '/api/post-images',
       method: 'POST',
       data: {
@@ -390,6 +647,15 @@ async function createPost({ title, content, images, userId, categoryId = 1, loca
       }
     })));
   }
+
+  upsertPostExtra(post.id, {
+    locationId,
+    locationName,
+    categoryId,
+    categoryName,
+    geo,
+    ipLocation
+  });
 
   return post;
 }
@@ -418,6 +684,58 @@ async function getFuturePrediction(spotId) {
   };
 }
 
+async function getNextDestinationForecast(spotId) {
+  const locations = await safeRequest('/api/locations', []);
+  const peers = (locations || []).filter((item) => `${item.id}` !== `${spotId}`);
+  if (!peers.length) {
+    return [];
+  }
+
+  const now = new Date();
+  const rows = [];
+  for (let i = 1; i <= 6; i += 1) {
+    const date = new Date(now.getTime() + i * 60 * 60 * 1000);
+    const seed = Number(spotId || 1) * 17 + date.getHours() * 31 + i * 11;
+    const first = peers[seed % peers.length];
+    const second = peers[(seed + 3) % peers.length];
+    const third = peers[(seed + 7) % peers.length];
+
+    const total = 60 + (seed % 80);
+    const firstRate = 0.42;
+    const secondRate = 0.33;
+    const thirdRate = 0.25;
+
+    rows.push({
+      hour: `${`${date.getHours()}`.padStart(2, '0')}:00`,
+      transitions: [
+        {
+          locationId: first.id,
+          locationName: first.title,
+          ratio: firstRate,
+          ratioText: `${Math.round(firstRate * 100)}%`,
+          users: Math.round(total * firstRate)
+        },
+        {
+          locationId: second.id,
+          locationName: second.title,
+          ratio: secondRate,
+          ratioText: `${Math.round(secondRate * 100)}%`,
+          users: Math.round(total * secondRate)
+        },
+        {
+          locationId: third.id,
+          locationName: third.title,
+          ratio: thirdRate,
+          ratioText: `${Math.round(thirdRate * 100)}%`,
+          users: Math.round(total * thirdRate)
+        }
+      ]
+    });
+  }
+
+  return rows;
+}
+
 module.exports = {
   getHomeFeed,
   getUpdatesFeed,
@@ -434,5 +752,10 @@ module.exports = {
   addComment,
   getUserCollections,
   createPost,
-  getFuturePrediction
+  getFuturePrediction,
+  getCategories,
+  getCurrentLocationInfo,
+  getPublishOptions,
+  getMapPostMarkers,
+  getNextDestinationForecast
 };

@@ -11,9 +11,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import org.daiso.cidi.core.error.CidiException;
 import org.daiso.cidi.core.error.ErrorCode;
 import org.daiso.cidi.core.properties.Wxproperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -22,6 +25,8 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 public class WeChatApiUtil {
+
+    private static final Logger log = LoggerFactory.getLogger(WeChatApiUtil.class);
 
     private final Wxproperties wxproperties;
     private final RestTemplate restTemplate;
@@ -45,10 +50,18 @@ public class WeChatApiUtil {
     }
 
     public WeChatSessionInfo getSessionInfoFromCode(String code) {
-        validateConfig();
         if (!StringUtils.hasText(code)) {
             throw new CidiException(ErrorCode.BAD_REQUEST, "微信登录 code 不能为空");
         }
+
+        if (!hasValidConfig()) {
+            if (wxproperties.isMockLoginEnabled()) {
+                log.warn("WX config missing, using mock login session in current profile");
+                return buildMockSessionInfo(code);
+            }
+            throw new CidiException(ErrorCode.WECHAT_CONFIG_MISSING, "请检查 WX_APPID/WX_SECRET 配置");
+        }
+
         String encodedCode = URLEncoder.encode(code, StandardCharsets.UTF_8);
         String url = String.format(WECHAT_API_URL, wxproperties.getAppid(), wxproperties.getSecret(), encodedCode);
 
@@ -69,8 +82,16 @@ public class WeChatApiUtil {
                     rootNode.path("session_key").asText(null)
             );
         } catch (CidiException ex) {
+            if (wxproperties.isMockLoginEnabled() && isRetryableWechatError(ex)) {
+                log.warn("WeChat login failed, fallback to mock session. cause={}", ex.getMessage());
+                return buildMockSessionInfo(code);
+            }
             throw ex;
         } catch (Exception ex) {
+            if (wxproperties.isMockLoginEnabled()) {
+                log.warn("WeChat login exception, fallback to mock session", ex);
+                return buildMockSessionInfo(code);
+            }
             throw new CidiException(ErrorCode.WECHAT_API_ERROR, "调用微信接口异常", ex);
         }
     }
@@ -146,6 +167,28 @@ public class WeChatApiUtil {
         if (!StringUtils.hasText(wxproperties.getAppid()) || !StringUtils.hasText(wxproperties.getSecret())) {
             throw new CidiException(ErrorCode.WECHAT_CONFIG_MISSING, "请检查 WX_APPID/WX_SECRET 配置");
         }
+    }
+
+    private boolean hasValidConfig() {
+        return StringUtils.hasText(wxproperties.getAppid()) && StringUtils.hasText(wxproperties.getSecret());
+    }
+
+    private boolean isRetryableWechatError(CidiException ex) {
+        ErrorCode code = ex.getErrorCode();
+        return code == ErrorCode.WECHAT_API_ERROR || code == ErrorCode.WECHAT_CONFIG_MISSING;
+    }
+
+    private WeChatSessionInfo buildMockSessionInfo(String code) {
+        String normalized = code.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+        if (!StringUtils.hasText(normalized)) {
+            normalized = "anonymous";
+        }
+        if (normalized.length() > 20) {
+            normalized = normalized.substring(0, 20);
+        }
+        String openid = "mock_" + normalized;
+        String sessionKey = "mock_session_" + normalized;
+        return new WeChatSessionInfo(openid, null, sessionKey);
     }
 
     private void handleWeChatError(JsonNode rootNode, String operation) {

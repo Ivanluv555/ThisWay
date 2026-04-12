@@ -8,6 +8,10 @@
       <block wx:for="{{leftList}}" wx:key="id">
         <view class="card" bindtap="goDetail" data-id="{{item.id}}">
           <image class="card-image" src="{{item.imageUrl}}" mode="widthFix" />
+          <view class="mini-tags">
+            <text class="mini-tag">{{item.category}}</text>
+            <text class="mini-loc">📍 {{item.location}}</text>
+          </view>
           <text class="card-title">{{item.title}}</text>
           <view class="card-footer">
             <view class="card-author">
@@ -23,6 +27,10 @@
       <block wx:for="{{rightList}}" wx:key="id">
         <view class="card" bindtap="goDetail" data-id="{{item.id}}">
           <image class="card-image" src="{{item.imageUrl}}" mode="widthFix" />
+          <view class="mini-tags">
+            <text class="mini-tag">{{item.category}}</text>
+            <text class="mini-loc">📍 {{item.location}}</text>
+          </view>
           <text class="card-title">{{item.title}}</text>
           <view class="card-footer">
             <view class="card-author">

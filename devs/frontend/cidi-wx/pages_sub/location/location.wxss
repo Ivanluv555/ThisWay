@@ -64,3 +64,78 @@
   font-weight: 500;
   color: #333;
 }
+
+.flow-card {
+  background: #fff9ef;
+  border: 1rpx solid #f5dfbe;
+  border-radius: 16rpx;
+  margin: 20rpx 0 30rpx;
+  padding: 20rpx;
+}
+
+.flow-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.flow-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #8a5d1a;
+}
+
+.flow-sub {
+  font-size: 22rpx;
+  color: #b08d5a;
+}
+
+.flow-loading {
+  font-size: 24rpx;
+  color: #8a8a8a;
+  padding: 12rpx 0;
+}
+
+.hour-row {
+  border-top: 1rpx dashed #edd9ba;
+  padding-top: 12rpx;
+  margin-top: 12rpx;
+}
+
+.hour-tag {
+  display: inline-block;
+  font-size: 22rpx;
+  color: #7c5b30;
+  background: #fbe9cd;
+  border-radius: 999rpx;
+  padding: 4rpx 14rpx;
+  margin-bottom: 10rpx;
+}
+
+.dest-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.dest-item {
+  background: #fff;
+  border: 1rpx solid #ecd2ac;
+  border-radius: 12rpx;
+  padding: 8rpx 12rpx;
+  display: flex;
+  align-items: center;
+}
+
+.dest-name {
+  font-size: 22rpx;
+  color: #5f4730;
+  margin-right: 12rpx;
+}
+
+.dest-ratio {
+  font-size: 22rpx;
+  color: #b97114;
+  font-weight: 600;
+}

@@ -65,6 +65,28 @@
   line-height: 1.5;
 }
 
+.mini-tags {
+  display: flex;
+  flex-direction: column;
+  padding: 14rpx 18rpx 0;
+}
+
+.mini-tag {
+  display: inline-block;
+  width: fit-content;
+  font-size: 20rpx;
+  color: #8a6226;
+  background: #f8efdf;
+  border-radius: 999rpx;
+  padding: 3rpx 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.mini-loc {
+  font-size: 21rpx;
+  color: #7c838f;
+}
+
 .card-footer {
   display: flex;
   align-items: center;

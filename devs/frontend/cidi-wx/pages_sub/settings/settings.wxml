@@ -1,8 +1,19 @@
 <view class="container">
   <view class="group">
-    <view class="cell"><text>账号安全</text><text class="arrow">></text></view>
-    <view class="cell"><text>隐私设置</text><text class="arrow">></text></view>
-    <view class="cell"><text>通用</text><text class="arrow">></text></view>
+    <view class="cell-title">后端连接设置</view>
+    <view class="input-wrap">
+      <input class="api-input" value="{{apiBaseUrl}}" bindinput="onApiInput" placeholder="http://127.0.0.1:8080" />
+    </view>
+    <view class="action-row">
+      <button class="mini-btn" bindtap="useLocalhost">默认本机</button>
+      <button class="mini-btn primary" bindtap="saveApiBaseUrl">保存地址</button>
+    </view>
+    <button class="test-btn" bindtap="testConnection" loading="{{testing}}">测试连接</button>
+    <view class="result {{testStatus}}" wx:if="{{testResult}}">{{testResult}}</view>
+    <view class="tips">
+      <text>提示1：真机调试时不能用 127.0.0.1，请改为电脑局域网 IP（如 http://192.168.x.x:8080）</text>
+      <text>提示2：后端需先启动，并保持端口 8080 可访问</text>
+    </view>
   </view>
   <button class="logout">退出登录</button>
 </view>

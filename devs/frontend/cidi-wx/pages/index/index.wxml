@@ -1,8 +1,8 @@
 <view class="container">
-  <view class="sticky-header {{isScrolled ? 'shrunk' : ''}}">
-    <view class="hero-area">
-      <text class="hero-title">{{greeting}}</text>
-      <view class="search-box" bindtap="goSearch">
+  <view class="sticky-header" style="{{headerStyle}}">
+    <view class="hero-area" style="{{heroAreaStyle}}">
+      <text class="hero-title" style="{{titleStyle}}">{{greeting}}</text>
+      <view class="search-box" bindtap="goSearch" style="{{searchStyle}}">
         <icon type="search" size="18" color="#999"/>
         <input placeholder="搜索目的地 / 笔记" placeholder-class="ph-style" disabled />
       </view>
@@ -26,8 +26,9 @@
         
         <view class="card-info">
           <view class="card-tag">
-            <text>📍 重庆 · 渝中区</text>
+            <text>📍 {{item.location || '待补充位置'}}</text>
           </view>
+          <view class="card-sub-tag">{{item.category || '推荐'}}</view>
           
           <text class="card-title">{{item.title}}</text>
           
