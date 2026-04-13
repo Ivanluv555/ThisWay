@@ -46,7 +46,7 @@ SPOT_PROFILE_OVERRIDES: Dict[str, Tuple[str, float]] = {
     "江北嘴公园":    ("park",            0.98), "观音桥":          ("commercial_core", 1.25),
     "大礼堂":        ("museum",          1.05), "十八梯":          ("historic",        1.15),
     "白公馆渣滓洞":  ("museum",          1.00), "歌乐山革命纪念馆": ("museum",          0.95),
-    "南山植物园":    ("park",            1.05), "重庆大剧院":      ("theater",         1.08),
+    "南山植物园（北门）": ("park",            1.05), "南山植物园":      ("park",            1.05), "重庆大剧院":      ("theater",         1.08),
     "磁器口":        ("historic",        1.30), "建川博物馆":      ("museum",          0.92),
     "鸿恩寺":        ("park",            0.92), "鹅岭公园":        ("park",            0.95),
     "鹅岭印刷二厂":  ("historic",        1.02), "三峡博物馆":      ("museum",          1.18),
