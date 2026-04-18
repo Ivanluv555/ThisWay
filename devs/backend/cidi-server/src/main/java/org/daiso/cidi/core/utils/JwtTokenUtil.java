@@ -1,8 +1,9 @@
 /**
  * JwtTokenUtil
  *
- * 说明：本文件定义了 JwtTokenUtil，是 cidi-server 项目中的核心代码文件之一。
- *
+ * 说明：本文件定义了 JwtTokenUtil
+ * JwtTokenUtil是一个可以鉴别用户身份的工具
+ * 提供生成、解析和验证 JWT Token 的相关功能
  */
 
 package org.daiso.cidi.core.utils;
@@ -12,6 +13,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.daiso.cidi.core.properties.Jwtproperties;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -28,7 +30,7 @@ public class JwtTokenUtil {
 
     // 1. 根据 secret 生成一个安全的密钥
     private SecretKey getKey() {
-        String secret = jwtproperties.getSecret();
+        String secret = jwtproperties.getSecret(); // 从配置中获取 secret
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
@@ -39,7 +41,7 @@ public class JwtTokenUtil {
      */
     public String generateToken(String userId) {
         Date now = new Date();
-        long expiration = jwtproperties.getExpiration();
+        long expiration = jwtproperties.getExpiration(); // 过期时间，单位毫秒
         Date expiryDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
@@ -67,7 +69,7 @@ public class JwtTokenUtil {
     }
 
     // --- 内部辅助方法 ---
-    private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+    private <T> T getClaimFromToken(String token, @NonNull Function<Claims, T> claimsResolver) {
         Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
