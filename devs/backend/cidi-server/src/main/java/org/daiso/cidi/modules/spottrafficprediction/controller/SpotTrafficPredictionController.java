@@ -88,4 +88,12 @@ public class SpotTrafficPredictionController {
     public List<SpotTrafficPrediction> getLatest() {
         return service.findLatestRound();
     }
+
+    /**
+     * 查询最近 21 条预测记录，并按 crowdDensity 从小到大返回
+     */
+    @GetMapping("/recent/crowd-density-asc")
+    public List<SpotTrafficPrediction> getRecent21ByCrowdDensityAsc() {
+        return service.findRecent21ByCrowdDensityAsc();
+    }
 }

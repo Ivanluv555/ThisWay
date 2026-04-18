@@ -8,6 +8,7 @@
 package org.daiso.cidi.modules.spottrafficprediction.repository;
 
 import org.daiso.cidi.modules.spottrafficprediction.entity.SpotTrafficPrediction;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -22,6 +23,8 @@ public interface SpotTrafficPredictionRepository extends JpaRepository<SpotTraff
         "WHERE p.predictTime = (SELECT MAX(q.predictTime) FROM SpotTrafficPrediction q) " +
         "ORDER BY p.spotId ASC")
     List<SpotTrafficPrediction> findLatestRound();
+
+    List<SpotTrafficPrediction> findAllByOrderByCreateTimeDesc(Pageable pageable);
 
     void deleteBySpotIdIn(java.util.Collection<Long> spotIds);
 }
