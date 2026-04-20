@@ -11,6 +11,10 @@ from fastapi.concurrency import run_in_threadpool
 
 from app import config
 from app.services.crowd_index_service import compute_batch_congestion_index
+from app.services.visitor_profile_service import (
+    initialize_spot_profiles,
+    generate_all_visitor_counts,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -175,10 +179,8 @@ def _run_single_tick_sync() -> Dict[str, Any]:
         raise RuntimeError("locations 表中没有可用景点数据")
 
     record_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
-    visitor_map = {
-        int(loc["id"]): random.randint(SIMULATION_VISITOR_MIN, SIMULATION_VISITOR_MAX)
-        for loc in locations
-    }
+    # 使用基于景点特征的智能访客生成（参照 Future_Pridect.py）
+    visitor_map = generate_all_visitor_counts(locations, current_time=record_hour)
     ci_map = compute_batch_congestion_index(visitor_map)
 
     rows = [
@@ -235,6 +237,10 @@ async def start_simulation() -> Dict[str, Any]:
         return get_simulation_status()
 
     await check_mysql_ready()
+
+    # 初始化景点特征缓存（为每个景点生成基础流量）
+    locations_for_init = await get_all_locations()
+    await run_in_threadpool(initialize_spot_profiles, locations_for_init)
 
     _stop_event = asyncio.Event()
     _state["running"] = True
