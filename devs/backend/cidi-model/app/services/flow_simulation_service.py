@@ -4,7 +4,7 @@ import asyncio
 import logging
 import random
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from fastapi.concurrency import run_in_threadpool
@@ -205,6 +205,74 @@ def _run_single_tick_sync() -> Dict[str, Any]:
     }
 
 
+def _generate_and_write_multiple_hours_sync(hours: int, lookback: bool = False) -> Dict[str, Any]:
+    """一次性生成并写入指定小时数的模拟数据。
+    
+    用于开发测试阶段快速填充历史数据，避免等待定时任务。
+    
+    Args:
+        hours: 要生成的小时数（正整数，最多 720 即 30 天）
+        lookback: 是否生成往回的历史数据；False=生成往未来的数据，True=生成往过去的数据
+        
+    Returns:
+        包含生成统计信息的字典
+    """
+    if hours <= 0:
+        raise ValueError("hours 必须是正整数")
+    if hours > 720:
+        raise ValueError("最多一次性生成 720 小时（30 天）的数据")
+    
+    locations = _get_all_locations_sync()
+    if not locations:
+        raise RuntimeError("locations 表中没有可用景点数据")
+    
+    spot_count = len(locations)
+    all_records = []
+    
+    # 生成时间范围
+    now = datetime.now().replace(minute=0, second=0, microsecond=0)
+    
+    if lookback:
+        # 往过去生成：从 now - hours 到 now
+        start_time = now - timedelta(hours=hours)
+        time_range = [start_time + timedelta(hours=i) for i in range(hours)]
+    else:
+        # 往未来生成：从 now + 1 到 now + hours
+        time_range = [now + timedelta(hours=i+1) for i in range(hours)]
+    
+    # 为每个时间点生成所有景点的数据
+    for record_hour in time_range:
+        visitor_map = generate_all_visitor_counts(locations, current_time=record_hour)
+        ci_map = compute_batch_congestion_index(visitor_map)
+        
+        for location_id in visitor_map:
+            all_records.append(
+                (
+                    location_id,
+                    record_hour,
+                    visitor_map[location_id],
+                    ci_map[location_id],
+                    "simulated",
+                )
+            )
+    
+    # 一次性写入所有记录
+    write_result = _upsert_location_hourly_flow_sync(all_records)
+    
+    total_records = len(all_records)
+    date_range_desc = f"从 {time_range[0].isoformat()} 到 {time_range[-1].isoformat()}"
+    
+    return {
+        "totalRecords": total_records,
+        "hoursGenerated": hours,
+        "spotsCount": spot_count,
+        "dateRange": date_range_desc,
+        "inserted": write_result["inserted"],
+        "skipped": write_result["skipped"],
+        "dataSource": "simulated",
+    }
+
+
 async def check_mysql_ready() -> Dict[str, Any]:
     return await run_in_threadpool(_check_mysql_ready_sync)
 
@@ -224,6 +292,11 @@ async def run_single_tick() -> Dict[str, Any]:
 
 async def get_latest_location_flows(location_id: Optional[int] = None) -> List[Dict[str, Any]]:
     return await run_in_threadpool(_get_latest_location_flows_sync, location_id)
+
+
+async def generate_and_write_multiple_hours(hours: int, lookback: bool = False) -> Dict[str, Any]:
+    """异步包装：一次性生成并写入指定小时数的模拟数据。"""
+    return await run_in_threadpool(_generate_and_write_multiple_hours_sync, hours, lookback)
 
 
 def get_simulation_status() -> Dict[str, Any]:

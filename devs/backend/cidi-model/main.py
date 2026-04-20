@@ -41,6 +41,7 @@ from app.models import (
 from app.services.crowd_index_service import build_crowd_index_items
 from app.services.district_lookup_service import resolve_district_context
 from app.services.flow_simulation_service import (
+    generate_and_write_multiple_hours,
     get_all_location_ids,
     get_latest_location_flows,
     get_simulation_status,
@@ -291,6 +292,32 @@ async def toggle_flow_simulation(
 async def get_flow_simulation_status():
     """查询模拟定时上报任务当前状态。"""
     return get_simulation_status()
+
+
+@app.post("/flow/simulation/batch-insert", tags=["数据采集"], status_code=201)
+async def batch_insert_simulation_data(
+    hours: int = Query(..., ge=1, le=720, description="要生成的小时数（1-720，最多30天）"),
+    lookback: bool = Query(default=False, description="是否生成往过去的历史数据；False=往未来，True=往过去"),
+):
+    """一次性生成并上报指定小时数的模拟数据（开发测试用）。
+    
+    用于快速填充测试数据，避免等待定时任务的 60 秒执行周期。
+    
+    参数：
+    - hours: 1-720，表示要生成多少小时的数据
+    - lookback: 
+        - False（默认）：生成未来的数据，如 hours=24 则生成接下来 24 小时的数据
+        - True：生成过去的数据，如 hours=24 则生成过去 24 小时的数据
+    """
+    try:
+        result = await generate_and_write_multiple_hours(hours=hours, lookback=lookback)
+        return {
+            "status": "success",
+            "message": f"已生成并上报 {hours} 小时的模拟数据",
+            **result,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"批量上报失败: {e}")
 
 
 @app.get("/locations/ids", tags=["数据采集"])
