@@ -338,4 +338,4 @@ def test_xiannvshan_crowd_index() -> None:
 
 if __name__ == "__main__":
     test_xiannvshan_crowd_index()
-    print(f"Example Xiannvshan Crowd Index: {example_xiannvshan_crowd_index():.3f}")
+    print(f"Example Xiannvshan Crowd Index: {example_xiannvshan_crowd_index():.3f}")8

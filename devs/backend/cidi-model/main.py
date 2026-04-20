@@ -2,12 +2,22 @@
 cidi-model FastAPI 主入口
 
 启动：
+    cd .\devs\backend\cidi-model
     uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 
 环境变量：
     SPRING_BASE_URL   Spring Boot 地址（默认 http://localhost:8080）
     SCENIC_SEED       随机种子（默认 42）
     HISTORY_HOURS     历史追溯小时数（默认 168）
+    MYSQL_HOST        MySQL 地址（默认 127.0.0.1）
+    MYSQL_PORT        MySQL 端口（默认 3306）
+    MYSQL_USER        MySQL 用户（默认 root）
+    MYSQL_PASSWORD    MySQL 密码
+    MYSQL_DATABASE    MySQL 库名（默认 cidi_db）
+    MYSQL_TABLE_SPIDER_SPOTS  spider 景点表名（默认 spider_regional_scenic_spots）
+    MYSQL_TABLE_SPIDER_SPOT_DETAILS  spider 景点详情表名（默认 spider_scenic_spot_details）
+    SPOT_DETAIL_SYNC_DELAY_SECONDS   详情同步请求间隔秒数（默认 1.5）
+    SPOT_DETAIL_SYNC_JITTER_SECONDS  详情同步抖动秒数（默认 0.8）
 """
 import logging
 from datetime import datetime, timedelta
@@ -15,11 +25,16 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config
 from app.models import HourlyFlowRecord, PredictionRecord, PredictResponse
+from app.spider.xc_spot_search import xc_fetch_search
+from app.spider.xc_spot_detail import xc_fetch_detail
+from app.services.spot_detail_sync_service import check_spot_detail_sync_ready, sync_region_spot_details
+from app.services.spot_sync_service import crawl_and_prepare_spots
 from app.predictor import (
     DiversionPolicy,
     ci_to_level,
@@ -45,7 +60,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # ══════════════════════════════════════════════════════════════════
 # 健康检查
@@ -223,3 +237,95 @@ async def get_latest_predictions():
 async def calculate_crowd_index():
     
     return {"message": "拥挤指数计算接口正在开发中，敬请期待！"}
+
+
+# ══════════════════════════════════════════════════════════════════
+# 获取所有的景点列表
+# 遍历所有的景点，并且更新数据库存储的景点数据，没有则添加，有则更新
+# ══════════════════════════════════════════════════════════════════
+@app.get("/spots/all", tags=["数据采集"])
+async def crawl_all_spots(
+    keyword: str = Query(default="重庆", min_length=1, description="待遍历地点，例如：重庆"),
+):
+    """遍历指定地点的全部景点并打印结果；MySQL 写入逻辑暂留空。"""
+    return await crawl_and_prepare_spots(keyword)
+
+
+@app.post("/spots/sync", tags=["数据采集"])
+async def sync_spots(
+    keyword: str = Query(..., min_length=1, description="待同步地点，例如：重庆"),
+):
+    """同步入口：参数仅地点字符串。分页由服务内部控制，不对外暴露。"""
+    return await crawl_and_prepare_spots(keyword)
+
+
+@app.post("/spots/details/sync", tags=["数据采集"], status_code=202)
+async def sync_spot_details(
+    background_tasks: BackgroundTasks,
+    keyword: str = Query(..., min_length=1, description="待同步地区，例如：重庆"),
+):
+    """异步同步指定地区的景点详情，立即返回任务已受理。"""
+    try:
+        await run_in_threadpool(check_spot_detail_sync_ready)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"景点详情同步前置检查失败: {e}")
+
+    background_tasks.add_task(sync_region_spot_details, keyword)
+    return {
+        "message": f"已接收 {keyword} 地区景点详情同步任务，后台将异步执行。",
+        "keyword": keyword,
+        "status": "accepted",
+    }
+
+
+
+# ══════════════════════════════════════════════════════════════════
+# 搜索地区的景区列表
+# ══════════════════════════════════════════════════════════════════
+@app.get("/spots", tags=["数据采集"])
+async def search_spots(
+    keyword: str = Query(default="重庆", min_length=1, description="搜索关键词"),
+    pageIndex: Optional[int] = Query(default=None, ge=1, alias="pageIndex", description="页码，从 1 开始"),
+    pageSize: Optional[int] = Query(default=None, ge=1, le=50, alias="pageSize", description="每页条数"),
+    page_index: Optional[int] = Query(default=None, ge=1, alias="page_index", description="页码，从 1 开始（兼容下划线命名）"),
+    page_size: Optional[int] = Query(default=None, ge=1, le=50, alias="page_size", description="每页条数（兼容下划线命名）"),
+):
+    """通过携程景点搜索接口查询景区数据。"""
+
+    effective_page_index = page_index if page_index is not None else (pageIndex if pageIndex is not None else 1)
+    effective_page_size = page_size if page_size is not None else (pageSize if pageSize is not None else 12)
+
+    try:
+        result = await run_in_threadpool(xc_fetch_search, keyword, effective_page_index, effective_page_size)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"查询景区数据失败: {e}")
+
+    return {
+        "keyword": keyword,
+        "pageIndex": effective_page_index,
+        "pageSize": effective_page_size,
+        **result,
+    }
+
+# 重庆 district_code 158
+# ══════════════════════════════════════════════════════════════════
+# 查询指定景区的详细数据
+# ══════════════════════════════════════════════════════════════════
+@app.get("/spots/{district_code}/{sight_code}", tags=["数据采集"])
+async def get_spot_detail(district_code: int, sight_code: int):
+    """通过携程景点详情页查询指定景区详细数据（含介绍、政策、设施、问答、点评与图片）。"""
+    try:
+        detail = await run_in_threadpool(xc_fetch_detail, district_code, sight_code)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"查询景区详情失败: {e}")
+
+    spot_name = detail.get("spot", {}).get("name", "") if isinstance(detail, dict) else ""
+    if not spot_name:
+        raise HTTPException(status_code=404, detail="未找到景区详情，可能景点不存在或页面结构已变化")
+
+    return {
+        "district_code": district_code,
+        "sight_code": sight_code,
+        **detail,
+    }
+

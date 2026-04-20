@@ -3,7 +3,6 @@ from app.spider.xc_spider import XCSpider
 
 travel_spot_search_bp = Blueprint('travel_spot_search', __name__)
 
-# TODO: 改为 post 请求，以及传参方式
 @travel_spot_search_bp.route('/search')
 def search():
     keyword = request.args.get('keyword', '重庆')
