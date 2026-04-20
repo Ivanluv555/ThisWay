@@ -30,8 +30,23 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config
-from app.models import DistrictLookupResponse, HourlyFlowRecord, PredictionRecord, PredictResponse
+from app.models import (
+    CrowdIndexResponse,
+    DistrictLookupResponse,
+    HourlyFlowRecord,
+    PredictResponse,
+    PredictionRecord,
+    SimulationStatusResponse,
+)
+from app.services.crowd_index_service import build_crowd_index_items
 from app.services.district_lookup_service import resolve_district_context
+from app.services.flow_simulation_service import (
+    get_all_location_ids,
+    get_latest_location_flows,
+    get_simulation_status,
+    start_simulation,
+    stop_simulation,
+)
 from app.spider.xc_spot_search import xc_fetch_search
 from app.spider.xc_spot_detail import xc_fetch_detail
 from app.services.spot_detail_sync_service import check_spot_detail_sync_ready, sync_region_spot_details
@@ -234,10 +249,57 @@ async def get_latest_predictions():
 # ══════════════════════════════════════════════════════════════════
 # 接收参数，完成指定景区的拥挤指数计算（正在开发中...）
 # ══════════════════════════════════════════════════════════════════
-@app.get("/crowd-index", tags=["拥挤指数"])
-async def calculate_crowd_index():
-    
-    return {"message": "拥挤指数计算接口正在开发中，敬请期待！"}
+@app.get("/crowd-index", response_model=CrowdIndexResponse, tags=["拥挤指数"])
+async def calculate_crowd_index(
+    location_id: Optional[int] = Query(default=None, ge=1, description="景点ID；为空时返回全部景点最新拥挤指数"),
+):
+    """读取 location_hourly_flow 最新客流数据并计算拥挤指数。"""
+    try:
+        rows = await get_latest_location_flows(location_id=location_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"读取客流数据失败: {e}")
+
+    if not rows:
+        raise HTTPException(status_code=404, detail="未找到可用于计算拥挤指数的数据")
+
+    items = build_crowd_index_items(rows)
+    latest_record_hour = max(row["record_hour"] for row in rows)
+    return {
+        "recordHour": latest_record_hour.isoformat() if latest_record_hour else None,
+        "itemCount": len(items),
+        "items": items,
+    }
+
+
+# ══════════════════════════════════════════════════════════════════
+# 模拟定时上报：启停控制
+# ══════════════════════════════════════════════════════════════════
+@app.post("/flow/simulation/toggle", response_model=SimulationStatusResponse, tags=["数据采集"])
+async def toggle_flow_simulation(
+    enabled: bool = Query(..., description="是否启动模拟上报；true=启动，false=停止"),
+):
+    """启停模拟定时上报任务（单实例，后台非阻塞执行）。"""
+    try:
+        if enabled:
+            return await start_simulation()
+        return stop_simulation()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"切换模拟任务状态失败: {e}")
+
+
+@app.get("/flow/simulation/status", response_model=SimulationStatusResponse, tags=["数据采集"])
+async def get_flow_simulation_status():
+    """查询模拟定时上报任务当前状态。"""
+    return get_simulation_status()
+
+
+@app.get("/locations/ids", tags=["数据采集"])
+async def get_locations_id_list():
+    """读取 locations 全量景点并返回 ID 列表（当前测试集即重庆景点）。"""
+    try:
+        return {"ids": await get_all_location_ids()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"读取 locations 失败: {e}")
 
 
 # ══════════════════════════════════════════════════════════════════

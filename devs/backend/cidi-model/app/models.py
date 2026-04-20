@@ -64,6 +64,34 @@ class DistrictLookupResponse(BaseModel):
     districtName: str = ""
 
 
+# ── 拥挤指数查询返回 ───────────────────────────────────────────────────────────
+class CrowdIndexItem(BaseModel):
+    locationId: int
+    locationTitle: str
+    visitorCount: int
+    congestionIndex: float
+
+
+class CrowdIndexResponse(BaseModel):
+    recordHour: Optional[str] = None
+    itemCount: int
+    items: List[CrowdIndexItem]
+
+
+# ── 模拟上报任务状态 ──────────────────────────────────────────────────────────
+class SimulationStatusResponse(BaseModel):
+    running: bool
+    stopping: bool
+    startedAt: Optional[str] = None
+    lastRunAt: Optional[str] = None
+    lastError: Optional[str] = None
+    tickCount: int = 0
+    lastSummary: Optional[dict] = None
+    intervalSeconds: int
+    visitorMin: int
+    visitorMax: int
+
+
 # ── 预测任务返回结构 ──────────────────────────────────────────────────────────
 class PredictResponse(BaseModel):
     predictions: List[PredictionRecord]
