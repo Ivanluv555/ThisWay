@@ -30,7 +30,8 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config
-from app.models import HourlyFlowRecord, PredictionRecord, PredictResponse
+from app.models import DistrictLookupResponse, HourlyFlowRecord, PredictionRecord, PredictResponse
+from app.services.district_lookup_service import resolve_district_context
 from app.spider.xc_spot_search import xc_fetch_search
 from app.spider.xc_spot_detail import xc_fetch_detail
 from app.services.spot_detail_sync_service import check_spot_detail_sync_ready, sync_region_spot_details
@@ -237,6 +238,26 @@ async def get_latest_predictions():
 async def calculate_crowd_index():
     
     return {"message": "拥挤指数计算接口正在开发中，敬请期待！"}
+
+
+# ══════════════════════════════════════════════════════════════════
+# 根据地点名称解析 district_code / district_id
+# ══════════════════════════════════════════════════════════════════
+@app.get("/spots/district-code", response_model=DistrictLookupResponse, tags=["数据采集"])
+async def get_district_code(
+    keyword: str = Query(..., min_length=1, description="地点名称，例如：重庆、成都、武隆"),
+):
+    """通过地点名称查询携程搜索结果，并解析最可能的 district_code(district_id)。"""
+    try:
+        result = await run_in_threadpool(resolve_district_context, keyword)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"解析 district_code 失败: {e}")
+
+    return {
+        "keyword": result["keyword"],
+        "districtId": result["district_id"],
+        "districtName": result.get("district_name", ""),
+    }
 
 
 # ══════════════════════════════════════════════════════════════════

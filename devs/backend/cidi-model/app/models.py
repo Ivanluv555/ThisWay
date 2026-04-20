@@ -57,6 +57,13 @@ class FlowBeforeAfter(BaseModel):
     ciAfter: float
 
 
+# ── 地区编码查询结果 ──────────────────────────────────────────────────────────
+class DistrictLookupResponse(BaseModel):
+    keyword: str
+    districtId: int
+    districtName: str = ""
+
+
 # ── 预测任务返回结构 ──────────────────────────────────────────────────────────
 class PredictResponse(BaseModel):
     predictions: List[PredictionRecord]

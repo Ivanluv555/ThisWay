@@ -1,19 +1,15 @@
 import json
 import logging
 import random
-import re
 import time
-from collections import Counter
 from typing import Any, Dict, List, Optional
 
 from app import config
+from app.services.district_lookup_service import resolve_district_context
 from app.spider.xc_spot_detail import xc_fetch_detail
-from app.spider.xc_spot_search import xc_fetch_search
 
 logger = logging.getLogger(__name__)
 
-DETAIL_SEARCH_PAGE_SIZE = 20
-DETAIL_SEARCH_MAX_PAGES = 3
 DETAIL_FETCH_RETRY_COUNT = 2
 
 
@@ -114,37 +110,6 @@ def sync_region_spot_details(keyword: str) -> Dict[str, Any]:
 def check_spot_detail_sync_ready() -> Dict[str, Any]:
     """在任务入队前检查数据库与目标表是否可用。"""
     return _check_mysql_ready()
-
-
-def _resolve_district_context(keyword: str) -> Dict[str, Any]:
-    district_counts: Counter[int] = Counter()
-    district_names: Dict[int, str] = {}
-
-    for page_index in range(1, DETAIL_SEARCH_MAX_PAGES + 1):
-        result = xc_fetch_search(keyword, page_index, DETAIL_SEARCH_PAGE_SIZE)
-        items = result.get("items", []) or []
-
-        for item in items:
-            district_id = _extract_district_id(item.get("url", ""))
-            if district_id is None:
-                continue
-            district_counts[district_id] += 1
-            district_name = item.get("districtName", "")
-            if district_name and district_id not in district_names:
-                district_names[district_id] = district_name
-
-        if district_counts:
-            break
-
-    if not district_counts:
-        raise RuntimeError(f"无法从搜索结果中解析 district_id: {keyword}")
-
-    district_id, _ = district_counts.most_common(1)[0]
-    return {
-        "district_id": district_id,
-        "district_name": district_names.get(district_id, ""),
-        "candidate_counts": dict(district_counts),
-    }
 
 
 def _load_spots_by_district(district_id: int) -> List[Dict[str, Any]]:
@@ -322,13 +287,6 @@ def _check_mysql_ready() -> Dict[str, Any]:
         "detailTable": detail_table,
         "connected": True,
     }
-
-
-def _extract_district_id(url: str) -> Optional[int]:
-    match = re.search(r"/sight/(\d+)/(\d+)\.html", url or "")
-    if not match:
-        return None
-    return int(match.group(1))
 
 
 def _sleep_with_jitter(short: bool = False) -> None:
