@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/welcome/welcome",
     "pages/index/index",
     "pages/updates/updates",
     "pages/map/map",
@@ -52,7 +53,7 @@
       },
       {
         "pagePath": "pages/collections/collections",
-        "text": "收藏",
+        "text": "分流",
         "iconPath": "images/tab_collect.png",
         "selectedIconPath": "images/tab_collect_active.png"
       },

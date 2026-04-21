@@ -1,9 +1,40 @@
 page {
   background-color: #f7f8fa;
+  background-image: linear-gradient(180deg, #f7f8fa 0%, #eef2f8 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: top left;
+  background-attachment: fixed;
 }
 
 .container {
+  position: relative;
+  z-index: 2;
   padding-bottom: 40rpx;
+}
+
+.pull-refresh-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 560rpx;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-24rpx);
+  transition: opacity 0.26s ease, transform 0.26s ease;
+}
+
+.pull-refresh-bg.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pull-refresh-bg-image {
+  width: 100%;
+  height: 100%;
 }
 
 /* --- Sticky Header --- */
@@ -11,36 +42,47 @@ page {
   position: sticky;
   top: 0;
   z-index: 99;
-  background-color: #fff;
-  padding-bottom: 10rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0.32) 100%);
+  backdrop-filter: blur(18px) saturate(165%);
+  -webkit-backdrop-filter: blur(18px) saturate(165%);
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.58);
+  padding-bottom: 12rpx;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.03);
   transition: box-shadow 0.15s linear;
 }
 
 /* --- Top Bar (Title + Search) --- */
 .hero-area {
-  padding: 30rpx 40rpx 10rpx;
+  padding: 36rpx 48rpx 12rpx;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
 }
 
 .hero-title {
-  font-size: 60rpx;
-  font-weight: 800;
+  font-size: 72rpx;
+  font-weight: 600;
   color: #2C2C2C;
   line-height: 1.1;
   letter-spacing: -1px;
-  margin-bottom: 30rpx;
-  font-family: 'Helvetica Neue', sans-serif;
+  padding-left: 43rpx;
+  margin-bottom: 36rpx;
+  font-family: 'Apple Chancery', 'Monotype Corsiva', 'URW Chancery L', 'Segoe Script', cursive;
   transition: transform 0.12s linear, font-size 0.12s linear, margin-bottom 0.12s linear;
   white-space: pre-line;
 }
 
 .search-box {
-  background: #F7F8FA;
-  border-radius: 40rpx;
-  padding: 24rpx 30rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.36) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.66);
+  box-shadow: 0 10rpx 24rpx rgba(15, 23, 42, 0.08), inset 0 2rpx 8rpx rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px) saturate(165%);
+  -webkit-backdrop-filter: blur(14px) saturate(165%);
+  width: 83.3333%;
+  box-sizing: border-box;
+  align-self: center;
+  border-radius: 48rpx;
+  padding: 29rpx 36rpx;
   display: flex;
   align-items: center;
   transition: all 0.3s ease;
@@ -69,6 +111,8 @@ page {
 
 .sticky-header.shrunk .search-box {
   flex: 1;
+  width: auto;
+  align-self: stretch;
   padding: 12rpx 24rpx;
   height: 64rpx;
 }
@@ -77,8 +121,8 @@ page {
 .category-scroll {
   display: flex;
   white-space: nowrap;
-  padding: 20rpx 40rpx;
-  height: 90rpx;
+  padding: 24rpx 48rpx;
+  height: 108rpx;
   box-sizing: border-box;
 }
 
@@ -86,18 +130,33 @@ page {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  margin-right: 50rpx;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 22rpx;
+  min-width: 89rpx;
+  height: 52rpx;
+  padding: 0 19rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.32);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.62);
   color: #999;
-  font-size: 28rpx;
+  font-size: 23rpx;
   font-weight: 500;
   position: relative;
   transition: all 0.3s;
 }
 
+.category-item:last-child {
+  margin-right: 0;
+}
+
 .category-item.active {
   color: #2C2C2C;
-  font-size: 30rpx;
+  font-size: 23rpx;
   font-weight: bold;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(222, 240, 255, 0.45) 100%);
+  border-color: rgba(175, 215, 255, 0.75);
 }
 
 /* --- 沉浸式卡片流 (双列) --- */
@@ -150,7 +209,19 @@ page {
   font-weight: bold;
   color: #2C2C2C;
   line-height: 1.4;
-  margin-bottom: 30rpx;
+  margin-bottom: 12rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-summary {
+  display: block;
+  font-size: 24rpx;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 18rpx;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -210,4 +281,29 @@ page {
   background: #f8f1e6;
   padding: 4rpx 12rpx;
   border-radius: 999rpx;
+}
+
+.empty-block {
+  break-inside: avoid;
+  margin: 20rpx 10rpx 0;
+  border-radius: 24rpx;
+  padding: 36rpx 28rpx;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0.3) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.62);
+  box-shadow: 0 12rpx 28rpx rgba(15, 23, 42, 0.08);
+}
+
+.empty-title {
+  display: block;
+  font-size: 30rpx;
+  color: #374151;
+  font-weight: 600;
+}
+
+.empty-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6b7280;
 }

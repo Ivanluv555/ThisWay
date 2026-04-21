@@ -2,6 +2,76 @@ const { request, upload } = require('./http');
 
 const DEFAULT_COVER = 'https://picsum.photos/640/480?blur=1';
 const POST_EXTRA_KEY = 'post_extra_meta_map';
+const LOCAL_SCENIC_PREFIX = 'local-scenic-';
+const LOCAL_SCENIC_POSTS = [
+  {
+    id: `${LOCAL_SCENIC_PREFIX}hongyadong`,
+    title: '洪崖洞夜景打卡全攻略：灯火层叠的山城名片',
+    content:
+      '洪崖洞依山而建，夜幕亮灯后像一座现实版宫崎骏城堡。建议傍晚先到千厮门大桥拍全景，再下到沿江步道拍近景，错峰时间为工作日下午4:30前。',
+    coverUrl: '/images/hongyadong.jpg',
+    location: '重庆 洪崖洞',
+    category: '摄影',
+    likes: 268
+  },
+  {
+    id: `${LOCAL_SCENIC_PREFIX}ciqikou`,
+    title: '磁器口古镇慢游路线：老街烟火与地道小吃',
+    content:
+      '磁器口适合步行慢逛，主街看热闹、支巷找安静。推荐从东门进入，依次打卡老茶馆、手作店和临江观景点，陈麻花与毛血旺可避开饭点排队。',
+    coverUrl: '/images/ciqikou.jpg',
+    location: '重庆 磁器口古镇',
+    category: '美食',
+    likes: 194
+  },
+  {
+    id: `${LOCAL_SCENIC_PREFIX}changjiangsuodao`,
+    title: '长江索道体验指南：俯瞰两江与城市天际线',
+    content:
+      '长江索道是感受重庆立体交通的经典方式。建议南站上车、北站下车，单程体验更从容。晴天上午光线通透，阴天傍晚更有雾都层次感。',
+    coverUrl: '/images/changjiangsuodao.jpg',
+    location: '重庆 长江索道',
+    category: '攻略',
+    likes: 156
+  },
+  {
+    id: `${LOCAL_SCENIC_PREFIX}wulong`,
+    title: '武隆天生三桥一日游：喀斯特地貌震撼现场',
+    content:
+      '武隆天生三桥以峡谷与天坑闻名，步道上下坡较多，建议穿防滑运动鞋。路线可先三桥后地缝，节省体力且观景体验更完整。',
+    coverUrl: '/images/wulong.jpg',
+    location: '重庆 武隆天生三桥',
+    category: '推荐',
+    likes: 221
+  }
+];
+
+const SCENIC_META_RULES = [
+  {
+    keywords: ['洪崖洞', 'hongyadong'],
+    location: '重庆 洪崖洞',
+    coverUrl: '/images/hongyadong.jpg',
+    intro: '洪崖洞依山临江，夜景层叠灯火是重庆最具辨识度的地标之一。'
+  },
+  {
+    keywords: ['磁器口', 'ciqikou'],
+    location: '重庆 磁器口古镇',
+    coverUrl: '/images/ciqikou.jpg',
+    intro: '磁器口古镇兼具老街风貌与市井烟火，适合慢节奏步行体验。'
+  },
+  {
+    keywords: ['长江索道', '索道', 'changjiangsuodao'],
+    location: '重庆 长江索道',
+    coverUrl: '/images/changjiangsuodao.jpg',
+    intro: '长江索道横跨两岸，短时间即可获得山城立体城市景观视角。'
+  },
+  {
+    keywords: ['武隆', '天生三桥', 'wulong'],
+    location: '重庆 武隆天生三桥',
+    coverUrl: '/images/wulong.jpg',
+    intro: '武隆天生三桥以喀斯特地貌闻名，峡谷与天坑景观极具震撼力。'
+  }
+];
 const DEFAULT_CATEGORIES = [
   { id: 1, name: '推荐' },
   { id: 2, name: '攻略' },
@@ -110,6 +180,40 @@ function buildUsersMap(users) {
   return map;
 }
 
+function isLocalScenicPostId(postId) {
+  return `${postId || ''}`.startsWith(LOCAL_SCENIC_PREFIX);
+}
+
+function buildLocalScenicFeed(limit = 20) {
+  const now = Date.now();
+  return LOCAL_SCENIC_POSTS.slice(0, limit).map((item, index) => ({
+    id: item.id,
+    title: item.title,
+    content: item.content,
+    summary: item.content,
+    coverUrl: item.coverUrl,
+    images: [item.coverUrl],
+    author: '此地编辑部',
+    authorAvatar: 'https://ui-avatars.com/api/?name=CIDI',
+    likes: item.likes,
+    likeCount: item.likes,
+    categoryId: null,
+    category: item.category,
+    locationId: null,
+    location: item.location,
+    geo: null,
+    date: formatDateTime(new Date(now - index * 3600 * 1000).toISOString()),
+    createTime: new Date(now - index * 3600 * 1000).toISOString()
+  }));
+}
+
+function resolveScenicMeta(rawText = '') {
+  const text = `${rawText}`.toLowerCase();
+  return SCENIC_META_RULES.find((rule) =>
+    (rule.keywords || []).some((keyword) => text.includes(`${keyword}`.toLowerCase()))
+  ) || null;
+}
+
 async function loadFeedMaterials() {
   const [posts, users, postImages, locations, categories] = await Promise.all([
     safeRequest('/api/posts', []),
@@ -161,12 +265,22 @@ function mapPostToCard(post, usersMap, postImageMap, locationsMap = {}, categori
   const location = locationsMap[post.locationId] || {};
   const category = categoriesMap[post.categoryId] || {};
   const extra = postExtras[post.id] || {};
+  const scenicMeta = resolveScenicMeta(
+    `${post.title || ''} ${post.content || ''} ${location.title || ''} ${extra.locationName || ''}`
+  );
+  const locationName = location.title || extra.locationName || (scenicMeta && scenicMeta.location) || '';
+  const coverUrl = images[0] || (scenicMeta && scenicMeta.coverUrl) || DEFAULT_COVER;
+  const summary =
+    (extra.summary && `${extra.summary}`.trim()) ||
+    (scenicMeta && scenicMeta.intro) ||
+    `${post.content || ''}`.trim();
 
   return {
     id: post.id,
     title: post.title,
     content: post.content,
-    coverUrl: images[0] || DEFAULT_COVER,
+    summary,
+    coverUrl,
     images,
     author: user.username || '匿名用户',
     authorAvatar: user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || 'U')}`,
@@ -175,7 +289,7 @@ function mapPostToCard(post, usersMap, postImageMap, locationsMap = {}, categori
     categoryId: post.categoryId || null,
     category: category.name || extra.categoryName || '推荐',
     locationId: post.locationId || null,
-    location: location.title || extra.locationName || '',
+    location: locationName,
     geo: extra.geo || null,
     date: formatDateTime(post.createTime),
     createTime: post.createTime
@@ -190,10 +304,12 @@ async function getHomeFeed(limit = 20) {
   const categoriesMap = buildCategoriesMap(categories);
   const postExtras = readPostExtrasMap();
 
-  return posts
+  const mapped = posts
     .sort((a, b) => new Date(b.createTime || 0) - new Date(a.createTime || 0))
     .slice(0, limit)
     .map((post) => mapPostToCard(post, usersMap, postImageMap, locationsMap, categoriesMap, postExtras));
+
+  return mapped.length ? mapped : buildLocalScenicFeed(limit);
 }
 
 async function getUpdatesFeed(limit = 20) {
@@ -472,6 +588,17 @@ async function loginWithWeChatCode(code, profile = {}) {
 }
 
 async function getArticleDetail(postId, currentUserId) {
+  if (isLocalScenicPostId(postId)) {
+    const localPost = buildLocalScenicFeed(50).find((item) => `${item.id}` === `${postId}`);
+    if (localPost) {
+      return {
+        post: localPost,
+        isLiked: false,
+        isCollected: false
+      };
+    }
+  }
+
   const [post, users, postImages, actions, locations, categories] = await Promise.all([
     request({ path: `/api/posts/${postId}` }),
     request({ path: '/api/users' }),
@@ -500,6 +627,8 @@ async function getArticleDetail(postId, currentUserId) {
 }
 
 async function getCommentsByPostId(postId) {
+  if (isLocalScenicPostId(postId)) return [];
+
   const [comments, users] = await Promise.all([
     request({ path: '/api/comments' }),
     request({ path: '/api/users' })
@@ -524,6 +653,8 @@ async function getCommentsByPostId(postId) {
 }
 
 async function togglePostAction({ postId, userId, type }) {
+  if (isLocalScenicPostId(postId)) return true;
+
   const actions = await request({ path: '/api/actions' });
   const existed = (actions || []).find((item) =>
     `${item.userId}` === `${userId}` &&
@@ -550,6 +681,16 @@ async function togglePostAction({ postId, userId, type }) {
 }
 
 async function addComment({ postId, userId, content }) {
+  if (isLocalScenicPostId(postId)) {
+    return {
+      id: `local-comment-${Date.now()}`,
+      postId,
+      userId,
+      content,
+      createTime: new Date().toISOString()
+    };
+  }
+
   return request({
     path: '/api/comments',
     method: 'POST',

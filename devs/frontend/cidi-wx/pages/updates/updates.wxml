@@ -13,10 +13,11 @@
             <text class="mini-loc">📍 {{item.location}}</text>
           </view>
           <text class="card-title">{{item.title}}</text>
+          <text class="card-summary" wx:if="{{item.summary}}">{{item.summary}}</text>
           <view class="card-footer">
             <view class="card-author">
               <image class="card-avatar" src="{{item.authorAvatar}}" />
-              <text class="card-author-label">发布者</text>
+              <text class="card-author-label">{{item.author || '发布者'}}</text>
             </view>
             <text class="card-likes">{{item.likes}} 赞</text>
           </view>
@@ -32,16 +33,22 @@
             <text class="mini-loc">📍 {{item.location}}</text>
           </view>
           <text class="card-title">{{item.title}}</text>
+          <text class="card-summary" wx:if="{{item.summary}}">{{item.summary}}</text>
           <view class="card-footer">
             <view class="card-author">
               <image class="card-avatar" src="{{item.authorAvatar}}" />
-              <text class="card-author-label">发布者</text>
+              <text class="card-author-label">{{item.author || '发布者'}}</text>
             </view>
             <text class="card-likes">{{item.likes}} 赞</text>
           </view>
         </view>
       </block>
     </view>
+  </view>
+
+  <view class="empty-block" wx:if="{{leftList.length === 0 && rightList.length === 0}}">
+    <text class="empty-title">社区内容加载中</text>
+    <text class="empty-desc">可下拉刷新，或点击右下角发布第一条</text>
   </view>
 
   <view class="fab-btn" bindtap="goPublish">

@@ -4,7 +4,7 @@ import os
 import random
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -80,14 +80,164 @@ SPOT_PROFILE_OVERRIDES = {
     "金刚碑": ("mountain_remote", 0.85),
 }
 
+CATEGORY_PROFILE_HINTS = {
+    "nightlife": ("night", "bar", "酒吧", "夜", "夜游", "夜市"),
+    "commercial_core": ("commercial", "mall", "shopping", "商圈", "商业", "步行街"),
+    "transport": ("transport", "交通", "索道", "码头", "车站", "渡口"),
+    "historic": ("historic", "history", "古", "历史", "文化街"),
+    "museum": ("museum", "博物馆", "纪念馆", "展览"),
+    "park": ("park", "公园", "园", "广场"),
+    "theater": ("theater", "theatre", "剧院", "演艺"),
+    "mountain_remote": ("mountain", "山", "郊野", "森林"),
+}
+
+# 仅在具备入园时段约束的景区上生效，商圈/夜游默认全天。
+PROFILE_OPEN_WINDOWS = {
+    "museum": (9.0, 17.0),
+    "historic": (8.0, 21.0),
+    "transport": (8.0, 22.0),
+    "theater": (10.0, 22.5),
+    "mountain_remote": (8.0, 18.0),
+    "park": None,
+    "nightlife": None,
+    "commercial_core": None,
+    "default": None,
+}
+
+SPOT_OPEN_WINDOW_OVERRIDES = {
+    "长江索道": (8.0, 22.0),
+    "三峡博物馆": (9.0, 17.0),
+    "建川博物馆": (9.0, 17.0),
+    "白公馆渣滓洞": (9.0, 17.0),
+    "歌乐山革命纪念馆": (9.0, 17.0),
+    "南山植物园（北门）": (8.0, 18.0),
+    "南山植物园": (8.0, 18.0),
+    "金刚碑": (8.0, 18.0),
+}
+
 def circular_hour_gaussian(hours: np.ndarray, peak: float, width: float) -> np.ndarray:
     distance = np.abs(hours - peak)
     distance = np.minimum(distance, 24 - distance)
     return np.exp(-0.5 * (distance / max(width, 1e-6)) ** 2)
 
+def parse_hour_value(value) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        hour = float(value)
+        return hour if 0.0 <= hour <= 24.0 else None
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        if ":" in text:
+            hh, mm = text.split(":", 1)
+            try:
+                hour = float(int(hh)) + float(int(mm)) / 60.0
+            except ValueError:
+                return None
+            return hour if 0.0 <= hour <= 24.0 else None
+        try:
+            hour = float(text)
+            return hour if 0.0 <= hour <= 24.0 else None
+        except ValueError:
+            return None
+    return None
+
+def infer_profile_key(spot: Dict) -> str:
+    title = str(spot.get("title", ""))
+    override = SPOT_PROFILE_OVERRIDES.get(title)
+    if override:
+        return override[0]
+
+    category = str(spot.get("category", "")).lower()
+    if category:
+        for profile_key, keywords in CATEGORY_PROFILE_HINTS.items():
+            if any(k.lower() in category for k in keywords):
+                return profile_key
+    return "default"
+
+def resolve_open_window(spot: Dict, profile_key: str) -> Optional[Tuple[float, float]]:
+    for sk, ek in [
+        ("entryStartHour", "entryEndHour"),
+        ("openHour", "closeHour"),
+        ("open_hour", "close_hour"),
+        ("openTime", "closeTime"),
+        ("open_time", "close_time"),
+        ("startHour", "endHour"),
+        ("start_hour", "end_hour"),
+    ]:
+        start = parse_hour_value(spot.get(sk))
+        end = parse_hour_value(spot.get(ek))
+        if start is not None and end is not None:
+            return start, end
+
+    title = str(spot.get("title", ""))
+    if title in SPOT_OPEN_WINDOW_OVERRIDES:
+        return SPOT_OPEN_WINDOW_OVERRIDES[title]
+    return PROFILE_OPEN_WINDOWS.get(profile_key)
+
+def build_open_gate(hours: np.ndarray, window: Optional[Tuple[float, float]]) -> np.ndarray:
+    if window is None:
+        return np.ones_like(hours, dtype=float)
+    start, end = window
+    if abs(start - end) < 1e-6:
+        return np.ones_like(hours, dtype=float)
+    if start < end:
+        return ((hours >= start) & (hours < end)).astype(float)
+    return ((hours >= start) | (hours < end)).astype(float)
+
+def build_time_curve(hours: np.ndarray, profile_key: str) -> np.ndarray:
+    if profile_key == "commercial_core":
+        return (0.22
+                + 0.95 * circular_hour_gaussian(hours, 13.0, 2.3)
+                + 1.05 * circular_hour_gaussian(hours, 20.2, 2.6)
+                + 0.25 * circular_hour_gaussian(hours, 0.8, 2.2))
+    if profile_key == "nightlife":
+        return (0.14
+                + 0.40 * circular_hour_gaussian(hours, 13.5, 3.0)
+                + 1.20 * circular_hour_gaussian(hours, 21.3, 2.4)
+                + 0.38 * circular_hour_gaussian(hours, 0.7, 2.1))
+    if profile_key == "park":
+        # 公园类深夜近乎无人，白天活动集中。
+        return (0.01
+                + 0.96 * circular_hour_gaussian(hours, 10.8, 2.5)
+                + 0.74 * circular_hour_gaussian(hours, 16.2, 2.7)
+                + 0.05 * circular_hour_gaussian(hours, 19.2, 1.8))
+    if profile_key == "museum":
+        return (0.05
+                + 0.85 * circular_hour_gaussian(hours, 10.3, 2.1)
+                + 0.82 * circular_hour_gaussian(hours, 14.2, 2.4)
+                + 0.14 * circular_hour_gaussian(hours, 18.0, 1.8))
+    if profile_key == "historic":
+        return (0.06
+                + 0.68 * circular_hour_gaussian(hours, 10.0, 2.4)
+                + 0.92 * circular_hour_gaussian(hours, 15.2, 2.7)
+                + 0.30 * circular_hour_gaussian(hours, 19.0, 2.3))
+    if profile_key == "transport":
+        return (0.12
+                + 0.78 * circular_hour_gaussian(hours, 9.2, 2.0)
+                + 0.88 * circular_hour_gaussian(hours, 15.8, 2.4)
+                + 0.42 * circular_hour_gaussian(hours, 19.2, 2.2))
+    if profile_key == "mountain_remote":
+        return (0.03
+                + 0.88 * circular_hour_gaussian(hours, 10.6, 2.6)
+                + 0.64 * circular_hour_gaussian(hours, 14.8, 2.9)
+                + 0.10 * circular_hour_gaussian(hours, 18.0, 2.0))
+    if profile_key == "theater":
+        return (0.08
+                + 0.30 * circular_hour_gaussian(hours, 14.0, 2.5)
+                + 1.05 * circular_hour_gaussian(hours, 20.5, 2.2)
+                + 0.18 * circular_hour_gaussian(hours, 23.0, 1.6))
+    return (0.08
+            + 0.82 * circular_hour_gaussian(hours, 10.0, 2.5)
+            + 0.96 * circular_hour_gaussian(hours, 15.0, 2.8)
+            + 0.32 * circular_hour_gaussian(hours, 19.0, 2.2))
+
 def get_spot_profile(spot: Dict) -> Dict:
     title = str(spot.get("title", ""))
-    profile_key, hotspot = SPOT_PROFILE_OVERRIDES.get(title, ("default", 1.0))
+    profile_key = infer_profile_key(spot)
+    hotspot = SPOT_PROFILE_OVERRIDES.get(title, (profile_key, 1.0))[1]
     profile = dict(PROFILE_LIBRARY[profile_key])
     profile["hotspot"] = hotspot
     profile["profile_key"] = profile_key
@@ -143,10 +293,9 @@ def generate_mock_history_data(spots: List[Dict], hours: int = 168) -> pd.DataFr
         base_low, base_high = profile["base_range"]
         base_flow = float(rng.uniform(base_low, base_high) * urban_factor * profile["hotspot"])
 
-        morning_w, noon_w, evening_w = profile["peak_weights"]
-        daily_shape = 0.52 + morning_w * circular_hour_gaussian(hour_of_day, 10.0, 2.2) \
-                      + noon_w * circular_hour_gaussian(hour_of_day, 14.5, 3.0) \
-                      + evening_w * circular_hour_gaussian(hour_of_day, 20.5, 2.6)
+        time_curve = build_time_curve(hour_of_day, profile["profile_key"])
+        open_gate = build_open_gate(hour_of_day, resolve_open_window(spot, profile["profile_key"]))
+        daily_shape = time_curve * open_gate
 
         weekend_effect = 1.0 + profile["weekend_boost"] * is_weekend
         holiday_effect = 1.0 + profile["holiday_boost"] * is_holiday
@@ -161,9 +310,8 @@ def generate_mock_history_data(spots: List[Dict], hours: int = 168) -> pd.DataFr
 
         local_noise = smooth_noise_ar1(rng.normal(0, profile["noise_std"], hours), phi=0.70)
         flow = base_flow * daily_shape * weekend_effect * holiday_effect * night_event_effect * weather_effect * (1.0 + city_shock + local_noise + local_spike)
-        
-        # 核心修改：将最低保底人数提高，防止出现夜间只有三十个人的不合理情况
-        data[spot_id] = np.clip(flow, 300.0, max(base_flow * 4.5, 2000.0))
+        flow = flow * open_gate
+        data[spot_id] = np.clip(flow, 0.0, max(base_flow * 4.5, 2000.0))
 
     return pd.DataFrame(data, index=time_index)
 
