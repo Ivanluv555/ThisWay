@@ -94,45 +94,44 @@ CIDI 系统定位为一个集内容发布（CMS）、地理位置服务（LBS）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 用户主键 ID |
-| `openid` | VARCHAR(64) | YES | - | 微信 OpenID (唯一索引) |
-| `nickname` | VARCHAR(64) | YES | - | 用户昵称 |
-| `avatar_url` | VARCHAR(255) | NO | NULL | 头像 URL |
-| `status` | TINYINT | YES | 1 | 状态 (0:禁用, 1:正常) |
-| `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 注册时间 |
-| `last_login_time` | DATETIME | NO | NULL | 最后登录时间 |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `user_id` | BIGINT | YES | NULL | 搜索人ID (外键) |
+| `keyword` | VARCHAR | YES | NULL | 搜索关键词 |
+| `is_deleted` | INT | YES | NULL |  |
+| `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 搜索时间 |
 
 #### 4.1.2 `admin` - 管理员表
 存储后台管理人员信息，与普通用户物理隔离。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | INT | YES | AUTO_INCREMENT | 管理员主键 ID |
-| `username` | VARCHAR(32) | YES | - | 登录账号 (唯一) |
-| `password` | VARCHAR(128) | YES | - | 加密密码 (BCrypt) |
-| `role` | VARCHAR(16) | YES | 'EDITOR' | 角色 (SUPER_ADMIN, ADMIN, EDITOR) |
-| `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 创建时间 |
+| `adminid` | INT | YES | AUTO_INCREMENT | 管理员ID (PK) |
+| `job` | VARCHAR | NO | NULL | 职责 |
+| `username` | VARCHAR | YES | NULL | 管理员账号 |
+| `create_time` | DATETIME | YES | NULL | 创建时间 |
+| `password` | VARCHAR | YES | NULL | 管理员密码(建议存哈希) |
+| `role` | VARCHAR | YES | NULL | 角色标识 |
 
 #### 4.1.3 `user_settings` - 用户个性化设置
 扩展表，存储非核心的用户偏好配置。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `user_id` | BIGINT | YES | - | 关联用户 ID (PK, FK) |
-| `notification_enabled` | TINYINT | YES | 1 | 是否开启推送 |
-| `privacy_level` | TINYINT | YES | 0 | 隐私等级 (0:公开, 1:好友可见) |
-| `theme` | VARCHAR(16) | YES | 'light' | 界面主题 |
+| `user_id` | BIGINT | YES | NULL | 用户ID (主键&外键) |
+| `is_private_account` | INT | YES | NULL |  |
+| `push_notifications` | INT | YES | NULL |  |
+| `theme_color` | VARCHAR | YES | 'system' | 主题颜色偏好(light/dark/system) |
+| `update_time` | DATETIME | YES | CURRENT_TIMESTAMP | 最后更新时间 |
 
 #### 4.1.4 `user_follows` - 用户关注关系
 构建社交图谱的边表。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 主键 |
-| `follower_id` | BIGINT | YES | - | 关注者 ID (FK -> users.id) |
-| `followee_id` | BIGINT | YES | - | 被关注者 ID (FK -> users.id) |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `follower_id` | BIGINT | YES | NULL | 粉丝用户ID (外键) |
+| `followed_id` | BIGINT | YES | NULL | 被关注者用户ID (外键) |
 | `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 关注时间 |
-| **Index** | | | | `(follower_id, followee_id)` 唯一索引 |
 
 ### 4.2 位置服务域 (Location & LBS Domain)
 
@@ -141,37 +140,82 @@ CIDI 系统定位为一个集内容发布（CMS）、地理位置服务（LBS）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 地点主键 ID |
-| `name` | VARCHAR(128) | YES | - | 地点名称 (如 "xx公园") |
-| `address` | VARCHAR(255) | NO | NULL | 详细地址 |
-| `latitude` | DECIMAL(10, 6) | YES | - | 纬度 |
-| `longitude` | DECIMAL(10, 6) | YES | - | 经度 |
-| `category` | VARCHAR(32) | NO | NULL | 地点分类 (如 "公园", "商场") |
-| `rating` | DECIMAL(2, 1) | YES | 0.0 | 综合评分 |
-| `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 收录时间 |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 地点主键ID |
+| `title` | VARCHAR | YES | NULL | 地点名称 |
+| `latitude` | DECIMAL | YES | NULL | 纬度 |
+| `longitude` | DECIMAL | YES | NULL | 经度 |
+| `address` | VARCHAR | YES | NULL | 详细地址 |
+| `description` | TEXT | NO | NULL | 景点简介 |
+| `heat_score` | INT | YES | 0 | 热度评分(用于地图显示) |
+| `category` | VARCHAR | NO | NULL | 地点分类 |
+| `rating` | DECIMAL | YES | NULL | 综合评分 |
 
 #### 4.2.2 `location_images` - 地点图集
 存储地点的官方展示图或封面图。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 主键 |
-| `location_id` | BIGINT | YES | - | 关联地点 ID (FK) |
-| `image_url` | VARCHAR(255) | YES | - | 图片地址 |
-| `is_cover` | TINYINT | YES | 0 | 是否如封面 |
-| `sort_order` | INT | YES | 0 | 排序权重 |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `location_id` | BIGINT | YES | NULL | 归属地点ID (外键) |
+| `image_url` | VARCHAR | YES | NULL | 图片外链 |
+| `sort_order` | INT | YES | 0 | 显示顺序 |
+| `is_cover` | INT | YES | NULL | 是否封面图(1:是,0:否) |
 
 #### 4.2.3 `spot_traffic_predictions` - 地点流量预测
 分析型数据表，存储特定时间段的拥堵/流量预测结果。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 主键 |
-| `location_id` | BIGINT | YES | - | 关联地点 ID (FK) |
-| `prediction_time` | DATETIME | YES | - | 预测的目标时间点 |
-| `traffic_level` | TINYINT | YES | - | 拥堵等级 (1:畅通 - 5:拥堵) |
-| `crowd_density` | DECIMAL(5, 2) | NO | NULL | 人群密度指数 |
-| `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 计算生成时间 |
+| `id` | BIGINT | YES | AUTO_INCREMENT |  (PK) |
+| `congestion_level` | INT | YES | NULL |  |
+| `create_time` | DATETIME | YES | NULL |  |
+| `crowd_density` | DECIMAL | NO | NULL |  |
+| `predict_time` | DATETIME | YES | NULL |  |
+| `spot_id` | BIGINT | YES | NULL |  |
+| `traffic_level` | INT | YES | NULL |  |
+| `trend` | VARCHAR | YES | NULL |  |
+| `visitor_count` | INT | YES | NULL |  |
+
+#### 4.2.4 `spot_regions` - 景区内部划分区域
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 区域主键ID |
+| `spot_id` | BIGINT | YES | NULL | 所属景点ID (对应 locations 表) |
+| `title` | VARCHAR | YES | NULL | 区域名称 (如：检票口、核心观景台) |
+| `area` | DECIMAL | YES | NULL | 有效可活动面积 (㎡) - S_i |
+| `max_capacity` | INT | YES | NULL | 设计最大承载量 (人) - C_i^max |
+| `category` | VARCHAR | YES | NULL | 区域功能类型 (如：ENTRY, CORE, PATH 等) - τ_i |
+| `shape_factor` | DECIMAL | YES | 1.00 | 空间形态系数 (封闭度折减) - κ_i |
+| `bottleneck_factor` | DECIMAL | YES | 1.00 | 结构性瓶颈系数 - B_i |
+| `service_throughput` | DECIMAL | NO | 0.00 | 服务吞吐量 (人/分钟) - M_i |
+| `perception_weight` | DECIMAL | YES | 1.00 | 场景感知权重 - w_i |
+
+#### 4.2.5 `location_hourly_flow` - 地点分时客流数据
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `location_id` | BIGINT | YES | NULL | 地点ID（外键，关联 locations.id） |
+| `record_hour` | DATETIME | YES | NULL | 数据所属小时（精确到整点，如 2026-04-05 14:00:00） |
+| `visitor_count` | INT | YES | NULL | 该小时实际/模拟人流量（人次） |
+| `congestion_index` | DECIMAL | NO | NULL | 拥挤指数 CI（0~10） |
+| `data_source` | VARCHAR | YES | 'simulated' | 数据来源：simulated=模拟, real=实际采集 |
+| `created_at` | DATETIME | YES | CURRENT_TIMESTAMP | 记录插入时间 |
+
+#### 4.2.6 `locations_predictions` - 地点维度客流预测
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `location_id` | BIGINT | YES | NULL | 地点ID (外键) |
+| `predict_time` | DATETIME | YES | NULL | 预测目标时间 |
+| `visitor_count` | INT | YES | NULL | 预测人流量 |
+| `congestion_level` | INT | YES | NULL |  |
+| `trend` | VARCHAR | YES | NULL | 趋势(上升/下降) |
+| `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 数据生成时间 |
+| `crowd_density` | DECIMAL | NO | NULL | 人群密度指数 |
+| `traffic_level` | INT | YES | NULL | 交通拥堵等级 |
 
 ### 4.3 图文动态域 (Content Domain)
 
@@ -180,37 +224,38 @@ CIDI 系统定位为一个集内容发布（CMS）、地理位置服务（LBS）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | INT | YES | AUTO_INCREMENT | 分类 ID |
-| `name` | VARCHAR(32) | YES | - | 分类名称 (如 "美食", "探店") |
-| `icon_url` | VARCHAR(255) | NO | NULL | 分类图标 |
+| `id` | INT | YES | AUTO_INCREMENT | 分类主键ID |
+| `name` | VARCHAR | YES | NULL | 分类名称 |
 | `sort_order` | INT | YES | 0 | 排序权重 |
+| `is_active` | INT | YES | NULL |  |
+| `icon_url` | VARCHAR | NO | NULL |  |
 
 #### 4.3.2 `posts` - 帖子主表
 核心内容实体。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 帖子主键 ID |
-| `user_id` | BIGINT | YES | - | 发帖人 ID (FK) |
-| `category_id` | INT | YES | - | 分类 ID (FK) |
-| `location_id` | BIGINT | NO | NULL | 关联地点 ID (FK) |
-| `title` | VARCHAR(128) | YES | - | 标题 |
-| `content` | TEXT | YES | - | 正文内容 |
-| `view_count` | INT | YES | 0 | 浏览量 |
-| `like_count` | INT | YES | 0 | 点赞计数 (缓存同步) |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 帖子主键ID |
+| `user_id` | BIGINT | YES | NULL | 发帖人ID (外键) |
+| `category_id` | INT | YES | NULL | 分类ID (外键) |
+| `location_id` | BIGINT | NO | NULL | 关联地点ID (外键, 替代原 location_name) |
+| `title` | VARCHAR | YES | NULL | 帖子标题 |
+| `content` | TEXT | YES | NULL | 帖子正文 |
 | `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 发布时间 |
+| `like_count` | INT | YES | NULL | 点赞数 |
+| `view_count` | INT | YES | NULL | 浏览量 |
 
 #### 4.3.3 `post_images` - 帖子图片
 帖子多图存储。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 主键 |
-| `post_id` | BIGINT | YES | - | 关联帖子 ID (FK -> posts.id) |
-| `image_url` | VARCHAR(255) | YES | - | 图片 URL |
-| `width` | INT | NO | NULL | 图片宽度 (px) |
-| `height` | INT | NO | NULL | 图片高度 (px) |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `post_id` | BIGINT | YES | NULL | 归属帖子ID (外键) |
+| `image_url` | VARCHAR | YES | NULL | 图片外链 |
 | `sort_order` | INT | YES | 0 | 显示顺序 |
+| `height` | INT | NO | NULL | 图片高度(px) |
+| `width` | INT | NO | NULL | 图片宽度(px) |
 
 ### 4.4 交互与反馈域 (Interaction & Feedback Domain)
 
@@ -219,36 +264,34 @@ CIDI 系统定位为一个集内容发布（CMS）、地理位置服务（LBS）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 主键 |
-| `post_id` | BIGINT | YES | - | 关联帖子 ID (FK) |
-| `user_id` | BIGINT | YES | - | 评论者 ID (FK) |
-| `parent_id` | BIGINT | NO | NULL | 父评论 ID (用于回复) |
-| `content` | VARCHAR(512) | YES | - | 评论内容 |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `post_id` | BIGINT | YES | NULL | 帖子ID (外键) |
+| `user_id` | BIGINT | YES | NULL | 评论人ID (外键) |
+| `content` | VARCHAR | YES | NULL | 评论内容 |
 | `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 评论时间 |
+| `parent_id` | BIGINT | NO | NULL | 父评论ID(用于回复) |
 
 #### 4.4.2 `actions` - 用户交互行为
 记录点赞、收藏等状态。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 主键 |
-| `user_id` | BIGINT | YES | - | 用户 ID (FK) |
-| `target_id` | BIGINT | YES | - | 目标 ID (如 post_id) |
-| `target_type` | TINYINT | YES | 1 | 目标类型 (1:Post, 2:Comment) |
-| `action_type` | TINYINT | YES | 1 | 行为类型 (1:点赞, 2:收藏) |
-| `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 发生时间 |
-| **Index** | | | | `(user_id, target_id, target_type, action_type)` 唯一索引 |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `user_id` | BIGINT | YES | NULL | 操作人ID (外键) |
+| `post_id` | BIGINT | YES | NULL | 被操作帖子ID (外键) |
+| `type` | VARCHAR | YES | NULL |  |
+| `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 操作时间 |
 
 #### 4.4.3 `feedbacks` - 用户反馈
 用户意见提交。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 主键 |
-| `user_id` | BIGINT | YES | - | 用户 ID (FK) |
-| `content` | TEXT | YES | - | 反馈内容 |
-| `contact_info` | VARCHAR(64) | NO | NULL | 联系方式 |
-| `status` | TINYINT | YES | 0 | 处理状态 (0:未读, 1:已处理) |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `user_id` | BIGINT | NO | NULL | 提交人ID(允许未登录) |
+| `content` | TEXT | YES | NULL | 反馈内容 |
+| `contact_info` | VARCHAR | NO | NULL | 联系方式 |
+| `status` | INT | YES | NULL | 反馈状态 |
 | `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 提交时间 |
 
 #### 4.4.4 `feedback_images` - 反馈图片
@@ -256,9 +299,9 @@ CIDI 系统定位为一个集内容发布（CMS）、地理位置服务（LBS）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 主键 |
-| `feedback_id` | BIGINT | YES | - | 关联反馈 ID (FK) |
-| `image_url` | VARCHAR(255) | YES | - | 图片 URL |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `feedback_id` | BIGINT | YES | NULL | 归属反馈ID (外键) |
+| `image_url` | VARCHAR | YES | NULL | 图片外链 |
 
 ### 4.5 搜索与发现域 (Search & Discovery Domain)
 
@@ -267,19 +310,20 @@ CIDI 系统定位为一个集内容发布（CMS）、地理位置服务（LBS）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | INT | YES | AUTO_INCREMENT | 主键 |
-| `keyword` | VARCHAR(64) | YES | - | 搜索关键词 |
-| `scount` | INT | YES | 0 | 搜索次数 |
-| `update_time` | DATETIME | YES | CURRENT_TIMESTAMP | 最后更新时间 |
+| `id` | INT | YES | AUTO_INCREMENT | 主键ID |
+| `keyword` | VARCHAR | YES | NULL | 热门关键词 |
+| `hot_value` | INT | YES | 0 | 热度值基数 |
+| `is_active` | INT | YES | NULL |  |
 
 #### 4.5.2 `search_history` - 搜索历史
 用户个人搜索记录。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | BIGINT | YES | AUTO_INCREMENT | 主键 |
-| `user_id` | BIGINT | YES | - | 用户 ID (FK) |
-| `keyword` | VARCHAR(64) | YES | - | 搜索关键词 |
+| `id` | BIGINT | YES | AUTO_INCREMENT | 主键ID |
+| `user_id` | BIGINT | YES | NULL | 搜索人ID (外键) |
+| `keyword` | VARCHAR | YES | NULL | 搜索关键词 |
+| `is_deleted` | INT | YES | NULL |  |
 | `create_time` | DATETIME | YES | CURRENT_TIMESTAMP | 搜索时间 |
 
 ---

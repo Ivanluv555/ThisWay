@@ -1,23 +1,50 @@
-<view class="container">
-  <view class="header">
-    <text class="title">我的收藏</text>
-    <text class="subtitle">{{list.length}} 个内容</text>
+<view class="page-wrap">
+  <view class="hero">
+    <text class="hero-main">去到不拥挤的地方</text>
+    <text class="hero-sub">去拥抱自由</text>
   </view>
-  
-  <view class="list-container">
-    <block wx:for="{{list}}" wx:key="id">
-      <view class="list-item" bindtap="goDetail" data-id="{{item.id}}">
-        <image src="{{item.coverUrl}}" mode="aspectFill" class="cover-img"/>
-        
-        <view class="content-box">
-          <text class="item-title">{{item.title}}</text>
-          
-          <view class="meta-row">
-            <text class="meta-text UP">UP {{item.author}}</text>
-            <text class="meta-text">{{item.date}}</text>
+
+  <view class="glass-panel location-panel">
+    <text class="panel-title">当前位置</text>
+    <text class="location-main">{{currentLocationLabel}}</text>
+    <text class="location-detail" wx:if="{{currentSpot}}">
+      最近景区：{{currentSpot.title}} · {{currentSpot.distanceText}}
+    </text>
+  </view>
+
+  <view class="glass-panel best-panel" wx:if="{{bestSpot}}" bindtap="goLocation" data-id="{{bestSpot.id}}">
+    <text class="panel-title">未来最该去</text>
+    <view class="best-row">
+      <image class="best-cover" src="{{bestSpot.image}}" mode="aspectFill" />
+      <view class="best-info">
+        <text class="best-name">{{bestSpot.title}}</text>
+        <text class="best-meta">预测：{{bestSpot.levelText}} · {{bestSpot.predictTime}}</text>
+        <text class="best-meta">距离：{{bestSpot.distanceText}} · 趋势：{{bestSpot.trend}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="list-head">
+    <text class="list-title">推荐景区 Top 5</text>
+    <text class="list-time" wx:if="{{updatedAt}}">更新于 {{updatedAt}}</text>
+  </view>
+
+  <view class="recommend-list" wx:if="{{topList.length}}">
+    <block wx:for="{{topList}}" wx:key="id">
+      <view class="glass-panel rank-item" bindtap="goLocation" data-id="{{item.id}}">
+        <view class="rank-left">
+          <text class="rank-num">{{item.rank}}</text>
+          <view class="rank-body">
+            <text class="rank-name">{{item.title}}</text>
+            <text class="rank-desc">{{item.levelText}} · {{item.predictTime}} · {{item.distanceText}}</text>
           </view>
         </view>
+        <text class="rank-trend">{{item.trend}}</text>
       </view>
     </block>
+  </view>
+
+  <view class="empty-block" wx:if="{{!loading && !topList.length}}">
+    <text>{{errorMsg || '暂无推荐数据'}}</text>
   </view>
 </view>

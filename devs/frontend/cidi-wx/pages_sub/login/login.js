@@ -2,6 +2,24 @@ const app = getApp();
 const cidiApi = require('../../api/cidi');
 
 Page({
+  mockLogin(profile = {}) {
+    const nickName = profile.nickName || profile.nickname || `游客${Date.now().toString().slice(-4)}`;
+    const userInfo = {
+      id: Date.now(),
+      username: nickName,
+      avatarUrl: profile.avatarUrl || '',
+      bio: '本地模式登录'
+    };
+    app.globalData.userInfo = userInfo;
+    wx.setStorageSync('token', `mock-token-${Date.now()}`);
+    wx.setStorageSync('userInfo', userInfo);
+    wx.hideLoading();
+    wx.showToast({ title: '已本地登录', icon: 'none' });
+    setTimeout(() => {
+      wx.navigateBack();
+    }, 800);
+  },
+
   // 点击“微信一键登录”按钮触发
   handleWxLogin: function () {
     wx.showLoading({ title: '安全登录中...' });
@@ -24,8 +42,7 @@ Page({
               }, 1000);
             } catch (err) {
               console.error('后端登录失败', err);
-              wx.hideLoading();
-              wx.showToast({ title: '登录服务异常', icon: 'none' });
+              this.mockLogin(profileRes.userInfo);
             }
           },
           fail: (err) => {

@@ -23,6 +23,30 @@
     <text class="result-desc">{{prediction.desc}}</text>
   </view>
 </view>
+
+  <view class="flow-card">
+    <view class="flow-header">
+      <text class="flow-title">📈 每小时下一目的地预测</text>
+      <text class="flow-sub">用于景点分流引导</text>
+    </view>
+
+    <view wx:if="{{loadingNextForecast}}" class="flow-loading">预测加载中...</view>
+    <view wx:if="{{!loadingNextForecast && nextForecast.length === 0}}" class="flow-loading">暂无去向预测数据</view>
+
+    <block wx:for="{{nextForecast}}" wx:key="hour">
+      <view class="hour-row">
+        <text class="hour-tag">{{item.hour}}</text>
+        <view class="dest-list">
+          <block wx:for="{{item.transitions}}" wx:key="locationId">
+            <view class="dest-item">
+              <text class="dest-name">{{item.locationName}}</text>
+              <text class="dest-ratio">{{item.ratioText}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </block>
+  </view>
   
   <view class="info-card">
     <view class="header-row">

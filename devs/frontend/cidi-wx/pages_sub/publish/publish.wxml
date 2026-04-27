@@ -1,7 +1,30 @@
 <view class="container">
   <view class="nav-header">
     <text class="cancel-text" bindtap="goBack">取消</text>
-    <button class="pub-btn" bindtap="handlePublish" disabled="{{!content && images.length === 0}}">发布</button>
+    <button class="pub-btn" bindtap="handlePublish" disabled="{{!title && !content && images.length === 0}}">发布</button>
+  </view>
+
+  <view class="meta-panel">
+    <view class="meta-title">帖子分类</view>
+    <scroll-view scroll-x class="chips-row" enable-flex>
+      <block wx:for="{{categories}}" wx:key="id">
+        <view class="chip {{activeCategoryId === item.id ? 'chip-active' : ''}}" data-id="{{item.id}}" bindtap="selectCategory">
+          {{item.name}}
+        </view>
+      </block>
+    </scroll-view>
+
+    <view class="meta-title">位置绑定</view>
+    <view class="location-row">
+      <text class="loc-tip">定位源：{{locationLabel}}</text>
+      <text class="loc-refresh" bindtap="locateMe">重新定位</text>
+    </view>
+    <picker mode="selector" range="{{locationOptions}}" range-key="title" value="{{selectedLocationIndex}}" bindchange="onLocationChange">
+      <view class="location-picker">
+        <text class="pick-main">{{locationOptions[selectedLocationIndex].title}}</text>
+        <text class="pick-sub" wx:if="{{locationOptions[selectedLocationIndex].distance}}">{{locationOptions[selectedLocationIndex].distance}}</text>
+      </view>
+    </picker>
   </view>
 
   <view class="input-section">

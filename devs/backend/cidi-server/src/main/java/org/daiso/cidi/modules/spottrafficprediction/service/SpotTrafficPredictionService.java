@@ -9,9 +9,11 @@ package org.daiso.cidi.modules.spottrafficprediction.service;
 
 import org.daiso.cidi.modules.spottrafficprediction.entity.SpotTrafficPrediction;
 import org.daiso.cidi.modules.spottrafficprediction.repository.SpotTrafficPredictionRepository;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,5 +44,11 @@ public class SpotTrafficPredictionService {
 
     public List<SpotTrafficPrediction> findLatestRound() {
         return repository.findLatestRound();
+    }
+
+    public List<SpotTrafficPrediction> findRecent21ByCrowdDensityAsc() {
+        List<SpotTrafficPrediction> recent = repository.findAllByOrderByCreateTimeDesc(PageRequest.of(0, 21));
+        recent.sort(Comparator.comparing(SpotTrafficPrediction::getCrowdDensity, Comparator.nullsLast(Comparator.naturalOrder())));
+        return recent;
     }
 }

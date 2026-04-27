@@ -5,6 +5,79 @@
   box-sizing: border-box; /* 确保 padding 包含在宽度内 */
 }
 
+.meta-panel {
+  background: #f8f9fc;
+  border: 1rpx solid #eef1f4;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 30rpx;
+}
+
+.meta-title {
+  font-size: 24rpx;
+  color: #6b7280;
+  margin-bottom: 14rpx;
+}
+
+.chips-row {
+  white-space: nowrap;
+  margin-bottom: 24rpx;
+}
+
+.chip {
+  display: inline-block;
+  margin-right: 16rpx;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  background: #fff;
+  border: 1rpx solid #e7e9ee;
+  font-size: 24rpx;
+  color: #374151;
+}
+
+.chip-active {
+  background: #222;
+  color: #f9d8a3;
+  border-color: #222;
+}
+
+.location-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.loc-tip {
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.loc-refresh {
+  font-size: 22rpx;
+  color: #0b7ad1;
+}
+
+.location-picker {
+  background: #fff;
+  border-radius: 14rpx;
+  border: 1rpx solid #e7e9ee;
+  padding: 18rpx 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pick-main {
+  font-size: 26rpx;
+  color: #111827;
+}
+
+.pick-sub {
+  font-size: 24rpx;
+  color: #6b7280;
+}
+
 /* 顶部栏 */
 .nav-header {
   display: flex;

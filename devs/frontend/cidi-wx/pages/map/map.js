@@ -7,6 +7,7 @@ Page({
     longitude: 106.577262,
     scale: 13,
     markers: [],
+    selectedMarker: null,
     // WXS 配置
     drawerConfig: null
   },
@@ -16,7 +17,21 @@ Page({
 
   onLoad: function () { 
     this.initDrawer();
+    this.locateUser();
     this.fetchMarkers(); 
+  },
+
+  locateUser: function() {
+    wx.getLocation({
+      type: 'gcj02',
+      isHighAccuracy: true,
+      success: (res) => {
+        this.setData({
+          latitude: res.latitude,
+          longitude: res.longitude
+        });
+      }
+    });
   },
 
   initDrawer: function() {
@@ -43,8 +58,12 @@ Page({
   },
   
   fetchMarkers: function () {
-    cidiApi.getMapLocations().then(list => {
-      const markers = list.map(item => ({
+    Promise.all([
+      cidiApi.getMapLocations(),
+      cidiApi.getMapPostMarkers()
+    ]).then(([spots, posts]) => {
+      const all = (spots || []).concat(posts || []);
+      const markers = all.map(item => ({
         ...item,
         width: 0,
         height: 0,
@@ -53,7 +72,7 @@ Page({
           anchorX: 0,
           anchorY: 0,
         },
-        heat: Math.floor(Math.random() * 9000) + 100
+        heat: item.markerType === 'post' ? 'POST' : Math.floor(Math.random() * 9000) + 100
       }));
       this.setData({ markers });
     }).catch(err => {
@@ -114,8 +133,16 @@ Page({
   onCalloutTap: function(e) {
     // 增加防抖锁，防止多次跳转
     if (this._lock) return; 
-    
-    wx.navigateTo({ url: `/pages_sub/location/location?id=${e.markerId}` });
+
+    const markerId = e.markerId || (e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.markerId);
+    const marker = (this.data.markers || []).find((item) => `${item.id}` === `${markerId}`);
+    if (!marker) return;
+
+    if (marker.markerType === 'post' && marker.postId) {
+      wx.navigateTo({ url: `/pages_sub/article/article?id=${marker.postId}` });
+      return;
+    }
+    wx.navigateTo({ url: `/pages_sub/location/location?id=${marker.id}` });
   },
 
   // 辅助方法：隐藏所有气泡

@@ -46,12 +46,47 @@ SPOT_PROFILE_OVERRIDES: Dict[str, Tuple[str, float]] = {
     "江北嘴公园":    ("park",            0.98), "观音桥":          ("commercial_core", 1.25),
     "大礼堂":        ("museum",          1.05), "十八梯":          ("historic",        1.15),
     "白公馆渣滓洞":  ("museum",          1.00), "歌乐山革命纪念馆": ("museum",          0.95),
-    "南山植物园":    ("park",            1.05), "重庆大剧院":      ("theater",         1.08),
+    "南山植物园（北门）": ("park",            1.05), "南山植物园":      ("park",            1.05), "重庆大剧院":      ("theater",         1.08),
     "磁器口":        ("historic",        1.30), "建川博物馆":      ("museum",          0.92),
     "鸿恩寺":        ("park",            0.92), "鹅岭公园":        ("park",            0.95),
     "鹅岭印刷二厂":  ("historic",        1.02), "三峡博物馆":      ("museum",          1.18),
     "龙门浩":        ("nightlife",       1.05), "南滨路":          ("nightlife",       1.22),
     "金刚碑":        ("mountain_remote", 0.85),
+}
+
+PROFILE_CATEGORY_HINTS: Dict[str, Tuple[str, ...]] = {
+    "nightlife": ("night", "bar", "酒吧", "夜", "夜游", "夜市"),
+    "commercial_core": ("commercial", "mall", "shopping", "商圈", "商业", "步行街"),
+    "transport": ("transport", "交通", "索道", "码头", "车站", "渡口"),
+    "historic": ("historic", "history", "古", "历史", "文化街"),
+    "museum": ("museum", "博物馆", "纪念馆", "展览"),
+    "park": ("park", "公园", "园", "广场"),
+    "theater": ("theater", "theatre", "剧院", "演艺"),
+    "mountain_remote": ("mountain", "山", "郊野", "森林"),
+}
+
+# 仅对“有入园时段”的景区生效；商圈/夜生活默认全天候。
+PROFILE_OPEN_WINDOWS: Dict[str, Optional[Tuple[float, float]]] = {
+    "museum": (9.0, 17.0),
+    "historic": (8.0, 21.0),
+    "transport": (8.0, 22.0),
+    "theater": (10.0, 22.5),
+    "mountain_remote": (8.0, 18.0),
+    "park": None,
+    "nightlife": None,
+    "commercial_core": None,
+    "default": None,
+}
+
+SPOT_OPEN_WINDOW_OVERRIDES: Dict[str, Tuple[float, float]] = {
+    "长江索道": (8.0, 22.0),
+    "三峡博物馆": (9.0, 17.0),
+    "建川博物馆": (9.0, 17.0),
+    "白公馆渣滓洞": (9.0, 17.0),
+    "歌乐山革命纪念馆": (9.0, 17.0),
+    "南山植物园（北门）": (8.0, 18.0),
+    "南山植物园": (8.0, 18.0),
+    "金刚碑": (8.0, 18.0),
 }
 
 
@@ -89,6 +124,123 @@ def _gaussian(hours: np.ndarray, peak: float, width: float) -> np.ndarray:
     d = np.abs(hours - peak)
     d = np.minimum(d, 24 - d)
     return np.exp(-0.5 * (d / max(width, 1e-6)) ** 2)
+
+
+def _parse_hour(value) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        hour = float(value)
+        return hour if 0.0 <= hour <= 24.0 else None
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        if ":" in text:
+            hh, mm = text.split(":", 1)
+            try:
+                hour = float(int(hh)) + float(int(mm)) / 60.0
+            except ValueError:
+                return None
+            return hour if 0.0 <= hour <= 24.0 else None
+        try:
+            hour = float(text)
+            return hour if 0.0 <= hour <= 24.0 else None
+        except ValueError:
+            return None
+    return None
+
+
+def _infer_profile_key(title: str, category: Optional[str]) -> str:
+    override = SPOT_PROFILE_OVERRIDES.get(title)
+    if override:
+        return override[0]
+    if not category:
+        return "default"
+    text = str(category).lower()
+    for profile_key, keywords in PROFILE_CATEGORY_HINTS.items():
+        if any(k.lower() in text for k in keywords):
+            return profile_key
+    return "default"
+
+
+def _resolve_open_window(loc: LocationInfo, profile_key: str) -> Optional[Tuple[float, float]]:
+    for sk, ek in [
+        ("entryStartHour", "entryEndHour"),
+        ("openHour", "closeHour"),
+        ("open_hour", "close_hour"),
+        ("openTime", "closeTime"),
+        ("open_time", "close_time"),
+        ("startHour", "endHour"),
+        ("start_hour", "end_hour"),
+    ]:
+        start = _parse_hour(getattr(loc, sk, None))
+        end = _parse_hour(getattr(loc, ek, None))
+        if start is not None and end is not None:
+            return start, end
+
+    if loc.title in SPOT_OPEN_WINDOW_OVERRIDES:
+        return SPOT_OPEN_WINDOW_OVERRIDES[loc.title]
+    return PROFILE_OPEN_WINDOWS.get(profile_key)
+
+
+def _build_open_gate(hours: np.ndarray, window: Optional[Tuple[float, float]]) -> np.ndarray:
+    if window is None:
+        return np.ones_like(hours, dtype=float)
+    start, end = window
+    if abs(start - end) < 1e-6:
+        return np.ones_like(hours, dtype=float)
+    if start < end:
+        return ((hours >= start) & (hours < end)).astype(float)
+    return ((hours >= start) | (hours < end)).astype(float)
+
+
+def _build_time_curve(hours: np.ndarray, profile_key: str) -> np.ndarray:
+    if profile_key == "commercial_core":
+        return (0.22
+                + 0.95 * _gaussian(hours, 13.0, 2.3)
+                + 1.05 * _gaussian(hours, 20.2, 2.6)
+                + 0.25 * _gaussian(hours, 0.8, 2.2))
+    if profile_key == "nightlife":
+        return (0.14
+                + 0.40 * _gaussian(hours, 13.5, 3.0)
+                + 1.20 * _gaussian(hours, 21.3, 2.4)
+                + 0.38 * _gaussian(hours, 0.7, 2.1))
+    if profile_key == "park":
+        # 公园类深夜接近 0，白天明显抬升。
+        return (0.01
+                + 0.96 * _gaussian(hours, 10.8, 2.5)
+                + 0.74 * _gaussian(hours, 16.2, 2.7)
+                + 0.05 * _gaussian(hours, 19.2, 1.8))
+    if profile_key == "museum":
+        return (0.05
+                + 0.85 * _gaussian(hours, 10.3, 2.1)
+                + 0.82 * _gaussian(hours, 14.2, 2.4)
+                + 0.14 * _gaussian(hours, 18.0, 1.8))
+    if profile_key == "historic":
+        return (0.06
+                + 0.68 * _gaussian(hours, 10.0, 2.4)
+                + 0.92 * _gaussian(hours, 15.2, 2.7)
+                + 0.30 * _gaussian(hours, 19.0, 2.3))
+    if profile_key == "transport":
+        return (0.12
+                + 0.78 * _gaussian(hours, 9.2, 2.0)
+                + 0.88 * _gaussian(hours, 15.8, 2.4)
+                + 0.42 * _gaussian(hours, 19.2, 2.2))
+    if profile_key == "mountain_remote":
+        return (0.03
+                + 0.88 * _gaussian(hours, 10.6, 2.6)
+                + 0.64 * _gaussian(hours, 14.8, 2.9)
+                + 0.10 * _gaussian(hours, 18.0, 2.0))
+    if profile_key == "theater":
+        return (0.08
+                + 0.30 * _gaussian(hours, 14.0, 2.5)
+                + 1.05 * _gaussian(hours, 20.5, 2.2)
+                + 0.18 * _gaussian(hours, 23.0, 1.6))
+    return (0.08
+            + 0.82 * _gaussian(hours, 10.0, 2.5)
+            + 0.96 * _gaussian(hours, 15.0, 2.8)
+            + 0.32 * _gaussian(hours, 19.0, 2.2))
 
 
 def _ar1_smooth(raw: np.ndarray, phi: float = 0.72) -> np.ndarray:
@@ -135,16 +287,16 @@ def generate_mock_history(
 
     data: Dict[int, np.ndarray] = {}
     for loc in locations:
-        key, hotspot = SPOT_PROFILE_OVERRIDES.get(loc.title, ("default", 1.0))
+        key = _infer_profile_key(loc.title, loc.category)
+        hotspot = SPOT_PROFILE_OVERRIDES.get(loc.title, (key, 1.0))[1]
         prof = dict(PROFILE_LIBRARY[key])
         dist = _haversine_km(loc.latitude, loc.longitude, *CHONGQING_CENTER)
         urban = 0.72 + 0.35 * math.exp(-dist / 12.0)
         base = float(rng.uniform(*prof["base_range"]) * urban * hotspot)
 
-        mw, nw, ew = prof["peak_weights"]
-        shape = (0.52 + mw * _gaussian(hour_of_day, 10.0, 2.2)
-                     + nw * _gaussian(hour_of_day, 14.5, 3.0)
-                     + ew * _gaussian(hour_of_day, 20.5, 2.6))
+        time_curve = _build_time_curve(hour_of_day, key)
+        open_gate = _build_open_gate(hour_of_day, _resolve_open_window(loc, key))
+        shape = time_curve * open_gate
 
         we = 1 + prof["weekend_boost"] * is_weekend
         he = 1 + prof["holiday_boost"] * is_holiday
@@ -159,7 +311,8 @@ def generate_mock_history(
 
         noise = _ar1_smooth(rng.normal(0, prof["noise_std"], hours), phi=0.70)
         flow = base * shape * we * he * ne * wx * (1 + city_shock + noise + spike)
-        data[loc.id] = np.clip(flow, 300.0, max(base * 4.5, 2000.0))
+        flow = flow * open_gate
+        data[loc.id] = np.clip(flow, 0.0, max(base * 4.5, 2000.0))
 
     return pd.DataFrame(data, index=time_index)
 

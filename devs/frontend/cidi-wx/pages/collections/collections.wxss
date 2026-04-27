@@ -1,88 +1,174 @@
-/* 头部保持不变，微调下间距 */
-.header { 
-  width: 100%; 
-  padding: 30rpx 30rpx 10rpx; /* 减少底部padding */
-  background: #F7F8FA; 
-  box-sizing: border-box; 
-}
-.title { 
-  font-size: 36rpx; 
-  font-weight: bold; 
-  color: #2C2C2C; 
-}
-.subtitle { 
-  font-size: 24rpx; 
-  color: #999; 
-  margin-top: 8rpx; 
-}
-
-/* --- 列表容器 --- */
-.list-container {
-  width: 100%;
-  padding: 20rpx 30rpx; /* 左右留边距 */
+.page-wrap {
+  padding: 26rpx 24rpx 34rpx;
   box-sizing: border-box;
 }
 
-/* --- 单个卡片 (横板) --- */
-.list-item {
-  display: flex;        /* 启用 Flex 布局，默认是 row (横向) */
-  width: 100%;
-  height: 180rpx;       /* 固定卡片高度，整齐划一 */
-  background: #fff;
-  border-radius: 12rpx;
-  margin-bottom: 24rpx; /* 卡片之间的间距 */
-  overflow: hidden;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.03); /* 轻微阴影增加层次感 */
+.hero {
+  position: relative;
+  min-height: 110rpx;
+  margin: 8rpx 8rpx 26rpx;
 }
 
-/* --- 左侧封面 --- */
-.cover-img {
-  width: 280rpx;        /* 固定宽度 */
-  height: 100%;         /* 撑满卡片高度 */
-  background: #eee;     /* 加载时的背景色 */
-  flex-shrink: 0;       /* 防止图片被挤压变形 */
+.hero-main,
+.hero-sub {
+  position: absolute;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.25;
 }
 
-/* --- 右侧内容区 --- */
-.content-box {
-  flex: 1;              /* 占据剩余的所有宽度 */
-  padding: 20rpx;       /* 内部留白 */
-  display: flex;
-  flex-direction: column; /* 内容区内部垂直排列 */
-  justify-content: space-between; /* 标题在顶，小信息在底 */
-  box-sizing: border-box;
+.hero-main {
+  top: 0;
+  left: 0;
 }
 
-/* --- 标题样式 --- */
-.item-title {
-  font-size: 28rpx;
-  font-weight: 500;
-  color: #333;
+.hero-sub {
+  right: 0;
+  bottom: 0;
+}
+
+.glass-panel {
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 18rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.30) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.62);
+  box-shadow: 0 16rpx 36rpx rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
+}
+
+.panel-title {
+  display: block;
+  font-size: 24rpx;
+  color: #6b7280;
+  margin-bottom: 10rpx;
+}
+
+.location-main {
+  display: block;
+  font-size: 32rpx;
+  color: #111827;
+  font-weight: 700;
   line-height: 1.4;
-  
-  /* 限制最多显示两行，超出省略，就像B站那样 */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
-/* --- 底部小信息样式 --- */
-.meta-row {
+.location-detail {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #4b5563;
+}
+
+.best-row {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* 作者靠左，日期靠右，或者都在左边看你喜好 */
 }
 
-.meta-text {
+.best-cover {
+  width: 132rpx;
+  height: 132rpx;
+  border-radius: 18rpx;
+  margin-right: 18rpx;
+  flex-shrink: 0;
+}
+
+.best-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.best-name {
+  font-size: 30rpx;
+  color: #111827;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.best-meta {
+  font-size: 23rpx;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.list-head {
+  margin: 24rpx 4rpx 12rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.list-time {
   font-size: 22rpx;
-  color: #999;
+  color: #6b7280;
 }
 
-.UP {
-  color: #C1A06E; /* 给作者名加个稍微亮一点的颜色，突出显示 */
-  margin-right: 20rpx;
-  background: rgba(193, 160, 110, 0.1);
-  padding: 2rpx 8rpx;
-  border-radius: 4rpx;
+.rank-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 22rpx;
+  margin-bottom: 14rpx;
+}
+
+.rank-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.rank-num {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 44rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #1d4ed8;
+  background: rgba(191, 219, 254, 0.62);
+  margin-right: 14rpx;
+  flex-shrink: 0;
+}
+
+.rank-body {
+  min-width: 0;
+}
+
+.rank-name {
+  display: block;
+  font-size: 28rpx;
+  color: #111827;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-desc {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 23rpx;
+  color: #4b5563;
+}
+
+.rank-trend {
+  font-size: 23rpx;
+  color: #7c3aed;
+  margin-left: 12rpx;
+  flex-shrink: 0;
+}
+
+.empty-block {
+  margin-top: 30rpx;
+  text-align: center;
+  color: #6b7280;
+  font-size: 26rpx;
 }

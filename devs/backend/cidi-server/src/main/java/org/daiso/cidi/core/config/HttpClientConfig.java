@@ -1,8 +1,10 @@
 /**
  * HttpClientConfig
  *
- * 说明：本文件定义了 HttpClientConfig，是 cidi-server 项目中的核心代码文件之一。
- *
+ * 说明：本文件定义了 HttpClientConfig
+ * 是全项目进行HTTP请求的配置类，提供了一个 RestTemplate Bean 供全局使用。
+ * 通过使用 RestTemplateBuilder 来构建 RestTemplate，可以方便地进行定制化
+ * 这样做可以
  */
 
 package org.daiso.cidi.core.config;
