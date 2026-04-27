@@ -8,7 +8,7 @@
 import math
 import random
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # ================================================
 # 景点特征库（参照 Future_Pridect.py）
@@ -133,8 +133,57 @@ SPOT_PROFILE_OVERRIDES = {
     "金刚碑": ("mountain_remote", 0.85),
 }
 
-# 缓存每个景点的基础流量（单实例任务启动时初始化）
+# 重庆中心坐标（用于计算景点区位因子）
+CHONGQING_CENTER = (29.5575, 106.5773)
+
+# 仅对具备入园时段约束的景区生效，商圈/夜游默认全天。
+PROFILE_OPEN_WINDOWS = {
+    "museum": (9.0, 17.0),
+    "historic": (8.0, 21.0),
+    "transport": (8.0, 22.0),
+    "theater": (10.0, 22.5),
+    "mountain_remote": (8.0, 18.0),
+    "park": None,
+    "nightlife": None,
+    "commercial_core": None,
+    "default": None,
+}
+
+SPOT_OPEN_WINDOW_OVERRIDES = {
+    "长江索道": (8.0, 22.0),
+    "三峡博物馆": (9.0, 17.0),
+    "建川博物馆": (9.0, 17.0),
+    "白公馆渣滓洞": (9.0, 17.0),
+    "歌乐山革命纪念馆": (9.0, 17.0),
+    "南山植物园（北门）": (8.0, 18.0),
+    "南山植物园": (8.0, 18.0),
+    "金刚碑": (8.0, 18.0),
+}
+
+CATEGORY_PROFILE_HINTS = {
+    "nightlife": ("night", "bar", "酒吧", "夜", "夜游", "夜市"),
+    "commercial_core": ("commercial", "mall", "shopping", "商圈", "商业", "步行街"),
+    "transport": ("transport", "交通", "索道", "码头", "车站", "渡口"),
+    "historic": ("historic", "history", "古", "历史", "文化街"),
+    "museum": ("museum", "博物馆", "纪念馆", "展览"),
+    "park": ("park", "公园", "园", "广场"),
+    "theater": ("theater", "theatre", "剧院", "演艺"),
+    "mountain_remote": ("mountain", "山", "郊野", "森林"),
+}
+
+# 缓存每个景点的基础流量（任务初始化时建立，减少小时级跳变）
 _spot_base_flow_cache: Dict[int, float] = {}
+_spot_profile_cache: Dict[int, Dict[str, Any]] = {}
+
+# 运行时状态：用于构建连续时序（AR(1)）
+_spot_noise_state: Dict[int, float] = {}
+_spot_spike_state: Dict[int, float] = {}
+_last_hour_context: Dict[str, Any] = {
+    "hour": None,
+    "rain": 0.0,
+    "temp": 18.0,
+    "city_shock": 0.0,
+}
 
 
 # ================================================
@@ -157,7 +206,93 @@ def _circular_hour_gaussian(hour: float, peak: float, width: float = 2.5) -> flo
     return math.exp(-0.5 * (distance / max(width, 1e-6)) ** 2)
 
 
-def _get_spot_profile(spot_title: str) -> Dict:
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    d_phi = math.radians(lat2 - lat1)
+    d_lam = math.radians(lon2 - lon1)
+    a = math.sin(d_phi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lam / 2.0) ** 2
+    return 6371.0 * (2.0 * math.atan2(math.sqrt(a), math.sqrt(max(1.0 - a, 1e-12))))
+
+
+def _safe_float(value: Any, fallback: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _parse_hour_value(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        hour = float(value)
+        return hour if 0.0 <= hour <= 24.0 else None
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        if ":" in text:
+            hh, mm = text.split(":", 1)
+            try:
+                hour = float(int(hh)) + float(int(mm)) / 60.0
+            except ValueError:
+                return None
+            return hour if 0.0 <= hour <= 24.0 else None
+        try:
+            hour = float(text)
+            return hour if 0.0 <= hour <= 24.0 else None
+        except ValueError:
+            return None
+    return None
+
+
+def _resolve_open_window(spot: Dict[str, Any], profile_key: str) -> Optional[Tuple[float, float]]:
+    for start_key, end_key in [
+        ("entryStartHour", "entryEndHour"),
+        ("openHour", "closeHour"),
+        ("open_hour", "close_hour"),
+        ("openTime", "closeTime"),
+        ("open_time", "close_time"),
+        ("startHour", "endHour"),
+        ("start_hour", "end_hour"),
+    ]:
+        start = _parse_hour_value(spot.get(start_key))
+        end = _parse_hour_value(spot.get(end_key))
+        if start is not None and end is not None:
+            return start, end
+
+    title = str(spot.get("title", ""))
+    if title in SPOT_OPEN_WINDOW_OVERRIDES:
+        return SPOT_OPEN_WINDOW_OVERRIDES[title]
+    return PROFILE_OPEN_WINDOWS.get(profile_key)
+
+
+def _build_open_gate(hour: float, window: Optional[Tuple[float, float]]) -> float:
+    if window is None:
+        return 1.0
+    start, end = window
+    if abs(start - end) < 1e-6:
+        return 1.0
+    if start < end:
+        return 1.0 if start <= hour < end else 0.0
+    return 1.0 if (hour >= start or hour < end) else 0.0
+
+
+def _infer_profile_key(spot_title: str, category: Optional[str]) -> str:
+    override = SPOT_PROFILE_OVERRIDES.get(spot_title)
+    if override:
+        return override[0]
+    if not category:
+        return "default"
+    category_text = str(category).lower()
+    for profile_key, keywords in CATEGORY_PROFILE_HINTS.items():
+        if any(k.lower() in category_text for k in keywords):
+            return profile_key
+    return "default"
+
+
+def _get_spot_profile(spot_title: str, category: Optional[str] = None) -> Dict:
     """根据景点名称获取特征配置。
     
     Args:
@@ -166,14 +301,15 @@ def _get_spot_profile(spot_title: str) -> Dict:
     Returns:
         包含 profile_key, hotspot, 及全量配置的字典
     """
-    profile_key, hotspot = SPOT_PROFILE_OVERRIDES.get(spot_title, ("default", 1.0))
+    profile_key = _infer_profile_key(spot_title, category)
+    hotspot = SPOT_PROFILE_OVERRIDES.get(spot_title, (profile_key, 1.0))[1]
     profile = dict(PROFILE_LIBRARY[profile_key])
     profile["hotspot"] = hotspot
     profile["profile_key"] = profile_key
     return profile
 
 
-def _get_hourly_pattern(hour: int, peak_weights: Tuple[float, float, float]) -> float:
+def _build_time_curve(hour: float, profile_key: str) -> float:
     """计算某个小时的相对访客系数（0~1+）。
     
     基础系数 0.52 + 三个峰值的加权高斯分布：
@@ -188,12 +324,68 @@ def _get_hourly_pattern(hour: int, peak_weights: Tuple[float, float, float]) -> 
     Returns:
         [0.52, ...] 范围的相对系数
     """
-    morning_w, noon_w, evening_w = peak_weights
-    pattern = 0.52
-    pattern += morning_w * _circular_hour_gaussian(float(hour), 10.0, 2.2)
-    pattern += noon_w * _circular_hour_gaussian(float(hour), 14.5, 3.0)
-    pattern += evening_w * _circular_hour_gaussian(float(hour), 20.5, 2.6)
-    return pattern
+    if profile_key == "commercial_core":
+        return (
+            0.22
+            + 0.95 * _circular_hour_gaussian(hour, 13.0, 2.3)
+            + 1.05 * _circular_hour_gaussian(hour, 20.2, 2.6)
+            + 0.25 * _circular_hour_gaussian(hour, 0.8, 2.2)
+        )
+    if profile_key == "nightlife":
+        return (
+            0.14
+            + 0.40 * _circular_hour_gaussian(hour, 13.5, 3.0)
+            + 1.20 * _circular_hour_gaussian(hour, 21.3, 2.4)
+            + 0.38 * _circular_hour_gaussian(hour, 0.7, 2.1)
+        )
+    if profile_key == "park":
+        return (
+            0.01
+            + 0.96 * _circular_hour_gaussian(hour, 10.8, 2.5)
+            + 0.74 * _circular_hour_gaussian(hour, 16.2, 2.7)
+            + 0.05 * _circular_hour_gaussian(hour, 19.2, 1.8)
+        )
+    if profile_key == "museum":
+        return (
+            0.05
+            + 0.85 * _circular_hour_gaussian(hour, 10.3, 2.1)
+            + 0.82 * _circular_hour_gaussian(hour, 14.2, 2.4)
+            + 0.14 * _circular_hour_gaussian(hour, 18.0, 1.8)
+        )
+    if profile_key == "historic":
+        return (
+            0.06
+            + 0.68 * _circular_hour_gaussian(hour, 10.0, 2.4)
+            + 0.92 * _circular_hour_gaussian(hour, 15.2, 2.7)
+            + 0.30 * _circular_hour_gaussian(hour, 19.0, 2.3)
+        )
+    if profile_key == "transport":
+        return (
+            0.12
+            + 0.78 * _circular_hour_gaussian(hour, 9.2, 2.0)
+            + 0.88 * _circular_hour_gaussian(hour, 15.8, 2.4)
+            + 0.42 * _circular_hour_gaussian(hour, 19.2, 2.2)
+        )
+    if profile_key == "mountain_remote":
+        return (
+            0.03
+            + 0.88 * _circular_hour_gaussian(hour, 10.6, 2.6)
+            + 0.64 * _circular_hour_gaussian(hour, 14.8, 2.9)
+            + 0.10 * _circular_hour_gaussian(hour, 18.0, 2.0)
+        )
+    if profile_key == "theater":
+        return (
+            0.08
+            + 0.30 * _circular_hour_gaussian(hour, 14.0, 2.5)
+            + 1.05 * _circular_hour_gaussian(hour, 20.5, 2.2)
+            + 0.18 * _circular_hour_gaussian(hour, 23.0, 1.6)
+        )
+    return (
+        0.08
+        + 0.82 * _circular_hour_gaussian(hour, 10.0, 2.5)
+        + 0.96 * _circular_hour_gaussian(hour, 15.0, 2.8)
+        + 0.32 * _circular_hour_gaussian(hour, 19.0, 2.2)
+    )
 
 
 def _get_day_modifiers(dt: datetime) -> Tuple[float, float, bool]:
@@ -219,39 +411,65 @@ def _get_day_modifiers(dt: datetime) -> Tuple[float, float, bool]:
     return is_weekend, is_holiday, is_friday_night
 
 
-def _get_weather_factors() -> Tuple[float, float]:
-    """生成随机的天气因素。
-    
-    Returns:
-        (rain_level, temp_factor)
-        - rain_level: [0, 1] 表示降雨概率
-        - temp_factor: [-1, 1] 表示温度偏差（相对于 18°C）
-    """
-    # 降雨概率：Beta 分布，倾向于低值
-    rain_level = random.betavariate(2.0, 5.0)
-    
-    # 温度偏差：正态分布
-    temp_offset = random.gauss(0, 0.5)  # [-0.5, +0.5] 范围内的单位偏差
-    temp_factor = max(-1.0, min(1.0, temp_offset))
-    
-    return rain_level, temp_factor
+def _next_city_context(current_time: datetime) -> Dict[str, float]:
+    hour_key = current_time.replace(minute=0, second=0, microsecond=0)
+    if _last_hour_context["hour"] == hour_key:
+        return {
+            "rain": float(_last_hour_context["rain"]),
+            "temp": float(_last_hour_context["temp"]),
+            "city_shock": float(_last_hour_context["city_shock"]),
+        }
+
+    day_of_year = current_time.timetuple().tm_yday
+    season_phase = (day_of_year / 365.0) * 1.5 * math.pi
+    temp = 14.0 + 7.0 * math.sin(season_phase) + random.gauss(0.0, 1.8)
+    rain = random.betavariate(2.0, 5.0)
+
+    raw_city_noise = random.gauss(0.0, 0.05)
+    prev_city_shock = float(_last_hour_context["city_shock"])
+    hour_of_week = (current_time.weekday() * 24 + current_time.hour) % 168
+    trend = 0.03 * math.sin((2.0 * math.pi * hour_of_week) / 168.0)
+    city_shock = 0.85 * prev_city_shock + 0.15 * raw_city_noise + trend
+
+    _last_hour_context["hour"] = hour_key
+    _last_hour_context["rain"] = rain
+    _last_hour_context["temp"] = temp
+    _last_hour_context["city_shock"] = city_shock
+    return {"rain": rain, "temp": temp, "city_shock": city_shock}
 
 
-def _add_noise(base_value: float, noise_std: float) -> float:
-    """添加高斯噪声。
-    
-    Args:
-        base_value: 基础值
-        noise_std: 噪声标准差
-        
-    Returns:
-        添加噪声后的值
-    """
-    noise = random.gauss(0, noise_std)
-    return base_value * (1.0 + noise)
+def _next_spot_ar1_noise(spot_id: int, noise_std: float, phi: float = 0.70) -> float:
+    prev = _spot_noise_state.get(spot_id, 0.0)
+    raw = random.gauss(0.0, noise_std)
+    noise = phi * prev + (1.0 - phi) * raw
+    _spot_noise_state[spot_id] = noise
+    return noise
 
 
-def initialize_spot_profiles(spots: List[Dict]) -> None:
+def _next_spot_spike(spot_id: int, spike_scale: float, event_prob: float = 1.0 / 72.0) -> float:
+    prev = _spot_spike_state.get(spot_id, 0.0)
+    impulse = random.uniform(0.05, spike_scale) if random.random() < event_prob else 0.0
+    spike = 0.82 * prev + impulse
+    _spot_spike_state[spot_id] = spike
+    return spike
+
+
+def _compute_weather_effect(profile: Dict[str, Any], rain: float, temp: float) -> float:
+    temp_norm = (temp - 18.0) / 10.0
+    return max(0.65, min(1.35, 1.0 + profile["rain_coef"] * rain + profile["temp_coef"] * temp_norm))
+
+
+def reset_runtime_state() -> None:
+    """重置运行时状态（AR(1) 噪声、城市扰动、突发事件），用于批量历史生成前归一化。"""
+    _spot_noise_state.clear()
+    _spot_spike_state.clear()
+    _last_hour_context["hour"] = None
+    _last_hour_context["rain"] = 0.0
+    _last_hour_context["temp"] = 18.0
+    _last_hour_context["city_shock"] = 0.0
+
+
+def initialize_spot_profiles(spots: List[Dict], reset_state: bool = True) -> None:
     """为景点初始化基础流量缓存。
     
     在启动模拟任务时调用，为每个景点生成一个基础流量值（保持在该景点整个运行期间的稳定性）。
@@ -261,18 +479,45 @@ def initialize_spot_profiles(spots: List[Dict]) -> None:
     """
     global _spot_base_flow_cache
     _spot_base_flow_cache.clear()
+    _spot_profile_cache.clear()
+
+    if reset_state:
+        reset_runtime_state()
     
     for spot in spots:
         spot_id = int(spot["id"])
         spot_title = str(spot.get("title", ""))
-        profile = _get_spot_profile(spot_title)
-        
-        # 考虑景点到城市中心的距离（简化：随机地理位置）
-        urban_factor = random.uniform(0.72, 1.07)
-        
+        profile = _get_spot_profile(spot_title, str(spot.get("category", "")))
+
+        lat = _safe_float(spot.get("latitude"), CHONGQING_CENTER[0])
+        lon = _safe_float(spot.get("longitude"), CHONGQING_CENTER[1])
+        dist_center = _haversine_km(lat, lon, CHONGQING_CENTER[0], CHONGQING_CENTER[1])
+        urban_factor = 0.72 + 0.35 * math.exp(-dist_center / 12.0)
+
         base_low, base_high = profile["base_range"]
         base_flow = random.uniform(base_low, base_high) * urban_factor * profile["hotspot"]
-        _spot_base_flow_cache[spot_id] = max(300.0, min(base_flow * 4.5, 2000.0))
+        _spot_base_flow_cache[spot_id] = max(200.0, base_flow)
+        _spot_profile_cache[spot_id] = profile
+
+
+def _ensure_spot_profiles(spots: List[Dict]) -> None:
+    missing = [s for s in spots if int(s["id"]) not in _spot_base_flow_cache]
+    if not missing:
+        return
+    for spot in missing:
+        spot_id = int(spot["id"])
+        spot_title = str(spot.get("title", ""))
+        profile = _get_spot_profile(spot_title, str(spot.get("category", "")))
+
+        lat = _safe_float(spot.get("latitude"), CHONGQING_CENTER[0])
+        lon = _safe_float(spot.get("longitude"), CHONGQING_CENTER[1])
+        dist_center = _haversine_km(lat, lon, CHONGQING_CENTER[0], CHONGQING_CENTER[1])
+        urban_factor = 0.72 + 0.35 * math.exp(-dist_center / 12.0)
+
+        base_low, base_high = profile["base_range"]
+        base_flow = random.uniform(base_low, base_high) * urban_factor * profile["hotspot"]
+        _spot_base_flow_cache[spot_id] = max(200.0, base_flow)
+        _spot_profile_cache[spot_id] = profile
 
 
 def generate_visitor_count(
@@ -297,44 +542,34 @@ def generate_visitor_count(
     Returns:
         访客数（整数，最小 300，最大根据景点类型确定）
     """
-    # 获取景点特征
-    profile = _get_spot_profile(spot_title)
-    base_low, base_high = profile["base_range"]
-    
-    # 如果缓存中有基础流量，使用缓存；否则实时生成
-    if spot_id in _spot_base_flow_cache:
-        base_flow = _spot_base_flow_cache[spot_id]
-    else:
-        urban_factor = random.uniform(0.72, 1.07)
-        base_flow = random.uniform(base_low, base_high) * urban_factor * profile["hotspot"]
-        base_flow = max(300.0, min(base_flow * 4.5, 2000.0))
-    
-    # 计算小时内的时间段权重
-    hour = current_time.hour
-    daily_shape = _get_hourly_pattern(hour, profile["peak_weights"])
-    
-    # 获取日期修饰符
+    if spot_id not in _spot_base_flow_cache:
+        initialize_spot_profiles([{"id": spot_id, "title": spot_title}], reset_state=False)
+
+    profile = _spot_profile_cache.get(spot_id)
+    if profile is None:
+        profile = _get_spot_profile(spot_title)
+        _spot_profile_cache[spot_id] = profile
+
+    base_flow = _spot_base_flow_cache[spot_id]
+    hour_context = _next_city_context(current_time)
+
+    hour = float(current_time.hour)
+    time_curve = _build_time_curve(hour, profile["profile_key"])
+    open_gate = _build_open_gate(hour, _resolve_open_window({"title": spot_title}, profile["profile_key"]))
+
     is_weekend, is_holiday, is_friday_night = _get_day_modifiers(current_time)
-    
     weekend_effect = 1.0 + profile["weekend_boost"] * is_weekend
     holiday_effect = 1.0 + profile["holiday_boost"] * is_holiday
-    night_event_effect = 1.0 + profile["night_event_boost"] * (1.0 if is_friday_night else 0.0)
-    
-    # 获取天气因素
-    rain_level, temp_factor = _get_weather_factors()
-    weather_effect = max(0.65, min(1.35, 1.0 + profile["rain_coef"] * rain_level + profile["temp_coef"] * temp_factor))
-    
-    # 综合计算
-    flow = base_flow * daily_shape * weekend_effect * holiday_effect * night_event_effect * weather_effect
-    
-    # 添加噪声
-    flow = _add_noise(flow, profile["noise_std"])
-    
-    # 约束范围
-    flow = max(300.0, flow)
-    flow = min(max(base_flow * 4.5, 2000.0), flow)
-    
-    return int(flow)
+    night_effect = 1.0 + profile["night_event_boost"] * (1.0 if is_friday_night else 0.0)
+    weather_effect = _compute_weather_effect(profile, hour_context["rain"], hour_context["temp"])
+
+    noise = _next_spot_ar1_noise(spot_id, profile["noise_std"], phi=0.70)
+    spike = _next_spot_spike(spot_id, profile.get("spike_scale", 0.16))
+
+    flow = base_flow * time_curve * open_gate * weekend_effect * holiday_effect * night_effect * weather_effect
+    flow *= max(0.0, 1.0 + hour_context["city_shock"] + noise + spike)
+    flow = max(0.0, min(max(base_flow * 4.5, 2000.0), flow))
+    return int(round(flow))
 
 
 def generate_all_visitor_counts(
@@ -352,12 +587,38 @@ def generate_all_visitor_counts(
     """
     if current_time is None:
         current_time = datetime.now()
+
+    _ensure_spot_profiles(spots)
+    hour_context = _next_city_context(current_time)
     
     result = {}
     for spot in spots:
         spot_id = int(spot["id"])
         spot_title = str(spot.get("title", ""))
-        visitor_count = generate_visitor_count(spot_id, spot_title, current_time)
+        profile = _spot_profile_cache.get(spot_id)
+        if profile is None:
+            profile = _get_spot_profile(spot_title, str(spot.get("category", "")))
+            _spot_profile_cache[spot_id] = profile
+
+        base_flow = _spot_base_flow_cache[spot_id]
+        hour = float(current_time.hour)
+        open_gate = _build_open_gate(hour, _resolve_open_window(spot, profile["profile_key"]))
+        time_curve = _build_time_curve(hour, profile["profile_key"])
+
+        is_weekend, is_holiday, is_friday_night = _get_day_modifiers(current_time)
+        weekend_effect = 1.0 + profile["weekend_boost"] * is_weekend
+        holiday_effect = 1.0 + profile["holiday_boost"] * is_holiday
+        night_effect = 1.0 + profile["night_event_boost"] * (1.0 if is_friday_night else 0.0)
+        weather_effect = _compute_weather_effect(profile, hour_context["rain"], hour_context["temp"])
+
+        noise = _next_spot_ar1_noise(spot_id, profile["noise_std"], phi=0.70)
+        spike = _next_spot_spike(spot_id, profile.get("spike_scale", 0.16))
+
+        flow = base_flow * time_curve * open_gate * weekend_effect * holiday_effect * night_effect * weather_effect
+        flow *= max(0.0, 1.0 + hour_context["city_shock"] + noise + spike)
+        flow = max(0.0, min(max(base_flow * 4.5, 2000.0), flow))
+
+        visitor_count = int(round(flow))
         result[spot_id] = visitor_count
     
     return result

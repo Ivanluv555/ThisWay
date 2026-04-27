@@ -14,6 +14,7 @@ from app.services.crowd_index_service import compute_batch_congestion_index
 from app.services.visitor_profile_service import (
     initialize_spot_profiles,
     generate_all_visitor_counts,
+    reset_runtime_state,
 )
 
 logger = logging.getLogger(__name__)
@@ -225,6 +226,9 @@ def _generate_and_write_multiple_hours_sync(hours: int, lookback: bool = False) 
     locations = _get_all_locations_sync()
     if not locations:
         raise RuntimeError("locations 表中没有可用景点数据")
+
+    # 批量生成前重置时序状态，保证该批次内部的趋势连续且不受历史残留影响。
+    initialize_spot_profiles(locations, reset_state=True)
     
     spot_count = len(locations)
     all_records = []
@@ -313,7 +317,7 @@ async def start_simulation() -> Dict[str, Any]:
 
     # 初始化景点特征缓存（为每个景点生成基础流量）
     locations_for_init = await get_all_locations()
-    await run_in_threadpool(initialize_spot_profiles, locations_for_init)
+    await run_in_threadpool(initialize_spot_profiles, locations_for_init, True)
 
     _stop_event = asyncio.Event()
     _state["running"] = True
@@ -332,6 +336,8 @@ def stop_simulation() -> Dict[str, Any]:
     _state["stopping"] = True
     if _stop_event:
         _stop_event.set()
+    # 停止后重置时序状态，避免后续任务复用过期噪声/扰动。
+    reset_runtime_state()
     return get_simulation_status()
 
 
