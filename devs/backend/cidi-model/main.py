@@ -2,12 +2,22 @@
 cidi-model FastAPI 主入口
 
 启动：
+    cd .\devs\backend\cidi-model
     uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 
 环境变量：
     SPRING_BASE_URL   Spring Boot 地址（默认 http://localhost:8080）
     SCENIC_SEED       随机种子（默认 42）
     HISTORY_HOURS     历史追溯小时数（默认 168）
+    MYSQL_HOST        MySQL 地址（默认 127.0.0.1）
+    MYSQL_PORT        MySQL 端口（默认 3306）
+    MYSQL_USER        MySQL 用户（默认 root）
+    MYSQL_PASSWORD    MySQL 密码
+    MYSQL_DATABASE    MySQL 库名（默认 cidi_db）
+    MYSQL_TABLE_SPIDER_SPOTS  spider 景点表名（默认 spider_regional_scenic_spots）
+    MYSQL_TABLE_SPIDER_SPOT_DETAILS  spider 景点详情表名（默认 spider_scenic_spot_details）
+    SPOT_DETAIL_SYNC_DELAY_SECONDS   详情同步请求间隔秒数（默认 1.5）
+    SPOT_DETAIL_SYNC_JITTER_SECONDS  详情同步抖动秒数（默认 0.8）
 """
 import logging
 from datetime import datetime, timedelta
@@ -15,11 +25,33 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config
-from app.models import HourlyFlowRecord, PredictionRecord, PredictResponse
+from app.models import (
+    CrowdIndexResponse,
+    DistrictLookupResponse,
+    HourlyFlowRecord,
+    PredictResponse,
+    PredictionRecord,
+    SimulationStatusResponse,
+)
+from app.services.crowd_index_service import build_crowd_index_items
+from app.services.district_lookup_service import resolve_district_context
+from app.services.flow_simulation_service import (
+    generate_and_write_multiple_hours,
+    get_all_location_ids,
+    get_latest_location_flows,
+    get_simulation_status,
+    start_simulation,
+    stop_simulation,
+)
+from app.spider.xc_spot_search import xc_fetch_search
+from app.spider.xc_spot_detail import xc_fetch_detail
+from app.services.spot_detail_sync_service import check_spot_detail_sync_ready, sync_region_spot_details
+from app.services.spot_sync_service import crawl_and_prepare_spots
 from app.predictor import (
     DiversionPolicy,
     ci_to_level,
@@ -45,7 +77,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # ══════════════════════════════════════════════════════════════════
 # 健康检查
@@ -215,3 +246,196 @@ async def get_latest_predictions():
         return resp.json()
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"获取最新预测失败: {e}")
+
+# ══════════════════════════════════════════════════════════════════
+# 接收参数，完成指定景区的拥挤指数计算（正在开发中...）
+# ══════════════════════════════════════════════════════════════════
+@app.get("/crowd-index", response_model=CrowdIndexResponse, tags=["拥挤指数"])
+async def calculate_crowd_index(
+    location_id: Optional[int] = Query(default=None, ge=1, description="景点ID；为空时返回全部景点最新拥挤指数"),
+):
+    """读取 location_hourly_flow 最新客流数据并计算拥挤指数。"""
+    try:
+        rows = await get_latest_location_flows(location_id=location_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"读取客流数据失败: {e}")
+
+    if not rows:
+        raise HTTPException(status_code=404, detail="未找到可用于计算拥挤指数的数据")
+
+    items = build_crowd_index_items(rows)
+    latest_record_hour = max(row["record_hour"] for row in rows)
+    return {
+        "recordHour": latest_record_hour.isoformat() if latest_record_hour else None,
+        "itemCount": len(items),
+        "items": items,
+    }
+
+
+# ══════════════════════════════════════════════════════════════════
+# 模拟定时上报：启停控制
+# ══════════════════════════════════════════════════════════════════
+@app.post("/flow/simulation/toggle", response_model=SimulationStatusResponse, tags=["数据采集"])
+async def toggle_flow_simulation(
+    enabled: bool = Query(..., description="是否启动模拟上报；true=启动，false=停止"),
+):
+    """启停模拟定时上报任务（单实例，后台非阻塞执行）。"""
+    try:
+        if enabled:
+            return await start_simulation()
+        return stop_simulation()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"切换模拟任务状态失败: {e}")
+
+
+@app.get("/flow/simulation/status", response_model=SimulationStatusResponse, tags=["数据采集"])
+async def get_flow_simulation_status():
+    """查询模拟定时上报任务当前状态。"""
+    return get_simulation_status()
+
+
+@app.post("/flow/simulation/batch-insert", tags=["数据采集"], status_code=201)
+async def batch_insert_simulation_data(
+    hours: int = Query(..., ge=1, le=720, description="要生成的小时数（1-720，最多30天）"),
+    lookback: bool = Query(default=False, description="是否生成往过去的历史数据；False=往未来，True=往过去"),
+):
+    """一次性生成并上报指定小时数的模拟数据（开发测试用）。
+    
+    用于快速填充测试数据，避免等待定时任务的 60 秒执行周期。
+    
+    参数：
+    - hours: 1-720，表示要生成多少小时的数据
+    - lookback: 
+        - False（默认）：生成未来的数据，如 hours=24 则生成接下来 24 小时的数据
+        - True：生成过去的数据，如 hours=24 则生成过去 24 小时的数据
+    """
+    try:
+        result = await generate_and_write_multiple_hours(hours=hours, lookback=lookback)
+        return {
+            "status": "success",
+            "message": f"已生成并上报 {hours} 小时的模拟数据",
+            **result,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"批量上报失败: {e}")
+
+
+@app.get("/locations/ids", tags=["数据采集"])
+async def get_locations_id_list():
+    """读取 locations 全量景点并返回 ID 列表（当前测试集即重庆景点）。"""
+    try:
+        return {"ids": await get_all_location_ids()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"读取 locations 失败: {e}")
+
+
+# ══════════════════════════════════════════════════════════════════
+# 根据地点名称解析 district_code / district_id
+# ══════════════════════════════════════════════════════════════════
+@app.get("/spots/district-code", response_model=DistrictLookupResponse, tags=["数据采集"])
+async def get_district_code(
+    keyword: str = Query(..., min_length=1, description="地点名称，例如：重庆、成都、武隆"),
+):
+    """通过地点名称查询携程搜索结果，并解析最可能的 district_code(district_id)。"""
+    try:
+        result = await run_in_threadpool(resolve_district_context, keyword)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"解析 district_code 失败: {e}")
+
+    return {
+        "keyword": result["keyword"],
+        "districtId": result["district_id"],
+        "districtName": result.get("district_name", ""),
+    }
+
+
+# ══════════════════════════════════════════════════════════════════
+# 获取所有的景点列表
+# 遍历所有的景点，并且更新数据库存储的景点数据，没有则添加，有则更新
+# ══════════════════════════════════════════════════════════════════
+@app.get("/spots/all", tags=["数据采集"])
+async def crawl_all_spots(
+    keyword: str = Query(default="重庆", min_length=1, description="待遍历地点，例如：重庆"),
+):
+    """遍历指定地点的全部景点并打印结果；MySQL 写入逻辑暂留空。"""
+    return await crawl_and_prepare_spots(keyword)
+
+
+@app.post("/spots/sync", tags=["数据采集"])
+async def sync_spots(
+    keyword: str = Query(..., min_length=1, description="待同步地点，例如：重庆"),
+):
+    """同步入口：参数仅地点字符串。分页由服务内部控制，不对外暴露。"""
+    return await crawl_and_prepare_spots(keyword)
+
+
+@app.post("/spots/details/sync", tags=["数据采集"], status_code=202)
+async def sync_spot_details(
+    background_tasks: BackgroundTasks,
+    keyword: str = Query(..., min_length=1, description="待同步地区，例如：重庆"),
+):
+    """异步同步指定地区的景点详情，立即返回任务已受理。"""
+    try:
+        await run_in_threadpool(check_spot_detail_sync_ready)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"景点详情同步前置检查失败: {e}")
+
+    background_tasks.add_task(sync_region_spot_details, keyword)
+    return {
+        "message": f"已接收 {keyword} 地区景点详情同步任务，后台将异步执行。",
+        "keyword": keyword,
+        "status": "accepted",
+    }
+
+
+
+# ══════════════════════════════════════════════════════════════════
+# 搜索地区的景区列表
+# ══════════════════════════════════════════════════════════════════
+@app.get("/spots", tags=["数据采集"])
+async def search_spots(
+    keyword: str = Query(default="重庆", min_length=1, description="搜索关键词"),
+    pageIndex: Optional[int] = Query(default=None, ge=1, alias="pageIndex", description="页码，从 1 开始"),
+    pageSize: Optional[int] = Query(default=None, ge=1, le=50, alias="pageSize", description="每页条数"),
+    page_index: Optional[int] = Query(default=None, ge=1, alias="page_index", description="页码，从 1 开始（兼容下划线命名）"),
+    page_size: Optional[int] = Query(default=None, ge=1, le=50, alias="page_size", description="每页条数（兼容下划线命名）"),
+):
+    """通过携程景点搜索接口查询景区数据。"""
+
+    effective_page_index = page_index if page_index is not None else (pageIndex if pageIndex is not None else 1)
+    effective_page_size = page_size if page_size is not None else (pageSize if pageSize is not None else 12)
+
+    try:
+        result = await run_in_threadpool(xc_fetch_search, keyword, effective_page_index, effective_page_size)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"查询景区数据失败: {e}")
+
+    return {
+        "keyword": keyword,
+        "pageIndex": effective_page_index,
+        "pageSize": effective_page_size,
+        **result,
+    }
+
+# 重庆 district_code 158
+# ══════════════════════════════════════════════════════════════════
+# 查询指定景区的详细数据
+# ══════════════════════════════════════════════════════════════════
+@app.get("/spots/{district_code}/{sight_code}", tags=["数据采集"])
+async def get_spot_detail(district_code: int, sight_code: int):
+    """通过携程景点详情页查询指定景区详细数据（含介绍、政策、设施、问答、点评与图片）。"""
+    try:
+        detail = await run_in_threadpool(xc_fetch_detail, district_code, sight_code)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"查询景区详情失败: {e}")
+
+    spot_name = detail.get("spot", {}).get("name", "") if isinstance(detail, dict) else ""
+    if not spot_name:
+        raise HTTPException(status_code=404, detail="未找到景区详情，可能景点不存在或页面结构已变化")
+
+    return {
+        "district_code": district_code,
+        "sight_code": sight_code,
+        **detail,
+    }
+
