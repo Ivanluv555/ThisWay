@@ -53,3 +53,40 @@ async def post_predictions_batch(records: List[PredictionRecord]) -> None:
     resp = await _client.post("/api/spot-traffic-predictions/batch", json=payload)
     resp.raise_for_status()
     logger.info("写入预测结果 %d 条", len(records))
+
+
+async def post_transitions_batch(records) -> None:
+    """POST /api/location-transitions/batch → 批量写入转移预测"""
+    from app.models import TransitionRecord
+    payload = []
+    for r in records:
+        if isinstance(r, TransitionRecord):
+            d = r.model_dump(mode="json")
+        else:
+            d = r
+        payload.append(d)
+    resp = await _client.post("/api/location-transitions/batch", json=payload)
+    resp.raise_for_status()
+    logger.info("写入转移预测 %d 条", len(records))
+
+
+async def get_latest_flows(location_id: Optional[int] = None) -> List[dict]:
+    """GET /api/flow/latest → 获取所有景点的最新人流数据
+
+    返回格式:
+    [
+        {
+            "location_id": 1,
+            "title": "洪崖洞",
+            "visitor_count": 1500,
+            "record_hour": "2026-05-05T14:00:00"
+        },
+        ...
+    ]
+    """
+    params = {}
+    if location_id is not None:
+        params["locationId"] = location_id
+    resp = await _client.get("/api/flow/latest", params=params)
+    resp.raise_for_status()
+    return resp.json()

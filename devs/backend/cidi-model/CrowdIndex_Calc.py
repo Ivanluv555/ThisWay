@@ -15,18 +15,15 @@ from dataclasses import dataclass
 import math
 from typing import Iterable, Mapping, Optional, Sequence
 
-
 @dataclass(frozen=True)
 class ZoneInput:
 	"""单个区域在当前时间步的输入数据。"""
-
 	zone_id: str
 	zone_type: str
 	max_capacity: float
 	people_now: float
 	wait_minutes: Optional[float] = None
 	space_type: Optional[str] = None
-
 
 # 天气等级映射 -> eta_weather（F1）。
 DEFAULT_WEATHER_COEFF: Mapping[str, float] = {

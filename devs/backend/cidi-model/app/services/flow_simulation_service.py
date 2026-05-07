@@ -1,3 +1,10 @@
+"""
+flow_simulation_service.py
+
+模拟人流数据生成服务
+
+重要：本服务通过 Spring Boot API 访问数据库，不直接连接 MySQL
+"""
 from __future__ import annotations
 
 import asyncio
@@ -9,7 +16,8 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from fastapi.concurrency import run_in_threadpool
 
-from app import config
+from app import config, spring_client
+from app.models import HourlyFlowRecord, LocationInfo
 from app.services.crowd_index_service import compute_batch_congestion_index
 from app.services.visitor_profile_service import (
     initialize_spot_profiles,
@@ -22,9 +30,6 @@ logger = logging.getLogger(__name__)
 SIMULATION_INTERVAL_SECONDS = 60
 SIMULATION_VISITOR_MIN = 100
 SIMULATION_VISITOR_MAX = 3000
-
-_TABLE_LOCATIONS = "locations"
-_TABLE_LOCATION_HOURLY_FLOW = "location_hourly_flow"
 
 
 _state: Dict[str, Any] = {
@@ -44,177 +49,97 @@ _stop_event: Optional[asyncio.Event] = None
 _worker_task: Optional[asyncio.Task] = None
 
 
-def _connect_mysql():
-    try:
-        import pymysql
-    except Exception as exc:
-        raise RuntimeError(f"pymysql 未安装，请先安装依赖: {exc}")
+# ══════════════════════════════════════════════════════════════════
+# 数据访问层：通过 Spring Boot API 访问数据库
+# ══════════════════════════════════════════════════════════════════
 
-    return pymysql.connect(
-        host=config.MYSQL_HOST,
-        port=config.MYSQL_PORT,
-        user=config.MYSQL_USER,
-        password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DATABASE,
-        charset="utf8mb4",
-        autocommit=False,
-    )
+async def _get_all_locations() -> List[LocationInfo]:
+    """通过 Spring Boot API 获取所有景点"""
+    return await spring_client.get_locations()
 
 
-def _check_mysql_ready_sync() -> Dict[str, Any]:
-    conn = _connect_mysql()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT 1")
-            cursor.fetchone()
-            for table in (_TABLE_LOCATIONS, _TABLE_LOCATION_HOURLY_FLOW):
-                cursor.execute("SHOW TABLES LIKE %s", (table,))
-                if not cursor.fetchone():
-                    raise RuntimeError(f"目标表不存在: {table}")
-    finally:
-        conn.close()
+async def _get_latest_location_flows(location_id: Optional[int] = None) -> List[Dict[str, Any]]:
+    """通过 Spring Boot API 获取最新人流数据
 
-    return {
-        "host": config.MYSQL_HOST,
-        "port": config.MYSQL_PORT,
-        "database": config.MYSQL_DATABASE,
-        "tables": [_TABLE_LOCATIONS, _TABLE_LOCATION_HOURLY_FLOW],
-        "connected": True,
-    }
-
-
-def _get_all_locations_sync() -> List[Dict[str, Any]]:
-    conn = _connect_mysql()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                f"SELECT id, title, latitude, longitude, address, category FROM {_TABLE_LOCATIONS} ORDER BY id ASC"
-            )
-            rows = cursor.fetchall()
-    finally:
-        conn.close()
-
-    return [
+    返回格式:
+    [
         {
-            "id": int(row[0]),
-            "title": row[1] or "",
-            "latitude": float(row[2]),
-            "longitude": float(row[3]),
-            "address": row[4] or "",
-            "category": row[5],
-        }
-        for row in rows
+            "locationId": 1,
+            "recordHour": "2026-05-05T14:00:00",
+            "visitorCount": 1500,
+            "congestionIndex": 5.2
+        },
+        ...
     ]
+    """
+    return await spring_client.get_latest_flows(location_id)
 
 
-def _get_latest_location_flows_sync(location_id: Optional[int] = None) -> List[Dict[str, Any]]:
-    conn = _connect_mysql()
-    try:
-        with conn.cursor() as cursor:
-            if location_id is None:
-                cursor.execute(
-                    f"SELECT l.id, l.title, h.visitor_count, h.record_hour "
-                    f"FROM {_TABLE_LOCATIONS} l "
-                    f"JOIN ("
-                    f"  SELECT location_id, MAX(record_hour) AS max_hour "
-                    f"  FROM {_TABLE_LOCATION_HOURLY_FLOW} GROUP BY location_id"
-                    f") last_h ON last_h.location_id = l.id "
-                    f"JOIN {_TABLE_LOCATION_HOURLY_FLOW} h "
-                    f"  ON h.location_id = last_h.location_id AND h.record_hour = last_h.max_hour "
-                    f"ORDER BY l.id ASC"
-                )
-            else:
-                cursor.execute(
-                    f"SELECT l.id, l.title, h.visitor_count, h.record_hour "
-                    f"FROM {_TABLE_LOCATIONS} l "
-                    f"JOIN {_TABLE_LOCATION_HOURLY_FLOW} h ON h.location_id=l.id "
-                    f"WHERE l.id=%s "
-                    f"ORDER BY h.record_hour DESC LIMIT 1",
-                    (location_id,),
-                )
-            rows = cursor.fetchall()
-    finally:
-        conn.close()
-
-    return [
-        {
-            "location_id": int(row[0]),
-            "title": row[1] or "",
-            "visitor_count": int(row[2]),
-            "record_hour": row[3],
-        }
-        for row in rows
-    ]
+async def _batch_write_flow_records(records: List[HourlyFlowRecord]) -> None:
+    """通过 Spring Boot API 批量写入人流记录"""
+    await spring_client.post_history_batch(records)
 
 
-def _upsert_location_hourly_flow_sync(records: Sequence[Tuple[int, datetime, int, float, str]]) -> Dict[str, Any]:
-    if not records:
-        return {"inserted": 0, "skipped": 0}
+# ══════════════════════════════════════════════════════════════════
+# 业务逻辑层
+# ══════════════════════════════════════════════════════════════════
 
-    conn = _connect_mysql()
-    try:
-        with conn.cursor() as cursor:
-            sql = (
-                f"INSERT IGNORE INTO {_TABLE_LOCATION_HOURLY_FLOW} ("
-                "location_id, record_hour, visitor_count, congestion_index, data_source"
-                ") VALUES (%s, %s, %s, %s, %s)"
-            )
-            cursor.executemany(sql, records)
-            inserted_count = int(cursor.rowcount)
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
-
-    return {
-        "inserted": inserted_count,
-        "skipped": max(0, len(records) - inserted_count),
-    }
-
-
-def _run_single_tick_sync() -> Dict[str, Any]:
-    locations = _get_all_locations_sync()
+async def _run_single_tick() -> Dict[str, Any]:
+    """执行一次模拟数据生成"""
+    locations = await _get_all_locations()
     if not locations:
-        raise RuntimeError("locations 表中没有可用景点数据")
+        raise RuntimeError("没有可用景点数据")
 
     record_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
-    # 使用基于景点特征的智能访客生成（参照 Future_Pridect.py）
-    visitor_map = generate_all_visitor_counts(locations, current_time=record_hour)
+
+    # 转换为字典格式供 visitor_profile_service 使用
+    location_dicts = [
+        {
+            "id": loc.id,
+            "title": loc.title,
+            "latitude": loc.latitude,
+            "longitude": loc.longitude,
+            "address": loc.address,
+            "category": loc.category,
+        }
+        for loc in locations
+    ]
+
+    # 使用基于景点特征的智能访客生成
+    visitor_map = generate_all_visitor_counts(location_dicts, current_time=record_hour)
     ci_map = compute_batch_congestion_index(visitor_map)
 
-    rows = [
-        (
-            location_id,
-            record_hour,
-            visitor_map[location_id],
-            ci_map[location_id],
-            "simulated",
+    # 构建记录
+    records = [
+        HourlyFlowRecord(
+            locationId=location_id,
+            recordHour=record_hour,
+            visitorCount=visitor_map[location_id],
+            congestionIndex=ci_map[location_id],
+            dataSource="simulated",
         )
         for location_id in visitor_map
     ]
 
-    write_result = _upsert_location_hourly_flow_sync(rows)
+    # 写入数据库
+    await _batch_write_flow_records(records)
+
     return {
         "recordHour": record_hour.isoformat(),
         "spotCount": len(locations),
-        "inserted": write_result["inserted"],
-        "skipped": write_result["skipped"],
+        "inserted": len(records),
         "visitorMin": min(visitor_map.values()),
         "visitorMax": max(visitor_map.values()),
     }
 
 
-def _generate_and_write_multiple_hours_sync(hours: int, lookback: bool = False) -> Dict[str, Any]:
-    """一次性生成并写入指定小时数的模拟数据。
-    
-    用于开发测试阶段快速填充历史数据，避免等待定时任务。
-    
+async def _generate_and_write_multiple_hours(hours: int, lookback: bool = False) -> Dict[str, Any]:
+    """一次性生成并写入指定小时数的模拟数据
+
     Args:
         hours: 要生成的小时数（正整数，最多 720 即 30 天）
         lookback: 是否生成往回的历史数据；False=生成往未来的数据，True=生成往过去的数据
-        
+
     Returns:
         包含生成统计信息的字典
     """
@@ -222,20 +147,33 @@ def _generate_and_write_multiple_hours_sync(hours: int, lookback: bool = False) 
         raise ValueError("hours 必须是正整数")
     if hours > 720:
         raise ValueError("最多一次性生成 720 小时（30 天）的数据")
-    
-    locations = _get_all_locations_sync()
-    if not locations:
-        raise RuntimeError("locations 表中没有可用景点数据")
 
-    # 批量生成前重置时序状态，保证该批次内部的趋势连续且不受历史残留影响。
-    initialize_spot_profiles(locations, reset_state=True)
-    
+    locations = await _get_all_locations()
+    if not locations:
+        raise RuntimeError("没有可用景点数据")
+
+    # 转换为字典格式
+    location_dicts = [
+        {
+            "id": loc.id,
+            "title": loc.title,
+            "latitude": loc.latitude,
+            "longitude": loc.longitude,
+            "address": loc.address,
+            "category": loc.category,
+        }
+        for loc in locations
+    ]
+
+    # 批量生成前重置时序状态，保证该批次内部的趋势连续且不受历史残留影响
+    initialize_spot_profiles(location_dicts, reset_state=True)
+
     spot_count = len(locations)
     all_records = []
-    
+
     # 生成时间范围
     now = datetime.now().replace(minute=0, second=0, microsecond=0)
-    
+
     if lookback:
         # 往过去生成：从 now - hours 到 now
         start_time = now - timedelta(hours=hours)
@@ -243,59 +181,78 @@ def _generate_and_write_multiple_hours_sync(hours: int, lookback: bool = False) 
     else:
         # 往未来生成：从 now + 1 到 now + hours
         time_range = [now + timedelta(hours=i+1) for i in range(hours)]
-    
+
     # 为每个时间点生成所有景点的数据
     for record_hour in time_range:
-        visitor_map = generate_all_visitor_counts(locations, current_time=record_hour)
+        visitor_map = generate_all_visitor_counts(location_dicts, current_time=record_hour)
         ci_map = compute_batch_congestion_index(visitor_map)
-        
+
         for location_id in visitor_map:
             all_records.append(
-                (
-                    location_id,
-                    record_hour,
-                    visitor_map[location_id],
-                    ci_map[location_id],
-                    "simulated",
+                HourlyFlowRecord(
+                    locationId=location_id,
+                    recordHour=record_hour,
+                    visitorCount=visitor_map[location_id],
+                    congestionIndex=ci_map[location_id],
+                    dataSource="simulated",
                 )
             )
-    
+
     # 一次性写入所有记录
-    write_result = _upsert_location_hourly_flow_sync(all_records)
-    
+    await _batch_write_flow_records(all_records)
+
     total_records = len(all_records)
     date_range_desc = f"从 {time_range[0].isoformat()} 到 {time_range[-1].isoformat()}"
-    
+
     return {
         "totalRecords": total_records,
         "hoursGenerated": hours,
         "spotsCount": spot_count,
         "dateRange": date_range_desc,
-        "inserted": write_result["inserted"],
-        "skipped": write_result["skipped"],
+        "inserted": total_records,
         "dataSource": "simulated",
     }
 
+# ══════════════════════════════════════════════════════════════════
+# 公共接口层（供 FastAPI 路由调用）
+# ══════════════════════════════════════════════════════════════════
 
-async def check_mysql_ready() -> Dict[str, Any]:
-    return await run_in_threadpool(_check_mysql_ready_sync)
-
-
-async def get_all_locations() -> List[Dict[str, Any]]:
-    return await run_in_threadpool(_get_all_locations_sync)
+async def check_spring_boot_ready() -> Dict[str, Any]:
+    """检查 Spring Boot 服务是否可用"""
+    try:
+        locations = await spring_client.get_locations()
+        return {
+            "springBootUrl": config.SPRING_BASE_URL,
+            "connected": True,
+            "locationCount": len(locations),
+        }
+    except Exception as e:
+        return {
+            "springBootUrl": config.SPRING_BASE_URL,
+            "connected": False,
+            "error": str(e),
+        }
 
 
 async def get_all_location_ids() -> List[int]:
-    rows = await get_all_locations()
-    return [int(row["id"]) for row in rows]
-
-
-async def run_single_tick() -> Dict[str, Any]:
-    return await run_in_threadpool(_run_single_tick_sync)
+    """获取所有景点ID"""
+    locations = await _get_all_locations()
+    return [loc.id for loc in locations]
 
 
 async def get_latest_location_flows(location_id: Optional[int] = None) -> List[Dict[str, Any]]:
-    return await run_in_threadpool(_get_latest_location_flows_sync, location_id)
+    """获取最新人流数据"""
+    return await _get_latest_location_flows(location_id)
+
+
+async def run_single_tick() -> Dict[str, Any]:
+    """执行一次模拟数据生成（异步）"""
+    return await _run_single_tick()
+
+
+async def generate_and_write_multiple_hours(hours: int, lookback: bool = False) -> Dict[str, Any]:
+    """批量生成历史数据（异步）"""
+    return await _generate_and_write_multiple_hours(hours, lookback)
 
 
 async def generate_and_write_multiple_hours(hours: int, lookback: bool = False) -> Dict[str, Any]:

@@ -202,6 +202,25 @@ async def run_predict(
     if write_back:
         try:
             await spring_client.post_predictions_batch(prediction_records)
+
+            # 新增：写回转移预测
+            from app.models import TransitionRecord
+            transition_records = []
+            for pair in pairs:
+                transition_records.append(TransitionRecord(
+                    sourceLocationId=pair["sourceId"],
+                    targetLocationId=pair["targetId"],
+                    predictHour=predict_time,
+                    transitionProbability=pair["finalProb"],
+                    expectedUsers=int(pair["expectedTransferFlow"]),
+                    couponAmount=pair["coupon"],
+                    createTime=datetime.now(),
+                ))
+
+            if transition_records:
+                await spring_client.post_transitions_batch(transition_records)
+                logger.info("写入转移预测 %d 条", len(transition_records))
+
         except Exception as e:
             logger.warning("写回预测失败（非致命）: %s", e)
 

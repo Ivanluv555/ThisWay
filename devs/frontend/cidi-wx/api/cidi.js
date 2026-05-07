@@ -801,31 +801,85 @@ async function createPost({
   return post;
 }
 
+async function getRecommendedSpots(limit = 5) {
+  try {
+    const list = await request({
+      path: '/api/spot-traffic-predictions/recent/crowd-density-asc'
+    });
+
+    // 获取景点详情
+    const locations = await safeRequest('/api/locations', []);
+    const locationsMap = buildLocationsMap(locations);
+
+    return (list || [])
+      .slice(0, limit)
+      .map((item) => {
+        const location = locationsMap[item.spotId] || {};
+        return {
+          id: item.spotId,
+          title: location.title || '未知景点',
+          crowdDensity: item.crowdDensity || 0,
+          trafficLevel: item.trafficLevel || 1,
+          trend: item.trend || '通畅',
+          predictTime: formatDateTime(item.predictTime),
+          latitude: location.latitude,
+          longitude: location.longitude,
+          address: location.address || ''
+        };
+      });
+  } catch (error) {
+    console.error('获取推荐景点失败:', error);
+    return [];
+  }
+}
+
 async function getFuturePrediction(spotId) {
-  const list = await request({ path: '/api/spot-traffic-predictions' });
-  const sorted = (list || [])
-    .filter((item) => `${item.spotId}` === `${spotId}`)
-    .sort((a, b) => new Date(a.predictTime || 0) - new Date(b.predictTime || 0));
-  const picked = sorted[0];
-  if (!picked) {
+  try {
+    // 优化：使用 /latest 接口，只返回最新一轮预测（21条）
+    const list = await request({ path: '/api/spot-traffic-predictions/latest' });
+    const picked = (list || []).find((item) => `${item.spotId}` === `${spotId}`);
+
+    if (!picked) {
+      return {
+        code: 1,
+        message: '暂无预测数据'
+      };
+    }
+
+    const level = Number(picked.trafficLevel || 0);
+    return {
+      code: 0,
+      data: {
+        predictTime: formatDateTime(picked.predictTime),
+        level,
+        trend: picked.trend || (level >= 3 ? '拥挤' : level >= 2 ? '较忙' : '通畅'),
+        desc: `预测人流密度 ${picked.crowdDensity || '-'}，请合理规划出行时间。`
+      }
+    };
+  } catch (error) {
+    console.error('获取人流预测失败:', error);
     return {
       code: 1,
-      message: '暂无预测数据'
+      message: '预测服务暂时不可用'
     };
   }
-  const level = Number(picked.trafficLevel || 0);
-  return {
-    code: 0,
-    data: {
-      predictTime: formatDateTime(picked.predictTime),
-      level,
-      trend: picked.trend || (level >= 3 ? '拥挤' : level >= 2 ? '较忙' : '通畅'),
-      desc: `预测人流密度 ${picked.crowdDensity || '-'}，请合理规划出行时间。`
-    }
-  };
 }
 
 async function getNextDestinationForecast(spotId) {
+  try {
+    const result = await request({
+      path: `/api/location-transitions/next-destinations/${spotId}`,
+      method: 'GET'
+    });
+    return result || [];
+  } catch (error) {
+    console.error('获取下一目的地预测失败:', error);
+    // 降级：使用原有模拟逻辑
+    return getNextDestinationForecastFallback(spotId);
+  }
+}
+
+async function getNextDestinationForecastFallback(spotId) {
   const locations = await safeRequest('/api/locations', []);
   const peers = (locations || []).filter((item) => `${item.id}` !== `${spotId}`);
   if (!peers.length) {
@@ -898,5 +952,6 @@ module.exports = {
   getCurrentLocationInfo,
   getPublishOptions,
   getMapPostMarkers,
-  getNextDestinationForecast
+  getNextDestinationForecast,
+  getRecommendedSpots
 };

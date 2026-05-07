@@ -32,6 +32,18 @@ public class LocationHourlyFlowService {
         return repository.saveAll(entities).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
+    /**
+     * 获取每个景点的最新人流数据
+     * @param locationId 可选：只查某个景点
+     * @return 最新人流记录列表
+     */
+    public List<LocationHourlyFlowDTO> findLatest(Long locationId) {
+        List<LocationHourlyFlow> rows = locationId != null
+                ? repository.findLatestByLocationId(locationId)
+                : repository.findLatestForAllLocations();
+        return rows.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
     private LocationHourlyFlowDTO toDTO(LocationHourlyFlow e) {
         return LocationHourlyFlowDTO.builder()
                 .id(e.getId())
