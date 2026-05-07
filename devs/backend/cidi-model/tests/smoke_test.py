@@ -2,6 +2,10 @@
 cidi-model 烟雾测试
 测试 Spring Boot 接口 ↔ 数据库 通路是否全部通畅
 不依赖 torch，可在任何 Python 环境下运行。
+
+运行方式：
+    cd /path/to/cidi-model
+    python -m tests.smoke_test
 """
 import sys
 from datetime import datetime, timedelta
