@@ -71,25 +71,62 @@ uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 
 ## 核心功能
 
-### 1. 人流预测 (`POST /predict`)
+### 1. 定时预测服务 (`POST /prediction/scheduler/toggle`) ⭐ 新增
+- **每整点自动触发**人流预测
+- 从 Spring Boot 获取历史数据
+- 基于 LSTM 模型预测下一小时客流
+- 自动生成分流策略建议
+- 将预测结果写回数据库
+- 支持启停控制和状态查询
+
+详细文档：[定时预测服务使用指南](./docs/PREDICTION_SCHEDULER.md)
+
+### 2. 手动预测 (`POST /predict`)
 - 基于 LSTM 模型预测下一小时景区客流
 - 自动生成分流策略建议
 - 支持历史数据不足时自动模拟补齐
 
-### 2. 拥挤指数计算 (`GET /crowd-index`)
+### 3. 拥挤指数计算 (`GET /crowd-index`)
 - 基于区域承载力模型计算实时拥挤指数
 - 支持多功能区综合评估
 - 考虑天气、管控状态等外部因素
 
-### 3. 客流模拟 (`POST /flow/simulation/toggle`)
+### 4. 客流模拟 (`POST /flow/simulation/toggle`)
 - 定时生成模拟客流数据
 - 支持启停控制
 - 可批量生成历史/未来数据
 
-### 4. 景点数据采集
+### 5. 景点数据采集
 - 携程景点搜索与详情爬取
 - 自动同步到数据库
 - 支持地区级批量同步
+
+## 快速使用
+
+### 启动定时预测服务
+
+```bash
+# 启动定时预测（每整点自动预测）
+curl -X POST "http://localhost:8001/prediction/scheduler/toggle?enabled=true"
+
+# 查看状态
+curl "http://localhost:8001/prediction/scheduler/status"
+
+# 立即执行一次预测（不等整点）
+curl -X POST "http://localhost:8001/prediction/run-now"
+```
+
+### 启动客流模拟服务
+
+```bash
+# 启动模拟上报（每 60 秒生成一次数据）
+curl -X POST "http://localhost:8001/flow/simulation/toggle?enabled=true"
+
+# 查看状态
+curl "http://localhost:8001/flow/simulation/status"
+```
+
+详细使用说明请查看 [定时预测服务文档](./docs/PREDICTION_SCHEDULER.md)。
 
 ## 测试
 
@@ -98,6 +135,12 @@ uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```bash
 python -m tests.smoke_test
 ```
+
+## 文档
+
+- [项目架构文档](./ARCHITECTURE.md) - 模块设计、数据流、依赖关系
+- [重构记录](./REFACTORING.md) - 项目重构历史
+- [定时预测服务](./docs/PREDICTION_SCHEDULER.md) - 定时预测服务使用指南
 
 ## 技术栈
 
