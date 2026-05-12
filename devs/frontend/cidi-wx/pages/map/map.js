@@ -68,20 +68,33 @@ Page({
   fetchMarkers: function () {
     Promise.all([
       cidiApi.getMapLocations(),
-      cidiApi.getMapPostMarkers()
-    ]).then(([spots, posts]) => {
+      cidiApi.getMapPostMarkers(),
+      cidiApi.getLatestPredictions().catch(() => [])
+    ]).then(([spots, posts, predictions]) => {
+      const crowdMap = {};
+      (predictions || []).forEach((p) => {
+        crowdMap[p.spotId] = {
+          level: Number(p.congestionLevel),
+          density: p.crowdDensity != null ? Number(p.crowdDensity) : null
+        };
+      });
+
       const all = (spots || []).concat(posts || []);
-      const markers = all.map(item => ({
-        ...item,
-        width: 0,
-        height: 0,
-        customCallout: {
-          display: 'ALWAYS',
-          anchorX: 0,
-          anchorY: 0,
-        },
-        heat: item.markerType === 'post' ? 'POST' : Math.floor(Math.random() * 9000) + 100
-      }));
+      const markers = all.map(item => {
+        const crowd = item.markerType === 'spot' ? crowdMap[item.id] : null;
+        return {
+          ...item,
+          width: 0,
+          height: 0,
+          customCallout: {
+            display: 'ALWAYS',
+            anchorX: 0,
+            anchorY: 0,
+          },
+          crowdLevel: crowd ? crowd.level : -1,
+          crowdDensity: crowd ? crowd.density : null
+        };
+      });
       this.setData({ markers });
     }).catch(err => {
        console.error(err);

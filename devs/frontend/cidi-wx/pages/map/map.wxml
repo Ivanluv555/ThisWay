@@ -14,11 +14,11 @@
       <block wx:for="{{markers}}" wx:key="id">
         <!-- marker-id 必须此属性与 markers 数据中的 id 对应 -->
         <cover-view class="custom-marker" marker-id="{{item.id}}">
-          <!-- 图片主体 -->
-          <cover-image class="marker-img" src="{{item.image || 'https://picsum.photos/100/100?random=' + index}}" />
-          <!-- 热度徽章 -->
-          <cover-view class="heat-badge">
-            <cover-view class="heat-text">🔥 {{item.heat}}</cover-view>
+          <cover-view class="flame-badge flame-{{item.crowdLevel}}" wx:if="{{item.crowdDensity != null}}">
+            <cover-view class="flame-text">🔥 {{item.crowdDensity}}</cover-view>
+          </cover-view>
+          <cover-view class="marker-img-wrap border-{{item.crowdLevel}}">
+            <cover-image class="marker-img" src="{{item.image || 'https://picsum.photos/100/100?random=' + index}}" />
           </cover-view>
         </cover-view>
       </block>
@@ -58,7 +58,7 @@
             <text class="poi-desc">{{item.desc || '暂无简介'}}</text>
             <view class="poi-meta">
               <text class="distance">距您 {{item.distance || '1.2km'}}</text>
-              <text class="tag">{{item.markerType === 'post' ? '帖子定位' : '热门打卡'}}</text>
+              <text class="tag tag-{{item.crowdLevel}}" wx:if="{{item.crowdLevel >= 0}}">{{item.crowdLevel === 0 ? '舒适' : item.crowdLevel === 1 ? '适中' : item.crowdLevel === 2 ? '拥挤' : '爆满'}}</text>
             </view>
           </view>
         </view>

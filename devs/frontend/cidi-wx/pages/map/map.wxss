@@ -19,47 +19,64 @@ page {
 
 /* --- 自定义 Marker 样式 --- */
 .custom-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* Flame badge — above the circle */
+.flame-badge {
+  margin-bottom: 4rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flame-text {
+  font-size: 18rpx;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.flame-0 { background: rgba(22, 163, 74, 0.18); }
+.flame-0 .flame-text { color: #16a34a; }
+
+.flame-1 { background: rgba(202, 138, 4, 0.18); }
+.flame-1 .flame-text { color: #ca8a04; }
+
+.flame-2 { background: rgba(234, 88, 12, 0.18); }
+.flame-2 .flame-text { color: #ea580c; }
+
+.flame-3 { background: rgba(220, 38, 38, 0.18); }
+.flame-3 .flame-text { color: #dc2626; }
+
+/* Image wrapper — colored border ring */
+.marker-img-wrap {
   width: 80rpx;
   height: 80rpx;
-  position: relative;
   border-radius: 50%;
-  border: 4rpx solid #fff;
-  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.3);
-  /* 居中偏移修正：map marker 默认定位点可能是左上，这里通过 CSS 控制内部 */
-  /* 或者在 JS 中通过 anchorX/Y 控制。通常 customCallout 默认 anchor (0.5, 0) ? */
-  /* 为保险起见，这里只设外观 */
   display: flex;
   align-items: center;
   justify-content: center;
   background: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.25);
 }
 
 .marker-img {
-  width: 100%;
-  height: 100%;
+  width: 68rpx;
+  height: 68rpx;
   border-radius: 50%;
 }
 
-.heat-badge {
-  position: absolute;
-  top: -10rpx;
-  right: -10rpx;
-  background: linear-gradient(135deg, #ff6b6b, #ff4757);
-  padding: 4rpx 8rpx;
-  border-radius: 12rpx;
-  border: 2rpx solid #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 30rpx;
-}
-
-.heat-text {
-  font-size: 16rpx;
-  color: #fff;
-  font-weight: bold;
-  line-height: 1;
-}
+.border-0 { border: 5rpx solid #16a34a; }
+.border-1 { border: 5rpx solid #ca8a04; }
+.border-2 { border: 5rpx solid #ea580c; }
+.border-3 { border: 5rpx solid #dc2626; }
+.border--1 { border: 4rpx solid #fff; }
 /* ------------------------- */
 
 /* 底部抽屉：核心样式 */
@@ -197,8 +214,13 @@ page {
 
 .tag {
   font-size: 20rpx;
-  color: #c1a06e;
-  background: rgba(193, 160, 110, 0.1);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
+  font-weight: 500;
 }
+
+.tag-0 { color: #16a34a; background: rgba(22, 163, 74, 0.1); }
+.tag-1 { color: #ca8a04; background: rgba(202, 138, 4, 0.1); }
+.tag-2 { color: #ea580c; background: rgba(234, 88, 12, 0.1); }
+.tag-3 { color: #dc2626; background: rgba(220, 38, 38, 0.1); }
+.tag--1 { color: #c1a06e; background: rgba(193, 160, 110, 0.1); }
