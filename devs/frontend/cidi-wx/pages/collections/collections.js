@@ -44,6 +44,7 @@ Page({
     loading: true,
     currentSpot: null,
     currentLocationLabel: '定位中...',
+    locationDenied: false,
     bestSpot: null,
     topList: [],
     updatedAt: '',
@@ -82,6 +83,7 @@ Page({
       }
 
       const hasGeo = geo && geo.ok && !Number.isNaN(Number(geo.latitude)) && !Number.isNaN(Number(geo.longitude));
+      const locationDenied = !!(geo && geo.denied);
 
       const withDistance = validSpots.map((spot) => {
         const distanceKm = hasGeo
@@ -104,7 +106,9 @@ Page({
       const currentSpot = hasGeo ? sortedByDistance[0] : null;
       const currentLocationLabel = hasGeo
         ? `你在 ${currentSpot ? currentSpot.title : '未知位置'} 附近`
-        : '未授权定位，已按景区预测推荐';
+        : locationDenied
+          ? '定位未授权，点击此处授权'
+          : '未授权定位，已按景区预测推荐';
 
       const forecastResults = await Promise.all(
         withDistance.map(async (spot) => {
@@ -158,6 +162,7 @@ Page({
         loading: false,
         currentSpot,
         currentLocationLabel,
+        locationDenied,
         bestSpot: topList[0] || null,
         topList,
         updatedAt: new Date().toLocaleTimeString('zh-CN', { hour12: false })
@@ -177,6 +182,12 @@ Page({
 
   onPullDownRefresh() {
     this.fetchData();
+  },
+
+  handleLocationAuth() {
+    cidiApi.openLocationSetting().then(() => {
+      this.fetchData();
+    });
   },
 
   goLocation(e) {

@@ -22,13 +22,21 @@ Page({
   },
 
   locateUser: function() {
-    wx.getLocation({
-      type: 'gcj02',
-      isHighAccuracy: true,
-      success: (res) => {
-        this.setData({
-          latitude: res.latitude,
-          longitude: res.longitude
+    wx.getSetting({
+      success: (settingRes) => {
+        const auth = settingRes.authSetting || {};
+        if (auth['scope.userLocation'] === false) {
+          return;
+        }
+        wx.getLocation({
+          type: 'gcj02',
+          isHighAccuracy: true,
+          success: (res) => {
+            this.setData({
+              latitude: res.latitude,
+              longitude: res.longitude
+            });
+          }
         });
       }
     });

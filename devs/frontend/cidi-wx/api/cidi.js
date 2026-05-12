@@ -9,7 +9,7 @@ const LOCAL_SCENIC_POSTS = [
     title: '洪崖洞夜景打卡全攻略：灯火层叠的山城名片',
     content:
       '洪崖洞依山而建，夜幕亮灯后像一座现实版宫崎骏城堡。建议傍晚先到千厮门大桥拍全景，再下到沿江步道拍近景，错峰时间为工作日下午4:30前。',
-    coverUrl: '/images/hongyadong.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/hongyadong.jpg',
     location: '重庆 洪崖洞',
     category: '摄影',
     likes: 268
@@ -19,7 +19,7 @@ const LOCAL_SCENIC_POSTS = [
     title: '磁器口古镇慢游路线：老街烟火与地道小吃',
     content:
       '磁器口适合步行慢逛，主街看热闹、支巷找安静。推荐从东门进入，依次打卡老茶馆、手作店和临江观景点，陈麻花与毛血旺可避开饭点排队。',
-    coverUrl: '/images/ciqikou.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/ciqikou.jpg',
     location: '重庆 磁器口古镇',
     category: '美食',
     likes: 194
@@ -29,7 +29,7 @@ const LOCAL_SCENIC_POSTS = [
     title: '长江索道体验指南：俯瞰两江与城市天际线',
     content:
       '长江索道是感受重庆立体交通的经典方式。建议南站上车、北站下车，单程体验更从容。晴天上午光线通透，阴天傍晚更有雾都层次感。',
-    coverUrl: '/images/changjiangsuodao.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/changjiangsuodao.jpg',
     location: '重庆 长江索道',
     category: '攻略',
     likes: 156
@@ -39,7 +39,7 @@ const LOCAL_SCENIC_POSTS = [
     title: '武隆天生三桥一日游：喀斯特地貌震撼现场',
     content:
       '武隆天生三桥以峡谷与天坑闻名，步道上下坡较多，建议穿防滑运动鞋。路线可先三桥后地缝，节省体力且观景体验更完整。',
-    coverUrl: '/images/wulong.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/wulong.jpg',
     location: '重庆 武隆天生三桥',
     category: '推荐',
     likes: 221
@@ -50,25 +50,25 @@ const SCENIC_META_RULES = [
   {
     keywords: ['洪崖洞', 'hongyadong'],
     location: '重庆 洪崖洞',
-    coverUrl: '/images/hongyadong.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/hongyadong.jpg',
     intro: '洪崖洞依山临江，夜景层叠灯火是重庆最具辨识度的地标之一。'
   },
   {
     keywords: ['磁器口', 'ciqikou'],
     location: '重庆 磁器口古镇',
-    coverUrl: '/images/ciqikou.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/ciqikou.jpg',
     intro: '磁器口古镇兼具老街风貌与市井烟火，适合慢节奏步行体验。'
   },
   {
     keywords: ['长江索道', '索道', 'changjiangsuodao'],
     location: '重庆 长江索道',
-    coverUrl: '/images/changjiangsuodao.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/changjiangsuodao.jpg',
     intro: '长江索道横跨两岸，短时间即可获得山城立体城市景观视角。'
   },
   {
     keywords: ['武隆', '天生三桥', 'wulong'],
     location: '重庆 武隆天生三桥',
-    coverUrl: '/images/wulong.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/wulong.jpg',
     intro: '武隆天生三桥以喀斯特地貌闻名，峡谷与天坑景观极具震撼力。'
   }
 ];
@@ -472,10 +472,9 @@ async function getCategories() {
 }
 
 function getCurrentLocationInfo() {
-  return new Promise((resolve) => {
+  function tryGetLocation(resolve) {
     wx.getLocation({
       type: 'gcj02',
-      isHighAccuracy: true,
       success: (res) => {
         resolve({
           ok: true,
@@ -486,13 +485,66 @@ function getCurrentLocationInfo() {
         });
       },
       fail: () => {
-        resolve({
-          ok: false,
-          latitude: null,
-          longitude: null,
-          ipLocation: '未授权定位',
-          source: 'none'
+        wx.getSetting({
+          success: (settingRes) => {
+            const auth = (settingRes && settingRes.authSetting) || {};
+            resolve({
+              ok: false,
+              denied: auth['scope.userLocation'] === false,
+              latitude: null,
+              longitude: null,
+              ipLocation: '未授权定位',
+              source: 'none'
+            });
+          },
+          fail: () => {
+            resolve({
+              ok: false,
+              denied: false,
+              latitude: null,
+              longitude: null,
+              ipLocation: '未授权定位',
+              source: 'none'
+            });
+          }
         });
+      }
+    });
+  }
+
+  return new Promise((resolve) => {
+    wx.getSetting({
+      success: (settingRes) => {
+        const auth = settingRes.authSetting || {};
+        if (auth['scope.userLocation'] === false) {
+          resolve({
+            ok: false,
+            denied: true,
+            latitude: null,
+            longitude: null,
+            ipLocation: '未授权定位',
+            source: 'none'
+          });
+          return;
+        }
+        tryGetLocation(resolve);
+      },
+      fail: () => {
+        tryGetLocation(resolve);
+      }
+    });
+  });
+}
+
+function openLocationSetting() {
+  return new Promise((resolve) => {
+    wx.openSetting({
+      success: (res) => {
+        const granted = !!(res.authSetting && res.authSetting['scope.userLocation']);
+        resolve({ ok: true, granted });
+      },
+      fail: () => {
+        resolve({ ok: false, granted: false });
       }
     });
   });
@@ -929,6 +981,7 @@ module.exports = {
   getFuturePrediction,
   getCategories,
   getCurrentLocationInfo,
+  openLocationSetting,
   getPublishOptions,
   getMapPostMarkers,
   getNextDestinationForecast

@@ -61,6 +61,14 @@
   color: #4b5563;
 }
 
+.location-panel.location-denied {
+  border: 2rpx solid rgba(59, 130, 246, 0.42);
+}
+
+.location-panel.location-denied:active {
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.82) 0%, rgba(219, 234, 254, 0.40) 100%);
+}
+
 .best-row {
   display: flex;
   align-items: center;
