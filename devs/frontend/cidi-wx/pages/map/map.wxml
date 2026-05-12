@@ -46,7 +46,7 @@
       </view>
     </view>
 
-    <scroll-view scroll-y class="poi-list" bindscroll="onCardScroll" bindtap="onCardTap">
+    <scroll-view scroll-y class="poi-list">
       <view class="list-header">附近推荐</view>
       <block wx:for="{{markers}}" wx:key="id">
         <view class="poi-card" bindtap="onCalloutTap" data-marker-id="{{item.id}}">

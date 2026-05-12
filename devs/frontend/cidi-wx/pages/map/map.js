@@ -117,15 +117,6 @@ Page({
     }
   },
 
-  onCardTap: function () {
-    this.focusCards();
-  },
-
-  // Card list scrolled
-  onCardScroll: function () {
-    this.focusCards();
-  },
-
   toggleFullscreen: function () {
     if (this.data.viewMode === 'fullscreen') {
       const cfg = this.data.drawerConfig;
