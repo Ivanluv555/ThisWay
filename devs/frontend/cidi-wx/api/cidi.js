@@ -843,7 +843,8 @@ async function createPost({
       viewCount: 0,
       likeCount: 0,
       createTime: now
-    }
+    },
+    withAuth: true
   });
 
   const remoteImages = (images || []).filter((item) => /^https?:\/\//i.test(item));
@@ -870,7 +871,8 @@ async function createPost({
         width: null,
         height: null,
         sortOrder: index + 1
-      }
+      },
+      withAuth: true
     })));
   }
 
@@ -898,16 +900,28 @@ async function getFuturePrediction(spotId) {
       message: '暂无预测数据'
     };
   }
-  const level = Number(picked.trafficLevel || 0);
   return {
     code: 0,
     data: {
       predictTime: formatDateTime(picked.predictTime),
-      level,
-      trend: picked.trend || (level >= 3 ? '拥挤' : level >= 2 ? '较忙' : '通畅'),
-      desc: `预测人流密度 ${picked.crowdDensity || '-'}，请合理规划出行时间。`
+      congestionLevel: Number(picked.congestionLevel),
+      crowdDensity: picked.crowdDensity != null ? Number(picked.crowdDensity) : null,
+      visitorCount: picked.visitorCount != null ? Number(picked.visitorCount) : null,
+      trend: picked.trend || '平稳'
     }
   };
+}
+
+async function getLatestPredictions() {
+  const list = await request({ path: '/api/spot-traffic-predictions/latest' });
+  return (list || []).map((item) => ({
+    spotId: item.spotId,
+    predictTime: formatDateTime(item.predictTime),
+    congestionLevel: Number(item.congestionLevel),
+    crowdDensity: item.crowdDensity != null ? Number(item.crowdDensity) : null,
+    visitorCount: item.visitorCount != null ? Number(item.visitorCount) : null,
+    trend: item.trend || '平稳'
+  }));
 }
 
 async function getNextDestinationForecast(spotId) {
@@ -979,6 +993,7 @@ module.exports = {
   getUserCollections,
   createPost,
   getFuturePrediction,
+  getLatestPredictions,
   getCategories,
   getCurrentLocationInfo,
   openLocationSetting,

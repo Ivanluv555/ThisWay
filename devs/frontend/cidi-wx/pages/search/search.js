@@ -15,7 +15,8 @@ Page({
     hasSearched: false,
     isLoading: false,
     errorMsg: '',
-    results: { articles: [], locations: [] }
+    results: { articles: [], locations: [] },
+    activeTab: 'all'
   },
 
   _requestSerial: 0,
@@ -95,7 +96,8 @@ Page({
     this.setData({
       hasSearched: true,
       isLoading: true,
-      errorMsg: ''
+      errorMsg: '',
+      activeTab: 'all'
     });
 
     const userId = app.globalData.userInfo ? app.globalData.userInfo.id : null;

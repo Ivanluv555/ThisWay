@@ -3,7 +3,6 @@
   <view class="bg-mask"></view>
 
   <view class="content-wrapper">
-    
     <view class="brand-section">
       <view class="logo-box">
         <text class="logo-text">Π</text>
@@ -15,16 +14,30 @@
     </view>
 
     <view class="action-section">
-      <view class="slogan-box">
-        <text class="slogan-main">Start Your Journey</text>
-        <text class="slogan-sub">记录足迹，分享此刻的感动</text>
+      <!-- 头像 & 昵称设置 -->
+      <view class="profile-setup">
+        <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <image class="avatar-img" src="{{avatarUrl || '/images/tab_profile.png'}}" mode="aspectFill" />
+          <view class="avatar-badge">
+            <text>+</text>
+          </view>
+        </button>
+
+        <view class="nickname-wrap">
+          <input
+            class="nickname-ipt"
+            type="nickname"
+            placeholder="点击输入昵称"
+            placeholder-style="color:rgba(255,255,255,0.4)"
+            value="{{nickname}}"
+            bindinput="onNicknameInput"
+            bindblur="onNicknameBlur"
+          />
+        </view>
       </view>
 
-      <button class="btn-wx" bindtap="handleWxLogin">
-        <view class="wx-icon-bg">
-           <text style="color:#07C160; font-weight:bold;">●</text>
-        </view>
-        <text>微信一键登录</text>
+      <button class="btn-wx" bindtap="handleLogin" disabled="{{!nickname}}">
+        <text>登录</text>
       </button>
 
       <view class="agreement-box">

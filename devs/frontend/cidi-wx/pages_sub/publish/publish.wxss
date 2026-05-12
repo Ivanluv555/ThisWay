@@ -1,177 +1,293 @@
-.container {
-  padding: 40rpx;
-  background: #fff;
+/* 页面基调 */
+.page-wrap {
   min-height: 100vh;
-  box-sizing: border-box; /* 确保 padding 包含在宽度内 */
+  background: linear-gradient(172deg, #f0efe8 0%, #e8e6de 30%, #eef1f6 70%, #e6e9f0 100%);
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
-.meta-panel {
-  background: #f8f9fc;
-  border: 1rpx solid #eef1f4;
-  border-radius: 20rpx;
-  padding: 24rpx;
-  margin-bottom: 30rpx;
+/* ===== 导航栏 ===== */
+.nav-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 28rpx;
+  background: linear-gradient(135deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.48) 100%);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  border-bottom: 1rpx solid rgba(0,0,0,0.04);
 }
 
-.meta-title {
-  font-size: 24rpx;
+.nav-back {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 4rpx;
+}
+
+.nav-back-icon {
+  font-size: 48rpx;
+  color: #5a5a5a;
+  line-height: 1;
+  margin-right: 2rpx;
+  margin-top: -4rpx;
+}
+
+.nav-back-text {
+  font-size: 28rpx;
   color: #6b7280;
-  margin-bottom: 14rpx;
 }
 
-.chips-row {
+.nav-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1f2937;
+  letter-spacing: 2rpx;
+}
+
+.nav-pub-wrap {
+  min-width: 120rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.nav-pub-btn {
+  margin: 0;
+  padding: 0 36rpx;
+  height: 58rpx;
+  line-height: 58rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  border-radius: 999rpx;
+  background: #e5e7eb;
+  color: #9ca3af;
+  border: none;
+  transition: all 0.25s ease;
+}
+
+.nav-pub-btn.active {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #d4b87a;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.16);
+}
+
+.nav-pub-btn[disabled] {
+  background: #e5e7eb;
+  color: #9ca3af;
+}
+
+/* ===== 主滚动区 ===== */
+.main-scroll {
+  padding: 24rpx 24rpx 0;
+}
+
+/* ===== 玻璃卡片通用 ===== */
+.glass-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.74) 0%, rgba(255,255,255,0.36) 100%);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(255,255,255,0.6);
+  box-shadow: 0 8rpx 28rpx rgba(15,23,42,0.07), inset 0 1rpx 0 rgba(255,255,255,0.7);
+  backdrop-filter: blur(16px) saturate(165%);
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+  margin-bottom: 20rpx;
+  padding: 28rpx;
+}
+
+.card-label {
+  font-size: 22rpx;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 3rpx;
+  margin-bottom: 18rpx;
+}
+
+/* ===== 输入卡片 ===== */
+.input-card {
+  position: relative;
+}
+
+.title-ipt {
+  font-size: 38rpx;
+  font-weight: 650;
+  height: 80rpx;
+  color: #1f2937;
+  background: transparent;
+}
+
+.input-divider {
+  height: 1rpx;
+  background: linear-gradient(90deg, rgba(0,0,0,0.06) 0%, transparent 100%);
+  margin-bottom: 20rpx;
+}
+
+.content-ipt {
+  width: 100%;
+  min-height: 260rpx;
+  font-size: 29rpx;
+  line-height: 1.75;
+  color: #374151;
+  background: transparent;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 22rpx;
+  color: #c4c9d0;
+  margin-top: 8rpx;
+}
+
+/* ===== 图片卡片 ===== */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14rpx;
+}
+
+.photo-cell {
+  aspect-ratio: 1;
+  border-radius: 16rpx;
+  overflow: hidden;
+  position: relative;
+  background: #eef0f4;
+}
+
+.photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-del {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 38rpx;
+  height: 38rpx;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  line-height: 1;
+}
+
+.photo-add {
+  background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(245,246,250,0.5) 100%);
+  border: 2rpx dashed rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-sign {
+  font-size: 56rpx;
+  color: #c4c9d0;
+  font-weight: 200;
+  line-height: 1;
+  margin-bottom: 4rpx;
+}
+
+.add-hint {
+  font-size: 20rpx;
+  color: #c4c9d0;
+}
+
+/* ===== 元信息卡片 ===== */
+.meta-card {
+  padding: 24rpx 28rpx;
+}
+
+/* 分类筹码 */
+.chips-scroll {
   white-space: nowrap;
-  margin-bottom: 24rpx;
+  display: flex;
 }
 
 .chip {
-  display: inline-block;
-  margin-right: 16rpx;
-  padding: 10rpx 22rpx;
-  border-radius: 999rpx;
-  background: #fff;
-  border: 1rpx solid #e7e9ee;
-  font-size: 24rpx;
-  color: #374151;
-}
-
-.chip-active {
-  background: #222;
-  color: #f9d8a3;
-  border-color: #222;
-}
-
-.location-row {
-  display: flex;
-  justify-content: space-between;
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 12rpx;
+  margin-right: 16rpx;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  font-size: 25rpx;
+  color: #6b7280;
+  background: rgba(0,0,0,0.03);
+  border: 1rpx solid transparent;
+  transition: all 0.2s ease;
 }
 
-.loc-tip {
-  font-size: 22rpx;
+.chip-on {
+  background: #1f2937;
+  color: #d4b87a;
+  border-color: #1f2937;
+  font-weight: 500;
+  box-shadow: 0 4rpx 14rpx rgba(0,0,0,0.12);
+}
+
+/* 位置 */
+.loc-status {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.loc-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #d1d5db;
+  margin-right: 10rpx;
+  flex-shrink: 0;
+}
+
+.loc-dot.on {
+  background: #10b981;
+  box-shadow: 0 0 8rpx rgba(16,185,129,0.4);
+}
+
+.loc-label {
+  font-size: 24rpx;
   color: #6b7280;
+  flex: 1;
 }
 
 .loc-refresh {
   font-size: 22rpx;
-  color: #0b7ad1;
+  color: #8b7355;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(139,115,85,0.06);
 }
 
-.location-picker {
-  background: #fff;
-  border-radius: 14rpx;
-  border: 1rpx solid #e7e9ee;
+.loc-select {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.02);
+  border-radius: 16rpx;
   padding: 18rpx 20rpx;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border: 1rpx solid rgba(0,0,0,0.04);
 }
 
-.pick-main {
-  font-size: 26rpx;
-  color: #111827;
+.loc-select-text {
+  font-size: 27rpx;
+  color: #1f2937;
+  flex: 1;
 }
 
-.pick-sub {
+.loc-select-dist {
   font-size: 24rpx;
-  color: #6b7280;
+  color: #9ca3af;
+  margin-right: 8rpx;
 }
 
-/* 顶部栏 */
-.nav-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40rpx; /* 稍微减小间距 */
-}
-.cancel-text { 
-  font-size: 32rpx; 
-  color: #666; 
-  padding: 10rpx 0; /* 增加点击区域 */
-}
-.pub-btn {
-  margin: 0;
-  background: #222; /* 更深的黑 */
-  color: #fff;
-  font-size: 28rpx;
-  font-weight: 500;
-  padding: 0 40rpx; /* 改用 padding 撑开宽度 */
-  height: 64rpx;     /* 固定高度 */
-  line-height: 64rpx;
-  border-radius: 999rpx; /* 全圆角 */
-}
-.pub-btn[disabled] { 
-  background: #f0f2f5 !important; 
-  color: #c0c4cc !important; 
-}
-
-/* 输入区 */
-.input-section { margin-bottom: 40rpx; }
-.title-ipt {
+.loc-select-arrow {
   font-size: 36rpx;
-  font-weight: 600;
-  height: 88rpx; /* 稍微增高 */
-  border-bottom: 1rpx solid #f0f1f3;
-  margin-bottom: 30rpx;
-  color: #222;
-}
-.content-ipt {
-  width: 100%;
-  height: 300rpx; /* 增高输入区 */
-  font-size: 30rpx;
-  line-height: 1.6;
-  color: #333;
-}
-
-/* 图片九宫格 */
-.grid { 
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 真正的 CSS Grid */
-  gap: 16rpx; 
-}
-.img-wrap, .add-box {
-  width: 100%; /* 撑满 grid 单元 */
-  aspect-ratio: 1; /* 保持正方形 */
-  height: auto; /* 高度自动 */
-  border-radius: 12rpx;
-  position: relative;
-  overflow: hidden; /* 主要是裁剪图片圆角 */
-}
-.preview-img { 
-  width: 100%; 
-  height: 100%; 
-  border-radius: 12rpx; 
-  object-fit: cover; /* 保持比例填充 */
-}
-.add-box {
-  background: #f7f8fa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.plus-icon { 
-  font-size: 60rpx; 
-  color: #d1d5db; 
-  font-weight: 300; 
-  margin-top: -6rpx; 
-}
-
-/* 删除角标 */
-.del-tag {
-  position: absolute;
-  top: 8rpx; 
-  right: 8rpx;
-  width: 40rpx; 
-  height: 40rpx;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px); /* 磨砂效果 */
-  color: #fff;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 36rpx;
-  font-size: 28rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #c4c9d0;
+  line-height: 1;
 }

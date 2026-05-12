@@ -1,49 +1,74 @@
-<view class="container">
-  <view class="nav-header">
-    <text class="cancel-text" bindtap="goBack">取消</text>
-    <button class="pub-btn" bindtap="handlePublish" disabled="{{!title && !content && images.length === 0}}">发布</button>
-  </view>
-
-  <view class="meta-panel">
-    <view class="meta-title">帖子分类</view>
-    <scroll-view scroll-x class="chips-row" enable-flex>
-      <block wx:for="{{categories}}" wx:key="id">
-        <view class="chip {{activeCategoryId === item.id ? 'chip-active' : ''}}" data-id="{{item.id}}" bindtap="selectCategory">
-          {{item.name}}
-        </view>
-      </block>
-    </scroll-view>
-
-    <view class="meta-title">位置绑定</view>
-    <view class="location-row">
-      <text class="loc-tip">定位源：{{locationLabel}}</text>
-      <text class="loc-refresh" bindtap="locateMe">重新定位</text>
+<view class="page-wrap">
+  <!-- 顶部导航 -->
+  <view class="nav-bar" style="padding-top:{{statusBarHeight}}px; padding-right:{{navPaddingRight}}px;">
+    <view class="nav-back" bindtap="goBack">
+      <text class="nav-back-icon">‹</text>
+      <text class="nav-back-text">返回</text>
     </view>
-    <picker mode="selector" range="{{locationOptions}}" range-key="title" value="{{selectedLocationIndex}}" bindchange="onLocationChange">
-      <view class="location-picker">
-        <text class="pick-main">{{locationOptions[selectedLocationIndex].title}}</text>
-        <text class="pick-sub" wx:if="{{locationOptions[selectedLocationIndex].distance}}">{{locationOptions[selectedLocationIndex].distance}}</text>
-      </view>
-    </picker>
+    <text class="nav-title">发布动态</text>
+    <view class="nav-pub-wrap">
+      <button class="nav-pub-btn {{!submitting && (title || content || images.length) ? 'active' : ''}}" bindtap="handlePublish" disabled="{{submitting || (!title && !content && images.length === 0)}}">
+        {{submitting ? '发布中...' : '发布'}}
+      </button>
+    </view>
   </view>
 
-  <view class="input-section">
-    <input class="title-ipt" placeholder="加个标题哟~" placeholder-style="color:#ccc; font-weight:normal;" bindinput="onTitleInput" />
-    <textarea class="content-ipt" placeholder="分享此刻的想法..." placeholder-style="color:#ccc;" maxlength="2000" bindinput="onContentInput"></textarea>
-  </view>
+  <!-- 主内容区 -->
+  <view class="main-scroll">
+    <!-- 输入区 -->
+    <view class="glass-card input-card">
+      <input class="title-ipt" placeholder="加个标题吧..." placeholder-style="color:#b0b8c1;" bindinput="onTitleInput" value="{{title}}" />
+      <view class="input-divider"></view>
+      <textarea class="content-ipt" placeholder="分享此刻的想法..." placeholder-style="color:#b0b8c1;" maxlength="2000" bindinput="onContentInput" value="{{content}}"></textarea>
+      <view class="char-count" wx:if="{{content.length}}">{{content.length}}/2000</view>
+    </view>
 
-  <view class="media-section">
-    <view class="grid">
-      <block wx:for="{{images}}" wx:key="*this">
-        <view class="img-wrap">
-          <image src="{{item}}" mode="aspectFill" class="preview-img" />
-          <view class="del-tag" catchtap="removeImage" data-index="{{index}}">×</view>
+    <!-- 图片区 -->
+    <view class="glass-card media-card">
+      <view class="card-label">图片</view>
+      <view class="photo-grid">
+        <block wx:for="{{images}}" wx:key="*this">
+          <view class="photo-cell">
+            <image src="{{item}}" mode="aspectFill" class="photo-img" />
+            <view class="photo-del" catchtap="removeImage" data-index="{{index}}">
+              <text>×</text>
+            </view>
+          </view>
+        </block>
+        <view class="photo-cell photo-add" bindtap="chooseImage" wx:if="{{images.length < 9}}">
+          <text class="add-sign">+</text>
+          <text class="add-hint">{{images.length}}/9</text>
         </view>
-      </block>
-      
-      <view class="add-box" bindtap="chooseImage" wx:if="{{images.length < 9}}">
-        <text class="plus-icon">+</text>
       </view>
+    </view>
+
+    <!-- 分类 -->
+    <view class="glass-card meta-card">
+      <view class="card-label">分类</view>
+      <scroll-view scroll-x class="chips-scroll" enable-flex>
+        <block wx:for="{{categories}}" wx:key="id">
+          <view class="chip {{activeCategoryId === item.id ? 'chip-on' : ''}}" data-id="{{item.id}}" bindtap="selectCategory">
+            {{item.name}}
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+
+    <!-- 位置 -->
+    <view class="glass-card meta-card">
+      <view class="card-label">位置</view>
+      <view class="loc-status">
+        <text class="loc-dot {{currentGeo ? 'on' : ''}}"></text>
+        <text class="loc-label">{{locationLabel}}</text>
+        <text class="loc-refresh" bindtap="locateMe">⟳ 重新定位</text>
+      </view>
+      <picker mode="selector" range="{{locationOptions}}" range-key="title" value="{{selectedLocationIndex}}" bindchange="onLocationChange">
+        <view class="loc-select">
+          <text class="loc-select-text">{{locationOptions[selectedLocationIndex].title}}</text>
+          <text class="loc-select-dist" wx:if="{{locationOptions[selectedLocationIndex].distance}}">{{locationOptions[selectedLocationIndex].distance}}</text>
+          <text class="loc-select-arrow">›</text>
+        </view>
+      </picker>
     </view>
   </view>
 </view>

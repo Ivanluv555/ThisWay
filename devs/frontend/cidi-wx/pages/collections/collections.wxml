@@ -1,15 +1,13 @@
 <view class="page-wrap">
   <view class="hero">
-    <text class="hero-main">去到不拥挤的地方</text>
-    <text class="hero-sub">去拥抱自由</text>
+    <text class="hero-main">智能分流推荐</text>
+    <text class="hero-sub">基于实时预测，避开拥挤景区</text>
   </view>
 
   <view class="glass-panel location-panel location-denied" wx:if="{{locationDenied}}" bindtap="handleLocationAuth">
     <text class="panel-title">当前位置</text>
     <text class="location-main">{{currentLocationLabel}}</text>
-    <text class="location-detail">
-      点击此处打开设置授权定位
-    </text>
+    <text class="location-detail">点击此处打开设置授权定位</text>
   </view>
 
   <view class="glass-panel location-panel" wx:else>
@@ -21,13 +19,21 @@
   </view>
 
   <view class="glass-panel best-panel" wx:if="{{bestSpot}}" bindtap="goLocation" data-id="{{bestSpot.id}}">
-    <text class="panel-title">未来最该去</text>
+    <text class="panel-title">首推景区</text>
     <view class="best-row">
       <image class="best-cover" src="{{bestSpot.image}}" mode="aspectFill" />
       <view class="best-info">
         <text class="best-name">{{bestSpot.title}}</text>
-        <text class="best-meta">预测：{{bestSpot.levelText}} · {{bestSpot.predictTime}}</text>
-        <text class="best-meta">距离：{{bestSpot.distanceText}} · 趋势：{{bestSpot.trend}}</text>
+        <text class="best-category">{{bestSpot.category}}</text>
+        <view class="best-tags">
+          <text class="badge badge-{{bestSpot.congestionLevel}}">{{bestSpot.levelText}}</text>
+          <text class="best-tag-item" wx:if="{{bestSpot.visitorCount != null}}">预测 {{bestSpot.visitorCount}} 人</text>
+          <text class="best-tag-item" wx:if="{{bestSpot.crowdDensity != null}}">密度 {{bestSpot.crowdDensity}}</text>
+        </view>
+        <view class="best-meta-row">
+          <text>距离 {{bestSpot.distanceText}}</text>
+          <text class="best-trend">· {{bestSpot.trendLabel}}</text>
+        </view>
       </view>
     </view>
   </view>
@@ -43,11 +49,18 @@
         <view class="rank-left">
           <text class="rank-num">{{item.rank}}</text>
           <view class="rank-body">
-            <text class="rank-name">{{item.title}}</text>
-            <text class="rank-desc">{{item.levelText}} · {{item.predictTime}} · {{item.distanceText}}</text>
+            <view class="rank-title-row">
+              <text class="rank-name">{{item.title}}</text>
+              <text class="badge badge-{{item.congestionLevel}}">{{item.levelText}}</text>
+            </view>
+            <text class="rank-desc">{{item.category}}</text>
+            <view class="rank-meta-row">
+              <text>距离 {{item.distanceText}}</text>
+              <text wx:if="{{item.crowdDensity != null}}">· 密度 {{item.crowdDensity}}</text>
+              <text>· {{item.trendLabel}}</text>
+            </view>
           </view>
         </view>
-        <text class="rank-trend">{{item.trend}}</text>
       </view>
     </block>
   </view>
