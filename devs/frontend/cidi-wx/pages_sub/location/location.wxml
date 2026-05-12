@@ -31,14 +31,16 @@
           <text class="result-time">预计 {{prediction.predictTime}}</text>
           <text class="result-trend">{{prediction.trend}}</text>
         </view>
+        <view class="level-score">拥挤指数 {{prediction.crowdIndex}} / 10 · {{prediction.levelLabel}}</view>
         <view class="level-bar">
-          <view class="level-inner level-{{prediction.level}}" style="width: {{(prediction.level+1)*25}}%"></view>
+          <view class="level-inner {{prediction.levelClass}}" style="width: {{prediction.crowdIndex * 10}}%"></view>
         </view>
         <view class="level-tags">
-          <text class="level-tag level-tag-0 {{prediction.level === 0 ? 'active' : ''}}">舒适</text>
-          <text class="level-tag level-tag-1 {{prediction.level === 1 ? 'active' : ''}}">适中</text>
-          <text class="level-tag level-tag-2 {{prediction.level === 2 ? 'active' : ''}}">拥挤</text>
-          <text class="level-tag level-tag-3 {{prediction.level === 3 ? 'active' : ''}}">爆满</text>
+          <text class="level-tag level-tag-0 {{prediction.levelLabel === '舒适' ? 'active' : ''}}">舒适</text>
+          <text class="level-tag level-tag-1 {{prediction.levelLabel === '一般' ? 'active' : ''}}">一般</text>
+          <text class="level-tag level-tag-2 {{prediction.levelLabel === '拥挤' ? 'active' : ''}}">拥挤</text>
+          <text class="level-tag level-tag-3 {{prediction.levelLabel === '非常拥挤' ? 'active' : ''}}">非常拥挤</text>
+          <text class="level-tag level-tag-4 {{prediction.levelLabel === '极度拥挤' ? 'active' : ''}}">极度拥挤</text>
         </view>
         <text class="result-desc">{{prediction.desc}}</text>
       </view>

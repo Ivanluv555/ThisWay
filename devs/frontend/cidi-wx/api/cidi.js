@@ -414,10 +414,20 @@ async function getLocationDetail(locationId) {
 
   let prediction = null;
   if (latest) {
-    const level = latest.congestionLevel != null ? Number(latest.congestionLevel) : Number(latest.trafficLevel || 0);
+    const rawDensity = Number(latest.crowdDensity || 0);
+    const crowdIndex = Math.min(10, Math.max(0, rawDensity > 10 ? rawDensity / 10 : rawDensity));
+    let levelLabel = '舒适';
+    let levelClass = 'crowd-0';
+    if (crowdIndex >= 8.5) { levelLabel = '极度拥挤'; levelClass = 'crowd-4'; }
+    else if (crowdIndex >= 7.0) { levelLabel = '非常拥挤'; levelClass = 'crowd-3'; }
+    else if (crowdIndex >= 5.0) { levelLabel = '拥挤'; levelClass = 'crowd-2'; }
+    else if (crowdIndex >= 2.5) { levelLabel = '一般'; levelClass = 'crowd-1'; }
+
     prediction = {
       predictTime: formatDateTime(latest.predictTime),
-      level,
+      crowdIndex: Math.round(crowdIndex * 10) / 10,
+      levelLabel,
+      levelClass,
       trend: latest.trend || '',
       desc: `预测人流密度 ${latest.crowdDensity || '-'}，请合理规划出行时间。`,
       visitorCount: latest.visitorCount || 0

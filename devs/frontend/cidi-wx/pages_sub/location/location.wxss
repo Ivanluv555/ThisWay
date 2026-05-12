@@ -115,10 +115,18 @@
   border-radius: 5rpx;
   transition: width 0.5s ease;
 }
-.level-0 { background: #52c41a; }
-.level-1 { background: #faad14; }
-.level-2 { background: #ff4d4f; }
-.level-3 { background: #cf1322; }
+.crowd-0 { background: #52c41a; }
+.crowd-1 { background: #faad14; }
+.crowd-2 { background: #fa8c16; }
+.crowd-3 { background: #ff4d4f; }
+.crowd-4 { background: #cf1322; }
+
+.level-score {
+  text-align: right;
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
 
 .level-tags {
   display: flex;
@@ -126,9 +134,9 @@
   margin-bottom: 12rpx;
 }
 .level-tag {
-  font-size: 20rpx;
+  font-size: 18rpx;
   color: #bbb;
-  padding: 4rpx 14rpx;
+  padding: 4rpx 10rpx;
   border-radius: 20rpx;
   background: #f5f5f5;
 }
@@ -138,8 +146,9 @@
 }
 .level-tag-0.active { background: #52c41a; }
 .level-tag-1.active { background: #faad14; }
-.level-tag-2.active { background: #ff4d4f; }
-.level-tag-3.active { background: #cf1322; }
+.level-tag-2.active { background: #fa8c16; }
+.level-tag-3.active { background: #ff4d4f; }
+.level-tag-4.active { background: #cf1322; }
 
 .result-desc {
   font-size: 24rpx;
