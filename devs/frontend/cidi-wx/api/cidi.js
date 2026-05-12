@@ -396,9 +396,10 @@ async function getMapPostMarkers(limit = 40) {
 }
 
 async function getLocationDetail(locationId) {
-  const [location, locationImages] = await Promise.all([
+  const [location, locationImages, predictions] = await Promise.all([
     request({ path: `/api/locations/${locationId}` }),
-    request({ path: '/api/location-images' })
+    request({ path: '/api/location-images' }),
+    request({ path: '/api/spot-traffic-predictions' }).catch(() => [])
   ]);
   const images = (locationImages || [])
     .filter((img) => `${img.locationId}` === `${locationId}`)
@@ -406,14 +407,36 @@ async function getLocationDetail(locationId) {
     .map((img) => img.imageUrl)
     .filter(Boolean);
 
+  const spotPredictions = (predictions || [])
+    .filter((item) => `${item.spotId}` === `${locationId}`)
+    .sort((a, b) => new Date(b.predictTime || 0) - new Date(a.predictTime || 0));
+  const latest = spotPredictions[0] || null;
+
+  let prediction = null;
+  if (latest) {
+    const level = latest.congestionLevel != null ? Number(latest.congestionLevel) : Number(latest.trafficLevel || 0);
+    prediction = {
+      predictTime: formatDateTime(latest.predictTime),
+      level,
+      trend: latest.trend || '',
+      desc: `预测人流密度 ${latest.crowdDensity || '-'}，请合理规划出行时间。`,
+      visitorCount: latest.visitorCount || 0
+    };
+  }
+
   return {
-    id: location.id,
-    title: location.title,
-    address: location.address || '',
-    desc: `${location.category || '未知分类'} · 评分 ${location.rating || '-'} `,
-    latitude: Number(location.latitude),
-    longitude: Number(location.longitude),
-    images: images.length ? images : [DEFAULT_COVER]
+    location: {
+      id: location.id,
+      title: location.title,
+      address: location.address || '',
+      description: location.description || '',
+      category: location.category || '',
+      rating: location.rating != null ? Number(location.rating) : null,
+      latitude: Number(location.latitude),
+      longitude: Number(location.longitude),
+      images: images.length ? images : [DEFAULT_COVER]
+    },
+    prediction
   };
 }
 
