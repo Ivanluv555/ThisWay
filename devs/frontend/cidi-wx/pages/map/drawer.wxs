@@ -1,19 +1,33 @@
-var startY = 0;
+var snapPoints = [0, 400, 700];
 var lastTranslateY = 0;
-var snapPoints = [0, 400, 700]; // Default fallback
-var isMoving = false;
+var isDragging = false;
+var startY = 0;
+var dragStarted = false;
 
 function propObserver(newValue, oldValue, ownerInstance, instance) {
-  if (newValue && newValue.snapPoints) {
+  if (!newValue) return;
+  if (newValue.snapPoints) {
     snapPoints = newValue.snapPoints;
-    // Initial setup: move to the bottom-most snap point (collapsed state)
-    // Only do this if it's the first time (oldValue is undefined/null)
-    if (!oldValue) {
-       var initialY = snapPoints[snapPoints.length - 1]; 
-       lastTranslateY = initialY;
-       instance.setStyle({
-         transform: 'translateY(' + initialY + 'px)'
-       });
+  }
+
+  // Initial setup on first load
+  if (!oldValue) {
+    var initY = snapPoints[0];
+    lastTranslateY = initY;
+    instance.setStyle({ transform: 'translateY(' + initY + 'px)' });
+    return;
+  }
+
+  // JS triggered a snap change (e.g. focusMap, focusCards)
+  if (!isDragging && newValue.current !== undefined && oldValue.current !== undefined) {
+    if (newValue.current !== oldValue.current) {
+      var idx = newValue.current;
+      if (idx >= 0 && idx < snapPoints.length) {
+        var targetY = snapPoints[idx];
+        lastTranslateY = targetY;
+        instance.addClass('drawer-animate');
+        instance.setStyle({ transform: 'translateY(' + targetY + 'px)' });
+      }
     }
   }
 }
@@ -21,73 +35,71 @@ function propObserver(newValue, oldValue, ownerInstance, instance) {
 function touchStart(event, ownerInstance) {
   var touch = event.touches[0];
   startY = touch.clientY;
-  isMoving = true;
+  dragStarted = true;
+  isDragging = false;
   var instance = ownerInstance.selectComponent('.bottom-drawer');
-  instance.removeClass('animating'); 
-  return true; // Catch event
+  instance.removeClass('drawer-animate');
+  return true;
 }
 
 function touchMove(event, ownerInstance) {
-  if (!isMoving) return true;
+  if (!dragStarted) return true;
   var touch = event.touches[0];
   var deltaY = touch.clientY - startY;
-  var newY = lastTranslateY + deltaY;
+  if (!isDragging && Math.abs(deltaY) > 6) {
+    isDragging = true;
+  }
+  if (!isDragging) return true;
 
-  // Resistance effect at edges
-  var min = snapPoints[0]; 
-  var max = snapPoints[snapPoints.length - 1]; 
-  
-  if (newY < min) {
-    newY = min + (newY - min) * 0.2; // High resistance pulling up past max extension
-  }
-  if (newY > max) {
-    newY = max + (newY - max) * 0.2; // High resistance pulling down past min extension
-  }
+  var newY = lastTranslateY + deltaY;
+  var minY = snapPoints[0];
+  var maxY = snapPoints[snapPoints.length - 1];
+
+  // Rubber-band resistance at edges
+  if (newY < minY) newY = minY + (newY - minY) * 0.2;
+  if (newY > maxY) newY = maxY + (newY - maxY) * 0.2;
 
   var instance = ownerInstance.selectComponent('.bottom-drawer');
-  instance.setStyle({
-    transform: 'translateY(' + newY + 'px)'
-  });
-  return false; // Don't propagate?
+  instance.setStyle({ transform: 'translateY(' + newY + 'px)' });
+  return false;
 }
 
 function touchEnd(event, ownerInstance) {
-  isMoving = false;
-  var instance = ownerInstance.selectComponent('.bottom-drawer');
+  dragStarted = false;
+  if (!isDragging) {
+    isDragging = false;
+    return;
+  }
+  isDragging = false;
+
   var touch = event.changedTouches[0];
   var deltaY = touch.clientY - startY;
   var currentY = lastTranslateY + deltaY;
-  
-  // Calculate specific points
-  var closest = snapPoints[0];
-  var minDiff = Math.abs(currentY - closest);
-  
+
+  // Snap to nearest point
+  var closestIdx = 0;
+  var minDiff = Math.abs(currentY - snapPoints[0]);
   for (var i = 1; i < snapPoints.length; i++) {
     var diff = Math.abs(currentY - snapPoints[i]);
     if (diff < minDiff) {
       minDiff = diff;
-      closest = snapPoints[i];
+      closestIdx = i;
     }
   }
 
-  // Bonus: Velocity check? If swipe fast, go to next point. 
-  // For simplicity, proximity snap is usually "good enough" for this MVP.
+  // Clamp to valid range
+  if (currentY < snapPoints[0]) closestIdx = 0;
+  if (currentY > snapPoints[snapPoints.length - 1]) closestIdx = snapPoints.length - 1;
 
-  lastTranslateY = closest;
-  
-  instance.addClass('animating');
-  instance.setStyle({
-    transform: 'translateY(' + closest + 'px)'
-  });
+  lastTranslateY = snapPoints[closestIdx];
+
+  var instance = ownerInstance.selectComponent('.bottom-drawer');
+  instance.addClass('drawer-animate');
+  instance.setStyle({ transform: 'translateY(' + lastTranslateY + 'px)' });
+
+  // Notify JS of new state
+  ownerInstance.callMethod('onDrawerSnap', closestIdx);
 }
-
-/**
- * Helper to allow scroll-view to scroll when content is not at top
- * or drawer is fully expanded. 
- * Note: WXS limitation - hard to coordinate scroll-view scroll vs drawer drag perfectly 
- * without complex logic. 
- * Strategy: Bind drag mainly to the 'header' area of the drawer.
- */
 
 module.exports = {
   propObserver: propObserver,
