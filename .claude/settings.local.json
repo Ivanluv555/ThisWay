@@ -3,7 +3,10 @@
     "allow": [
       "Bash(Get-ChildItem \"C:\\\\Users\\\\senio\\\\Desktop\\\\daiso\" -Directory)",
       "Bash(Select-Object -ExpandProperty Name)",
-      "Bash(dir C:\\\\Users\\\\senio\\\\Desktop\\\\daiso\\\\devs *)"
+      "Bash(dir C:\\\\Users\\\\senio\\\\Desktop\\\\daiso\\\\devs *)",
+      "Bash(git add *)",
+      "Bash(git restore *)",
+      "Bash(git commit *)"
     ]
   }
 }
