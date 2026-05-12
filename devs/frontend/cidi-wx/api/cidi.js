@@ -80,6 +80,49 @@ const DEFAULT_CATEGORIES = [
   { id: 5, name: '避坑' }
 ];
 
+const LOCATION_CATEGORIES = [
+  { id: 1, name: '城市地标' },
+  { id: 2, name: '历史老街' },
+  { id: 3, name: '自然风光' },
+  { id: 4, name: '文博场馆' },
+  { id: 5, name: '特色体验' }
+];
+
+const SPOT_CATEGORY_MAP = {
+  '解放碑': 1,
+  '朝天门广场': 1,
+  '大礼堂': 1,
+  '重庆大剧院': 1,
+  '洪崖洞': 2,
+  '磁器口': 2,
+  '十八梯': 2,
+  '龙门浩': 2,
+  '金刚碑': 2,
+  '南山植物园': 3,
+  '鹅岭公园': 3,
+  '江北嘴公园': 3,
+  '南滨路': 3,
+  '三峡博物馆': 4,
+  '建川博物馆': 4,
+  '歌乐山革命纪念馆': 4,
+  '白公馆渣滓洞': 4,
+  '长江索道': 5,
+  '观音桥': 5,
+  '鸿恩寺': 5,
+  '鹅岭印刷二厂': 5
+};
+
+function getSpotCategoryName(title) {
+  const id = SPOT_CATEGORY_MAP[title];
+  if (!id) return '';
+  const cat = LOCATION_CATEGORIES.find(c => c.id === id);
+  return cat ? cat.name : '';
+}
+
+function getSpotCategoryId(title) {
+  return SPOT_CATEGORY_MAP[title] || 0;
+}
+
 function safeRequest(path, fallback = []) {
   return request({ path }).catch(() => fallback);
 }
@@ -333,6 +376,8 @@ async function getMapLocations() {
 
   return (locations || []).map((item) => {
     const imgs = (imagesMap[item.id] || []).map((img) => img.imageUrl).filter(Boolean);
+    const categoryName = getSpotCategoryName(item.title) || item.category || '未知分类';
+    const categoryId = getSpotCategoryId(item.title) || (item.categoryId || 0);
     return {
       id: item.id,
       markerType: 'spot',
@@ -340,7 +385,9 @@ async function getMapLocations() {
       longitude: Number(item.longitude),
       title: item.title,
       address: item.address || '',
-      desc: `${item.category || '未知分类'} · 评分 ${item.rating || '-'} `,
+      category: categoryName,
+      categoryId,
+      desc: `${categoryName} · 评分 ${item.rating || '-'}`,
       images: imgs,
       image: imgs[0] || DEFAULT_COVER,
       callout: {
@@ -434,13 +481,17 @@ async function getLocationDetail(locationId) {
     };
   }
 
+  const categoryName = getSpotCategoryName(location.title) || location.category || '';
+  const categoryId = getSpotCategoryId(location.title) || (location.categoryId || 0);
+
   return {
     location: {
       id: location.id,
       title: location.title,
       address: location.address || '',
       description: location.description || '',
-      category: location.category || '',
+      category: categoryName,
+      categoryId,
       rating: location.rating != null ? Number(location.rating) : null,
       latitude: Number(location.latitude),
       longitude: Number(location.longitude),

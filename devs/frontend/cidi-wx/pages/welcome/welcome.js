@@ -2,139 +2,86 @@ Page({
   data: {
     appNameCn: '此地',
     appNameEn: 'CIDI',
-    sliderTip: '向右滑动进入',
+    sliderTip: '即将进入...',
     entering: false,
-    isDragging: false,
     knobX: 0,
-    startTouchX: 0,
-    startKnobX: 0,
     maxX: 0,
-    sliderLeft: 0,
-    progress: 0,
-    openThreshold: 0.68,
+    fillWidth: 54,
     knobSize: 44,
-    trackPadding: 5,
-    fillWidth: 54
+    trackPadding: 5
   },
 
   onReady() {
-    this.measureSlider();
+    this.tryAutoEnter();
   },
 
-  onShow() {
-    this.measureSlider();
-  },
-
-  measureSlider() {
+  tryAutoEnter(retries = 5) {
     const query = this.createSelectorQuery();
     query
       .select('.glass-slider')
       .boundingClientRect((rect) => {
-        if (!rect) return;
-
-        const maxX = Math.max(rect.width - this.data.knobSize - this.data.trackPadding * 2, 0);
-        this.setData({
-          maxX,
-          sliderLeft: rect.left,
-          fillWidth: this.data.knobSize + this.data.trackPadding * 2
-        });
+        if (rect && rect.width > 0) {
+          const maxX = Math.max(rect.width - this.data.knobSize - this.data.trackPadding * 2, 0);
+          this.setData({ maxX });
+          this.startAutoEnter(maxX);
+        } else if (retries > 0) {
+          setTimeout(() => this.tryAutoEnter(retries - 1), 200);
+        } else {
+          // 测量失败，直接进入
+          this.enterApp();
+        }
       })
       .exec();
   },
 
-  clampValue(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-  },
+  startAutoEnter(maxX) {
+    if (this._entering || this.data.entering) return;
+    this._entering = true;
 
-  updateSliderPosition(nextX) {
-    const clampedX = this.clampValue(nextX, 0, this.data.maxX);
-    const progress = this.data.maxX > 0 ? clampedX / this.data.maxX : 0;
-    const fillWidth = clampedX + this.data.knobSize + this.data.trackPadding * 2;
+    const duration = 1200;
+    const stepInterval = 16;
+    const totalSteps = Math.ceil(duration / stepInterval);
+    let step = 0;
 
-    this.setData({
-      knobX: clampedX,
-      progress,
-      fillWidth
-    });
-  },
+    this._animTimer = setInterval(() => {
+      step++;
+      const progress = Math.min(step / totalSteps, 1);
+      // easeOutCubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const knobX = eased * maxX;
 
-  onDragStart(e) {
-    if (this.data.entering) return;
+      this.setData({
+        knobX,
+        fillWidth: knobX + this.data.knobSize + this.data.trackPadding * 2
+      });
 
-    if (!this.data.maxX) {
-      this.measureSlider();
-    }
-
-    const touchX = e.touches[0].clientX;
-    const jumpX = touchX - this.data.sliderLeft - this.data.trackPadding - this.data.knobSize / 2;
-    const clampedJumpX = this.clampValue(jumpX, 0, this.data.maxX);
-
-    clearTimeout(this._tipTimer);
-    this.setData({
-      isDragging: true,
-      startTouchX: touchX,
-      startKnobX: clampedJumpX,
-      sliderTip: '向右滑动进入'
-    });
-
-    this.updateSliderPosition(clampedJumpX);
-  },
-
-  onDragMove(e) {
-    if (this.data.entering || !this.data.isDragging) return;
-
-    const touchX = e.touches[0].clientX;
-    const deltaX = touchX - this.data.startTouchX;
-    const nextX = this.data.startKnobX + deltaX;
-    this.updateSliderPosition(nextX);
-  },
-
-  onDragEnd() {
-    if (this.data.entering || !this.data.isDragging) return;
-
-    this.setData({ isDragging: false });
-
-    if (this.data.progress >= this.data.openThreshold || this.data.knobX >= this.data.maxX - 2) {
-      this.enterApp();
-      return;
-    }
-
-    this.resetSlider('再滑一点即可进入');
-  },
-
-  resetSlider(tipText = '向右滑动进入') {
-    this.setData({
-      knobX: 0,
-      progress: 0,
-      fillWidth: this.data.knobSize + this.data.trackPadding * 2,
-      sliderTip: tipText
-    });
-
-    clearTimeout(this._tipTimer);
-    this._tipTimer = setTimeout(() => {
-      this.setData({ sliderTip: '向右滑动进入' });
-    }, 900);
+      if (step >= totalSteps) {
+        clearInterval(this._animTimer);
+        this._animTimer = null;
+        this.enterApp();
+      }
+    }, stepInterval);
   },
 
   enterApp() {
     this.setData({
       entering: true,
       knobX: this.data.maxX,
-      progress: 1,
       fillWidth: this.data.maxX + this.data.knobSize + this.data.trackPadding * 2,
-      sliderTip: '正在进入...'
+      sliderTip: '欢迎探索'
     });
 
-    wx.switchTab({
-      url: '/pages/index/index',
-      fail: () => {
-        this.setData({ entering: false });
-        this.resetSlider('进入失败，请重试');
-      }
-    });
+    setTimeout(() => {
+      wx.switchTab({
+        url: '/pages/index/index'
+      });
+    }, 300);
   },
 
   onUnload() {
-    clearTimeout(this._tipTimer);
+    if (this._animTimer) {
+      clearInterval(this._animTimer);
+      this._animTimer = null;
+    }
   }
 });

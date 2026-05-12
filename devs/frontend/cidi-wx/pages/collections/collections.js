@@ -132,7 +132,7 @@ Page({
           id: spot.id,
           title: spot.title,
           address: spot.address || '',
-          category: spot.desc || '',
+          category: spot.category || '',
           image: spot.image,
           distanceText: spot.distanceText,
           distanceKm: spot.distanceKm,
