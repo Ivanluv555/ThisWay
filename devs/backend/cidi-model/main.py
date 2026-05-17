@@ -1,4 +1,4 @@
-"""
+r"""
 cidi-model FastAPI 主入口
 
 启动：
@@ -47,6 +47,12 @@ from app.services.flow_simulation_service import (
     get_simulation_status,
     start_simulation,
     stop_simulation,
+)
+from app.services.prediction_scheduler_service import (
+    get_prediction_status,
+    start_prediction_scheduler,
+    stop_prediction_scheduler,
+    run_prediction_now,
 )
 from app.spider.xc_spot_search import xc_fetch_search
 from app.spider.xc_spot_detail import xc_fetch_detail
@@ -202,6 +208,25 @@ async def run_predict(
     if write_back:
         try:
             await spring_client.post_predictions_batch(prediction_records)
+
+            # 新增：写回转移预测
+            from app.models import TransitionRecord
+            transition_records = []
+            for pair in pairs:
+                transition_records.append(TransitionRecord(
+                    sourceLocationId=pair["sourceId"],
+                    targetLocationId=pair["targetId"],
+                    predictHour=predict_time,
+                    transitionProbability=pair["finalProb"],
+                    expectedUsers=int(pair["expectedTransferFlow"]),
+                    couponAmount=pair["coupon"],
+                    createTime=datetime.now(),
+                ))
+
+            if transition_records:
+                await spring_client.post_transitions_batch(transition_records)
+                logger.info("写入转移预测 %d 条", len(transition_records))
+
         except Exception as e:
             logger.warning("写回预测失败（非致命）: %s", e)
 
@@ -270,6 +295,42 @@ async def calculate_crowd_index(
         "itemCount": len(items),
         "items": items,
     }
+
+
+# ══════════════════════════════════════════════════════════════════
+# 定时预测服务：启停控制
+# ══════════════════════════════════════════════════════════════════
+@app.post("/prediction/scheduler/toggle", tags=["预测"])
+async def toggle_prediction_scheduler(
+    enabled: bool = Query(..., description="是否启动定时预测；true=启动，false=停止"),
+):
+    """启停定时预测服务（每整点自动触发预测并写回数据库）。"""
+    try:
+        if enabled:
+            return await start_prediction_scheduler()
+        return stop_prediction_scheduler()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"切换定时预测状态失败: {e}")
+
+
+@app.get("/prediction/scheduler/status", tags=["预测"])
+async def get_prediction_scheduler_status():
+    """查询定时预测服务当前状态。"""
+    return get_prediction_status()
+
+
+@app.post("/prediction/run-now", tags=["预测"])
+async def trigger_prediction_now():
+    """立即执行一次预测（手动触发，不等待整点）。"""
+    try:
+        summary = await run_prediction_now()
+        return {
+            "status": "success",
+            "message": "预测已完成",
+            **summary,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"执行预测失败: {e}")
 
 
 # ══════════════════════════════════════════════════════════════════

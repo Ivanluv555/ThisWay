@@ -1,6 +1,7 @@
 <wxs module="drawer" src="./drawer.wxs" />
 
 <view class="container">
+<<<<<<< HEAD
   <map id="cidiMap" class="map-layer"
        latitude="{{latitude}}" longitude="{{longitude}}" scale="{{scale}}"
        markers="{{markers}}" show-location
@@ -17,12 +18,33 @@
           </cover-view>
           <cover-view class="marker-img-wrap border-{{item.crowdLevel}}">
             <cover-image class="marker-img" src="{{item.image || 'https://picsum.photos/100/100?random=' + index}}" />
+=======
+  <!-- 地图层 -->
+  <map id="cidiMap" class="map-layer"
+       latitude="{{latitude}}" longitude="{{longitude}}" scale="{{scale}}" 
+       markers="{{markers}}" show-location 
+       bindcallouttap="onCalloutTap"
+       bindmarkertap="onMarkerTap"
+       bindtap="onMapTap">
+
+    <!-- 自定义 Marker (slot="callout") -->
+    <cover-view slot="callout">
+      <block wx:for="{{markers}}" wx:key="id">
+        <!-- marker-id 必须此属性与 markers 数据中的 id 对应 -->
+        <cover-view class="custom-marker" marker-id="{{item.id}}">
+          <!-- 图片主体 -->
+          <cover-image class="marker-img" src="{{item.image || 'https://picsum.photos/100/100?random=' + index}}" />
+          <!-- 热度徽章 -->
+          <cover-view class="heat-badge">
+            <cover-view class="heat-text">🔥 {{item.heat}}</cover-view>
+>>>>>>> origin/fullcircle
           </cover-view>
         </cover-view>
       </block>
     </cover-view>
   </map>
 
+<<<<<<< HEAD
   <cover-view class="fs-btn" bindtap="toggleFullscreen">
     <cover-view class="fs-btn-text">{{viewMode === 'fullscreen' ? '退出' : '全屏'}}</cover-view>
   </cover-view>
@@ -41,27 +63,66 @@
           bindtouchend="{{drawer.touchEnd}}">
       <view class="drawer-handle"></view>
       <view class="search-box" catchtap="goSearch">
+=======
+  <!-- 底部抽屉层 -->
+  <!-- 绑定 WXS 事件到整个抽屉容器，或者只绑定头部 -->
+  <!-- 这里 prop 传入配置，change:prop 触发 WXS 初始化 -->
+  <view class="bottom-drawer" 
+        prop="{{drawerConfig}}" 
+        change:prop="{{drawer.propObserver}}">
+    
+    <!-- 拖拽区域：包含把手和搜索框 -->
+    <!-- catch:touchstart 阻止冒泡，让 WXS 捕获 -->
+    <view class="drawer-header"
+          bindtouchstart="{{drawer.touchStart}}" 
+          catchtouchmove="{{drawer.touchMove}}" 
+          bindtouchend="{{drawer.touchEnd}}">
+      <view class="drawer-handle"></view>
+      <view class="search-box" bindtap="goSearch">
+>>>>>>> origin/fullcircle
         <icon type="search" size="16" color="#a0a6b0"/>
         <text class="placeholder">搜索周边地点、帖子...</text>
       </view>
     </view>
 
+<<<<<<< HEAD
     <scroll-view scroll-y class="poi-list" bindscroll="onCardScroll" bindtap="onCardTap">
       <view class="list-header">附近推荐</view>
       <block wx:for="{{markers}}" wx:key="id">
         <view class="poi-card" bindtap="onCalloutTap" data-marker-id="{{item.id}}">
+=======
+    <!-- 宽信息流列表 -->
+    <!-- list-header 也可以参与拖动，如果需要的话可以把 handles 绑在 header 上 -->
+    <!-- scroll-view 内部滚动不需要被 drawer 劫持，除非在顶部下拉 -->
+    <scroll-view scroll-y class="poi-list">
+      <view class="list-header">附近推荐</view>
+      <block wx:for="{{markers}}" wx:key="id">
+        <view class="poi-card" bindtap="onCalloutTap" data-marker-id="{{item.id}}"> 
+>>>>>>> origin/fullcircle
           <image class="poi-img" src="{{item.image || 'https://picsum.photos/200/200?random=' + index}}" mode="aspectFill" />
           <view class="poi-info">
             <text class="poi-title">{{item.title}}</text>
             <text class="poi-desc">{{item.desc || '暂无简介'}}</text>
             <view class="poi-meta">
               <text class="distance">距您 {{item.distance || '1.2km'}}</text>
+<<<<<<< HEAD
               <text class="tag tag-{{item.crowdLevel}}" wx:if="{{item.crowdLevel >= 0}}">{{item.crowdLevel === 0 ? '舒适' : item.crowdLevel === 1 ? '适中' : item.crowdLevel === 2 ? '拥挤' : '爆满'}}</text>
+=======
+              <text class="tag">{{item.markerType === 'post' ? '帖子定位' : '热门打卡'}}</text>
+>>>>>>> origin/fullcircle
             </view>
           </view>
         </view>
       </block>
+<<<<<<< HEAD
       <view style="height: 120rpx;"></view>
     </scroll-view>
   </view>
 </view>
+=======
+      <!-- 底部留白，防止被系统手势挡住 -->
+      <view style="height: 40rpx;"></view>
+    </scroll-view>
+  </view>
+</view>
+>>>>>>> origin/fullcircle

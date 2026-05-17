@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .container {
   height: 100%;
   display: flex;
@@ -76,4 +77,89 @@ page .flow-card,
 page .dest-item {
   background: linear-gradient(135deg, rgba(255, 248, 232, 0.78) 0%, rgba(255, 236, 199, 0.42) 100%);
   border-color: rgba(240, 208, 153, 0.58);
+=======
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+page {
+  background-color: #F7F8FA; /* 雅灰背景 */
+  background-image: radial-gradient(circle at 0% 0%, rgba(199, 225, 255, 0.28) 0%, rgba(199, 225, 255, 0) 42%), radial-gradient(circle at 100% 0%, rgba(255, 223, 194, 0.22) 0%, rgba(255, 223, 194, 0) 40%), linear-gradient(180deg, #f7f8fa 0%, #eef2f8 100%);
+  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif;
+  --primary-black: #2C2C2C;
+  --accent-gold: #C1A06E;
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.30) 100%);
+  --glass-bg-soft: linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.24) 100%);
+  --glass-border: rgba(255, 255, 255, 0.62);
+  --glass-shadow: 0 18rpx 42rpx rgba(15, 23, 42, 0.12), 0 2rpx 10rpx rgba(255, 255, 255, 0.45) inset;
+  --glass-radius-xl: 28rpx;
+  --glass-blur: 20px;
+  color: #2C2C2C;
+  opacity: 0;
+  transform: translateY(18rpx) scale(0.992);
+  transform-origin: center top;
+  animation: page-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes page-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(18rpx) scale(0.992);
+    filter: saturate(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: saturate(1);
+  }
+}
+
+/*
+ * 全局液体玻璃卡片覆盖层：
+ * 使用 page .class 提高选择器优先级，统一各页面卡片风格
+ */
+page .card,
+page .list-item,
+page .history-panel,
+page .hot-panel,
+page .res-item,
+page .user-card,
+page .stats-card,
+page .menu-list,
+page .group,
+page .logout,
+page .meta-panel,
+page .poi-card,
+page .content-card,
+page .info-card,
+page .ai-card,
+page .flow-card,
+page .dest-item,
+page .input-area {
+  border-radius: var(--glass-radius-xl);
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(165%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(165%);
+}
+
+/* 保留不同业务卡片的轻微色相差异，避免页面信息层次丢失 */
+page .ai-card {
+  background: linear-gradient(135deg, rgba(222, 241, 255, 0.80) 0%, rgba(194, 228, 255, 0.40) 100%);
+  border-color: rgba(120, 188, 255, 0.55);
+}
+
+page .flow-card,
+page .dest-item {
+  background: linear-gradient(135deg, rgba(255, 248, 232, 0.78) 0%, rgba(255, 236, 199, 0.42) 100%);
+  border-color: rgba(240, 208, 153, 0.58);
+>>>>>>> origin/fullcircle
 }

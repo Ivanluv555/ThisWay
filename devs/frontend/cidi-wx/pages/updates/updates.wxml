@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <view class="container">
   <view class="search-bar" bindtap="goSearch">
     <input class="search-input" placeholder="搜索新鲜事" placeholder-style="color:#999" />
@@ -55,4 +56,62 @@
 
 <view class="fab-btn" bindtap="goPublish">
   <text>+</text>
+=======
+<view class="container">
+  <view class="search-bar" bindtap="goSearch">
+    <input class="search-input" placeholder="搜索新鲜事" placeholder-style="color:#999" />
+  </view>
+
+  <view class="waterfall-container">
+    <view class="waterfall-column">
+      <block wx:for="{{leftList}}" wx:key="id">
+        <view class="card" bindtap="goDetail" data-id="{{item.id}}">
+          <image class="card-image" src="{{item.imageUrl}}" mode="widthFix" />
+          <view class="mini-tags">
+            <text class="mini-tag">{{item.category}}</text>
+            <text class="mini-loc">📍 {{item.location}}</text>
+          </view>
+          <text class="card-title">{{item.title}}</text>
+          <text class="card-summary" wx:if="{{item.summary}}">{{item.summary}}</text>
+          <view class="card-footer">
+            <view class="card-author">
+              <image class="card-avatar" src="{{item.authorAvatar}}" />
+              <text class="card-author-label">{{item.author || '发布者'}}</text>
+            </view>
+            <text class="card-likes">{{item.likes}} 赞</text>
+          </view>
+        </view>
+      </block>
+    </view>
+    <view class="waterfall-column">
+      <block wx:for="{{rightList}}" wx:key="id">
+        <view class="card" bindtap="goDetail" data-id="{{item.id}}">
+          <image class="card-image" src="{{item.imageUrl}}" mode="widthFix" />
+          <view class="mini-tags">
+            <text class="mini-tag">{{item.category}}</text>
+            <text class="mini-loc">📍 {{item.location}}</text>
+          </view>
+          <text class="card-title">{{item.title}}</text>
+          <text class="card-summary" wx:if="{{item.summary}}">{{item.summary}}</text>
+          <view class="card-footer">
+            <view class="card-author">
+              <image class="card-avatar" src="{{item.authorAvatar}}" />
+              <text class="card-author-label">{{item.author || '发布者'}}</text>
+            </view>
+            <text class="card-likes">{{item.likes}} 赞</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="empty-block" wx:if="{{leftList.length === 0 && rightList.length === 0}}">
+    <text class="empty-title">社区内容加载中</text>
+    <text class="empty-desc">可下拉刷新，或点击右下角发布第一条</text>
+  </view>
+
+  <view class="fab-btn" bindtap="goPublish">
+    <text>+</text>
+  </view>
+>>>>>>> origin/fullcircle
 </view>

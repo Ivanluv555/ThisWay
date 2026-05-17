@@ -4,6 +4,7 @@
 }
 
 .hero {
+<<<<<<< HEAD
   margin: 8rpx 8rpx 26rpx;
 }
 
@@ -20,6 +21,30 @@
   margin-top: 6rpx;
   font-size: 26rpx;
   color: #6b7280;
+=======
+  position: relative;
+  min-height: 110rpx;
+  margin: 8rpx 8rpx 26rpx;
+}
+
+.hero-main,
+.hero-sub {
+  position: absolute;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.25;
+}
+
+.hero-main {
+  top: 0;
+  left: 0;
+}
+
+.hero-sub {
+  right: 0;
+  bottom: 0;
+>>>>>>> origin/fullcircle
 }
 
 .glass-panel {
@@ -55,6 +80,7 @@
   color: #4b5563;
 }
 
+<<<<<<< HEAD
 .location-panel.location-denied {
   border: 2rpx solid rgba(59, 130, 246, 0.42);
 }
@@ -64,6 +90,8 @@
 }
 
 /* Best spot card */
+=======
+>>>>>>> origin/fullcircle
 .best-row {
   display: flex;
   align-items: center;
@@ -80,14 +108,18 @@
 .best-info {
   display: flex;
   flex-direction: column;
+<<<<<<< HEAD
   min-width: 0;
   flex: 1;
+=======
+>>>>>>> origin/fullcircle
 }
 
 .best-name {
   font-size: 30rpx;
   color: #111827;
   font-weight: 700;
+<<<<<<< HEAD
   margin-bottom: 4rpx;
 }
 
@@ -152,6 +184,17 @@
 }
 
 /* List */
+=======
+  margin-bottom: 8rpx;
+}
+
+.best-meta {
+  font-size: 23rpx;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+>>>>>>> origin/fullcircle
 .list-head {
   margin: 24rpx 4rpx 12rpx;
   display: flex;
@@ -182,7 +225,10 @@
   display: flex;
   align-items: center;
   min-width: 0;
+<<<<<<< HEAD
   flex: 1;
+=======
+>>>>>>> origin/fullcircle
 }
 
 .rank-num {
@@ -201,6 +247,7 @@
 
 .rank-body {
   min-width: 0;
+<<<<<<< HEAD
   flex: 1;
 }
 
@@ -211,6 +258,12 @@
 }
 
 .rank-name {
+=======
+}
+
+.rank-name {
+  display: block;
+>>>>>>> origin/fullcircle
   font-size: 28rpx;
   color: #111827;
   font-weight: 600;
@@ -222,6 +275,7 @@
 .rank-desc {
   display: block;
   margin-top: 4rpx;
+<<<<<<< HEAD
   font-size: 22rpx;
   color: #6b7280;
 }
@@ -231,6 +285,17 @@
   margin-top: 4rpx;
   font-size: 22rpx;
   color: #6b7280;
+=======
+  font-size: 23rpx;
+  color: #4b5563;
+}
+
+.rank-trend {
+  font-size: 23rpx;
+  color: #7c3aed;
+  margin-left: 12rpx;
+  flex-shrink: 0;
+>>>>>>> origin/fullcircle
 }
 
 .empty-block {
@@ -238,4 +303,8 @@
   text-align: center;
   color: #6b7280;
   font-size: 26rpx;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/fullcircle

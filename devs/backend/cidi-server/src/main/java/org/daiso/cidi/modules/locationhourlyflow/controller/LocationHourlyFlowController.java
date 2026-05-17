@@ -36,4 +36,14 @@ public class LocationHourlyFlowController {
             @RequestBody List<LocationHourlyFlowDTO> dtos) {
         return ResponseEntity.ok(service.batchSave(dtos));
     }
+
+    /**
+     * 获取所有景点的最新人流数据（每个景点取最新一条记录）
+     * 用于模拟数据生成服务查询当前状态
+     */
+    @GetMapping("/latest")
+    public List<LocationHourlyFlowDTO> getLatestFlows(
+            @RequestParam(required = false) Long locationId) {
+        return service.findLatest(locationId);
+    }
 }

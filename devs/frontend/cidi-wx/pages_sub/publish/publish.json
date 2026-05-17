@@ -1,4 +1,10 @@
 {
+<<<<<<< HEAD
   "navigationStyle": "custom",
   "navigationBarTitleText": "发布动态"
 }
+=======
+  "navigationBarTitleText": "发布动态",
+  "navigationBarBackgroundColor": "#ffffff"
+}
+>>>>>>> origin/fullcircle

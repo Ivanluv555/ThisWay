@@ -3,6 +3,10 @@
   <view class="bg-mask"></view>
 
   <view class="content-wrapper">
+<<<<<<< HEAD
+=======
+    
+>>>>>>> origin/fullcircle
     <view class="brand-section">
       <view class="logo-box">
         <text class="logo-text">Π</text>
@@ -14,6 +18,7 @@
     </view>
 
     <view class="action-section">
+<<<<<<< HEAD
       <!-- 头像 & 昵称设置 -->
       <view class="profile-setup">
         <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
@@ -38,6 +43,18 @@
 
       <button class="btn-wx" bindtap="handleLogin" disabled="{{!nickname}}">
         <text>登录</text>
+=======
+      <view class="slogan-box">
+        <text class="slogan-main">Start Your Journey</text>
+        <text class="slogan-sub">记录足迹，分享此刻的感动</text>
+      </view>
+
+      <button class="btn-wx" bindtap="handleWxLogin">
+        <view class="wx-icon-bg">
+           <text style="color:#07C160; font-weight:bold;">●</text>
+        </view>
+        <text>微信一键登录</text>
+>>>>>>> origin/fullcircle
       </button>
 
       <view class="agreement-box">
@@ -45,4 +62,8 @@
       </view>
     </view>
   </view>
+<<<<<<< HEAD
 </view>
+=======
+</view>
+>>>>>>> origin/fullcircle

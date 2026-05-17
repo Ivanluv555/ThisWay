@@ -92,6 +92,17 @@ class SimulationStatusResponse(BaseModel):
     visitorMax: int
 
 
+# ── 转移预测记录（对应 location_transitions 表） ───────────────────────────
+class TransitionRecord(BaseModel):
+    sourceLocationId: int
+    targetLocationId: int
+    predictHour: datetime
+    transitionProbability: float
+    expectedUsers: int
+    couponAmount: float = 0.0
+    createTime: Optional[datetime] = None
+
+
 # ── 预测任务返回结构 ──────────────────────────────────────────────────────────
 class PredictResponse(BaseModel):
     predictions: List[PredictionRecord]

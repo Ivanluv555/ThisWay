@@ -1,20 +1,35 @@
+<<<<<<< HEAD
+=======
+/* 全屏容器 */
+>>>>>>> origin/fullcircle
 page {
   height: 100vh;
   overflow: hidden;
 }
 
+<<<<<<< HEAD
 .container {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
+=======
+.container { 
+  position: relative; 
+  width: 100%; 
+  height: 100%; 
+}
+
+/* 地图层：占满全屏，但在抽屉下面 */
+>>>>>>> origin/fullcircle
 .map-layer {
   width: 100%;
   height: 100%;
   z-index: 1;
 }
 
+<<<<<<< HEAD
 /* Fullscreen toggle button */
 .fs-btn {
   position: fixed;
@@ -101,10 +116,24 @@ page {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
+=======
+/* --- 自定义 Marker 样式 --- */
+.custom-marker {
+  width: 80rpx;
+  height: 80rpx;
+  position: relative;
+  border-radius: 50%;
+  border: 4rpx solid #fff;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.3);
+  /* 居中偏移修正：map marker 默认定位点可能是左上，这里通过 CSS 控制内部 */
+  /* 或者在 JS 中通过 anchorX/Y 控制。通常 customCallout 默认 anchor (0.5, 0) ? */
+  /* 为保险起见，这里只设外观 */
+>>>>>>> origin/fullcircle
   display: flex;
   align-items: center;
   justify-content: center;
   background: #fff;
+<<<<<<< HEAD
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.25);
 }
 
@@ -121,19 +150,58 @@ page {
 .border--1 { border: 4rpx solid #fff; }
 
 /* Bottom drawer */
+=======
+}
+
+.marker-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.heat-badge {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  background: linear-gradient(135deg, #ff6b6b, #ff4757);
+  padding: 4rpx 8rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30rpx;
+}
+
+.heat-text {
+  font-size: 16rpx;
+  color: #fff;
+  font-weight: bold;
+  line-height: 1;
+}
+/* ------------------------- */
+
+/* 底部抽屉：核心样式 */
+>>>>>>> origin/fullcircle
 .bottom-drawer {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
+<<<<<<< HEAD
   height: 100vh;
   background: #f6f7f9;
+=======
+  height: 85vh; /* 增加高度，覆盖大部分屏幕 */
+  background: #f6f7f9; /* 稍微灰一点的背景，区分层级 */
+>>>>>>> origin/fullcircle
   border-radius: 32rpx 32rpx 0 0;
   z-index: 10;
   box-shadow: 0 -4rpx 30rpx rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom);
+<<<<<<< HEAD
 }
 
 /* Animated transition for snap (added/removed by WXS) */
@@ -147,10 +215,25 @@ page {
   transition: transform 0.3s ease;
 }
 
+=======
+  
+  /* 初始通过 WXS 控制 transform，这里不需要默认 transform */
+  /* 如果 WXS 加载慢，可以给一个默认值 */
+  transform: translateY(100%); 
+}
+
+/* WXS 也就是 touches 结束后添加这个类，实现惯性回弹 */
+.animating {
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* 头部拖拽区，包含 handle 和 search */
+>>>>>>> origin/fullcircle
 .drawer-header {
   background: #fff;
   border-radius: 32rpx 32rpx 0 0;
   padding-bottom: 20rpx;
+<<<<<<< HEAD
   flex-shrink: 0;
 }
 
@@ -158,10 +241,24 @@ page {
   width: 80rpx;
   height: 8rpx;
   background: #d0d0d0;
+=======
+  flex-shrink: 0; /* 防止被挤压 */
+}
+
+/* 顶部拖拽把手 */
+.drawer-handle {
+  width: 80rpx;
+  height: 8rpx;
+  background: #e0e0e0;
+>>>>>>> origin/fullcircle
   border-radius: 10rpx;
   margin: 16rpx auto;
 }
 
+<<<<<<< HEAD
+=======
+/* 搜索区：模仿高德的样式 */
+>>>>>>> origin/fullcircle
 .search-box {
   margin: 0 30rpx 20rpx;
   background: #f2f4f7;
@@ -179,11 +276,20 @@ page {
   margin-left: 20rpx;
 }
 
+<<<<<<< HEAD
 .poi-list {
   flex: 1;
   height: 0;
   background: #fff;
   padding: 0 30rpx 100rpx;
+=======
+/* 列表容器 */
+.poi-list {
+  flex: 1;
+  height: 0; /* 重要：让scroll-view吃掉剩余空间 */
+  background: #fff;
+  padding: 0 30rpx;
+>>>>>>> origin/fullcircle
   box-sizing: border-box;
 }
 
@@ -194,6 +300,10 @@ page {
   margin: 20rpx 0;
 }
 
+<<<<<<< HEAD
+=======
+/* 宽信息流卡片：左图右文 */
+>>>>>>> origin/fullcircle
 .poi-card {
   display: flex;
   padding: 24rpx 0;
@@ -214,7 +324,11 @@ page {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+<<<<<<< HEAD
   min-width: 0;
+=======
+  min-width: 0; /* 防止 flex 子项超出 */
+>>>>>>> origin/fullcircle
 }
 
 .poi-title {
@@ -233,7 +347,11 @@ page {
   margin-top: 8rpx;
   display: -webkit-box;
   -webkit-box-orient: vertical;
+<<<<<<< HEAD
   -webkit-line-clamp: 2;
+=======
+  -webkit-line-clamp: 2; /* 最多两行 */
+>>>>>>> origin/fullcircle
   overflow: hidden;
   line-height: 1.5;
 }
@@ -252,6 +370,7 @@ page {
 
 .tag {
   font-size: 20rpx;
+<<<<<<< HEAD
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
   font-weight: 500;
@@ -262,3 +381,10 @@ page {
 .tag-2 { color: #ea580c; background: rgba(234, 88, 12, 0.1); }
 .tag-3 { color: #dc2626; background: rgba(220, 38, 38, 0.1); }
 .tag--1 { color: #c1a06e; background: rgba(193, 160, 110, 0.1); }
+=======
+  color: #c1a06e;
+  background: rgba(193, 160, 110, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+>>>>>>> origin/fullcircle

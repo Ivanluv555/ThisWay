@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <view class="pull-refresh-bg {{isPullRefreshing ? 'show' : ''}}">
   <image class="pull-refresh-bg-image" src="https://cidi.oss-cn-beijing.aliyuncs.com/renew.jpg" mode="aspectFill" />
 </view>
@@ -56,4 +57,64 @@
       <text class="empty-desc">下拉刷新或切换分类试试</text>
     </view>
   </view>
+=======
+<view class="pull-refresh-bg {{isPullRefreshing ? 'show' : ''}}">
+  <image class="pull-refresh-bg-image" src="/images/renew.jpg" mode="aspectFill" />
+</view>
+
+<view class="container">
+  <view class="sticky-header" style="{{headerStyle}}">
+    <view class="hero-area" style="{{heroAreaStyle}}">
+      <text class="hero-title" style="{{titleStyle}}">{{greeting}}</text>
+      <view class="search-box" bindtap="goSearch" style="{{searchStyle}}">
+        <icon type="search" size="18" color="#999"/>
+        <input placeholder="搜索目的地 / 笔记" placeholder-class="ph-style" disabled />
+      </view>
+    </view>
+
+    <scroll-view class="category-scroll" scroll-x enable-flex>
+      <block wx:for="{{categories}}" wx:key="*this">
+        <view class="category-item {{activeCategory === index ? 'active' : ''}}" 
+              bindtap="switchCategory" data-index="{{index}}">
+          <text>{{item}}</text>
+          <view class="active-dot" wx:if="{{activeCategory === index}}"></view>
+        </view>
+      </block>
+    </scroll-view>
+  </view>
+
+  <view class="feed-list">
+    <block wx:for="{{contentList}}" wx:key="id">
+      <view class="card" bindtap="goDetail" data-id="{{item.id}}">
+        <image class="card-cover" src="{{item.coverUrl}}" mode="aspectFill" lazy-load />
+        
+        <view class="card-info">
+          <view class="card-tag">
+            <text>📍 {{item.location || '待补充位置'}}</text>
+          </view>
+          <view class="card-sub-tag">{{item.category || '推荐'}}</view>
+          
+          <text class="card-title">{{item.title}}</text>
+          <text class="card-summary" wx:if="{{item.summary}}">{{item.summary}}</text>
+          
+          <view class="card-meta">
+            <view class="author-box">
+              <image class="author-face" src="https://api.multiavatar.com/{{item.author}}.png" />
+              <text class="author-name">{{item.author}}</text>
+            </view>
+            <view class="likes-box">
+              <image class="card-icon" src="/images/icon_like.png" mode="aspectFit" />
+              <text class="like-num">{{item.likes}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <view class="empty-block" wx:if="{{contentList.length === 0}}">
+      <text class="empty-title">社区内容准备中</text>
+      <text class="empty-desc">下拉刷新或切换分类试试</text>
+    </view>
+  </view>
+>>>>>>> origin/fullcircle
 </view>

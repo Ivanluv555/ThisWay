@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List, Mapping
 
-from CrowdIndex_Calc import ZoneInput, compute_scenic_crowd_index
+from app.algorithms.crowd_index_calc import ZoneInput, compute_scenic_crowd_index
 
 
 def _build_template_zones(visitor_count: int) -> List[ZoneInput]:

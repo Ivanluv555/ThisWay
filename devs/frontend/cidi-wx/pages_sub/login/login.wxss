@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+/* 页面容器占满全屏 */
+>>>>>>> origin/fullcircle
 page {
   height: 100%;
   overflow: hidden;
@@ -11,36 +15,63 @@ page {
   flex-direction: column;
 }
 
+<<<<<<< HEAD
+=======
+/* --- 1. 背景层 --- */
+>>>>>>> origin/fullcircle
 .bg-image {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+<<<<<<< HEAD
   z-index: -2;
 }
 
+=======
+  z-index: -2; /* 放在最底层 */
+}
+
+/* 黑色半透明蒙层，防止背景太花看不清字 */
+>>>>>>> origin/fullcircle
 .bg-mask {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+<<<<<<< HEAD
   background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.55));
   z-index: -1;
 }
 
+=======
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6)); /* 稍微调低遮罩浓度，通透一点 */
+  z-index: -1;
+}
+
+/* --- 2. 内容包装层 --- */
+>>>>>>> origin/fullcircle
 .content-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
+<<<<<<< HEAD
   justify-content: space-between;
+=======
+  justify-content: space-between; /* 顶部分布 Logo，底部分布按钮 */
+>>>>>>> origin/fullcircle
   padding: 120rpx 60rpx 100rpx;
   box-sizing: border-box;
   color: #fff;
 }
 
+<<<<<<< HEAD
 /* ===== 品牌区 ===== */
+=======
+/* --- 顶部品牌区 --- */
+>>>>>>> origin/fullcircle
 .brand-section {
   display: flex;
   align-items: center;
@@ -50,10 +81,17 @@ page {
 .logo-box {
   width: 100rpx;
   height: 100rpx;
+<<<<<<< HEAD
   background: rgba(255,255,255,0.2);
   backdrop-filter: blur(10px);
   border: 1rpx solid rgba(255,255,255,0.3);
   border-radius: 24rpx;
+=======
+  background: rgba(255,255,255,0.2); /* 半透明玻璃感 */
+  backdrop-filter: blur(10px); /* 磨砂效果 (iOS支持较好) */
+  border: 1rpx solid rgba(255,255,255,0.3);
+  border-radius: 24rpx; /* 统一为 24rpx 小圆角 */
+>>>>>>> origin/fullcircle
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,6 +124,7 @@ page {
   font-weight: 300;
 }
 
+<<<<<<< HEAD
 /* ===== 操作区 ===== */
 .action-section {
   width: 100%;
@@ -170,10 +209,43 @@ page {
   background: #07C160 !important;
   color: #fff;
   border-radius: 999rpx;
+=======
+/* --- 底部操作区 --- */
+.action-section {
+  width: 100%;
+  animation: fadeInUp 0.8s ease-out; /* 简单的入场动画 */
+}
+
+.slogan-box {
+  margin-bottom: 60rpx;
+}
+
+.slogan-main {
+  display: block;
+  font-size: 60rpx; /* 加大字号 */
+  font-weight: 700;
+  margin-bottom: 20rpx;
+  line-height: 1.2;
+}
+
+.slogan-sub {
+  display: block;
+  font-size: 28rpx;
+  opacity: 0.8;
+  letter-spacing: 1px;
+}
+
+/* 微信按钮 */
+.btn-wx {
+  background: #07C160 !important;
+  color: #fff;
+  border-radius: 999rpx; /* 全圆角胶囊 */
+>>>>>>> origin/fullcircle
   padding: 0;
   height: 100rpx;
   display: flex;
   align-items: center;
+<<<<<<< HEAD
   justify-content: center;
   font-size: 32rpx;
   font-weight: 600;
@@ -186,6 +258,15 @@ page {
   background: rgba(255,255,255,0.15) !important;
   color: rgba(255,255,255,0.35) !important;
   box-shadow: none;
+=======
+  justify-content: center; /* 按钮内容居中 */
+  font-size: 32rpx;
+  font-weight: 600;
+  width: 100% !important;
+  box-shadow: 0 16rpx 32rpx rgba(7, 193, 96, 0.25); /* 更柔和的投影 */
+  border: none;
+  position: relative;
+>>>>>>> origin/fullcircle
 }
 
 .btn-wx:active {
@@ -193,7 +274,23 @@ page {
   opacity: 0.9;
 }
 
+<<<<<<< HEAD
 /* 协议 */
+=======
+.wx-icon-bg {
+  width: 44rpx;
+  height: 44rpx;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  font-size: 20rpx;
+}
+
+/* 协议文字 */
+>>>>>>> origin/fullcircle
 .agreement-box {
   margin-top: 40rpx;
   text-align: center;
@@ -201,10 +298,18 @@ page {
 
 .agree-text {
   font-size: 22rpx;
+<<<<<<< HEAD
   color: rgba(255,255,255,0.5);
   line-height: 1.5;
 }
 
+=======
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+}
+
+/* 动画定义 */
+>>>>>>> origin/fullcircle
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -214,4 +319,8 @@ page {
     opacity: 1;
     transform: translateY(0);
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/fullcircle

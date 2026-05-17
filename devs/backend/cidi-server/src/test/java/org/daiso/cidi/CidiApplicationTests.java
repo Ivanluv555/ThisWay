@@ -9,12 +9,15 @@ package org.daiso.cidi;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
+@TestPropertySource(locations = "classpath:application-test.properties")
 class CidiApplicationTests {
 
     @Test
     void contextLoads() {
+        // 测试 Spring 应用上下文是否能正常加载
     }
 
 }
