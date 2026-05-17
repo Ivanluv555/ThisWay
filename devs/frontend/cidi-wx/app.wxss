@@ -9,7 +9,7 @@
 }
 
 page {
-  background-color: #F7F8FA; /* 雅灰背景 */
+  background-color: #F7F8FA;
   background-image: radial-gradient(circle at 0% 0%, rgba(199, 225, 255, 0.28) 0%, rgba(199, 225, 255, 0) 42%), radial-gradient(circle at 100% 0%, rgba(255, 223, 194, 0.22) 0%, rgba(255, 223, 194, 0) 40%), linear-gradient(180deg, #f7f8fa 0%, #eef2f8 100%);
   background-attachment: fixed;
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif;
@@ -22,21 +22,16 @@ page {
   --glass-radius-xl: 28rpx;
   --glass-blur: 20px;
   color: #2C2C2C;
-  opacity: 0;
-  transform: translateY(18rpx) scale(0.992);
-  transform-origin: center top;
   animation: page-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes page-enter {
   0% {
     opacity: 0;
-    transform: translateY(18rpx) scale(0.992);
     filter: saturate(0.94);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
     filter: saturate(1);
   }
 }

@@ -21,22 +21,23 @@ function calcDistanceKm(lat1, lng1, lat2, lng2) {
 }
 
 function formatDistance(km) {
-  if (km == null) return '未知距离';
+  if (km == null) return '未知';
   if (km < 1) return `${Math.round(km * 1000)}m`;
   return `${km.toFixed(1)}km`;
 }
 
 function levelToText(level) {
-  const n = Number(level || 0);
-  if (n <= 1) return '通畅';
-  if (n === 2) return '适中';
-  if (n === 3) return '较忙';
-  return '拥挤';
+  const n = Number(level);
+  if (n === 0) return '舒适';
+  if (n === 1) return '适中';
+  if (n === 2) return '拥挤';
+  return '爆满';
 }
 
-function crowdScore(level) {
-  const n = Number(level || 0);
-  return Number.isNaN(n) ? 4 : Math.max(0, Math.min(4, n));
+function trendToLabel(trend) {
+  if (trend === '上升') return '人流上升中';
+  if (trend === '下降') return '人流下降中';
+  return '人流稳定';
 }
 
 Page({
@@ -44,6 +45,7 @@ Page({
     loading: true,
     currentSpot: null,
     currentLocationLabel: '定位中...',
+    locationDenied: false,
     bestSpot: null,
     topList: [],
     updatedAt: '',
@@ -82,6 +84,7 @@ Page({
       }
 
       const hasGeo = geo && geo.ok && !Number.isNaN(Number(geo.latitude)) && !Number.isNaN(Number(geo.longitude));
+      const locationDenied = !!(geo && geo.denied);
 
       const withDistance = validSpots.map((spot) => {
         const distanceKm = hasGeo
@@ -104,47 +107,45 @@ Page({
       const currentSpot = hasGeo ? sortedByDistance[0] : null;
       const currentLocationLabel = hasGeo
         ? `你在 ${currentSpot ? currentSpot.title : '未知位置'} 附近`
-        : '未授权定位，已按景区预测推荐';
+        : locationDenied
+          ? '定位未授权，点击此处授权'
+          : '未授权定位，已按景区预测推荐';
 
-      const forecastResults = await Promise.all(
-        withDistance.map(async (spot) => {
-          try {
-            const forecast = await cidiApi.getFuturePrediction(spot.id);
-            const level = forecast && forecast.code === 0 ? crowdScore(forecast.data.level) : 4;
-            const predictTime = forecast && forecast.code === 0 ? forecast.data.predictTime : '--';
-            const trend = forecast && forecast.code === 0 ? forecast.data.trend : '未知';
-            const score = level * 100 + (spot.distanceKm == null ? 30 : Math.min(spot.distanceKm, 30));
+      const latestPredictions = await cidiApi.getLatestPredictions();
+      const predictionMap = {};
+      (latestPredictions || []).forEach((p) => {
+        predictionMap[p.spotId] = p;
+      });
 
-            return {
-              id: spot.id,
-              title: spot.title,
-              address: spot.address || '暂无地址',
-              image: spot.image,
-              distanceText: spot.distanceText,
-              distanceKm: spot.distanceKm,
-              level,
-              levelText: levelToText(level),
-              predictTime,
-              trend,
-              score
-            };
-          } catch (e) {
-            return {
-              id: spot.id,
-              title: spot.title,
-              address: spot.address || '暂无地址',
-              image: spot.image,
-              distanceText: spot.distanceText,
-              distanceKm: spot.distanceKm,
-              level: 4,
-              levelText: '拥挤',
-              predictTime: '--',
-              trend: '未知',
-              score: 430
-            };
-          }
-        })
-      );
+      const forecastResults = withDistance.map((spot) => {
+        const raw = predictionMap[spot.id] || null;
+
+        const congestionLevel = raw ? Number(raw.congestionLevel) : 3;
+        const crowdDensity = raw ? Number(raw.crowdDensity) : null;
+        const visitorCount = raw ? Number(raw.visitorCount) : null;
+        const trend = raw ? raw.trend : '未知';
+        const predictTime = raw ? raw.predictTime : '--';
+
+        const score = congestionLevel * 100 + (spot.distanceKm == null ? 30 : Math.min(spot.distanceKm, 30));
+
+        return {
+          id: spot.id,
+          title: spot.title,
+          address: spot.address || '',
+          category: spot.category || '',
+          image: spot.image,
+          distanceText: spot.distanceText,
+          distanceKm: spot.distanceKm,
+          congestionLevel,
+          crowdDensity,
+          visitorCount,
+          levelText: levelToText(congestionLevel),
+          predictTime,
+          trend,
+          trendLabel: trendToLabel(trend),
+          score
+        };
+      });
 
       const topList = forecastResults
         .sort((a, b) => a.score - b.score)
@@ -158,6 +159,7 @@ Page({
         loading: false,
         currentSpot,
         currentLocationLabel,
+        locationDenied,
         bestSpot: topList[0] || null,
         topList,
         updatedAt: new Date().toLocaleTimeString('zh-CN', { hour12: false })
@@ -177,6 +179,12 @@ Page({
 
   onPullDownRefresh() {
     this.fetchData();
+  },
+
+  handleLocationAuth() {
+    cidiApi.openLocationSetting().then(() => {
+      this.fetchData();
+    });
   },
 
   goLocation(e) {

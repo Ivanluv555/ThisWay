@@ -6,59 +6,51 @@
       </swiper-item>
     </block>
   </swiper>
-  <view class="ai-card">
-  <view class="ai-header">
-    <text class="ai-title">🤖 AI 未来人流预测</text>
-    <view class="ai-btn" bindtap="fetchPrediction" wx:if="{{!prediction}}">点击预测</view>
-  </view>
 
-  <view class="ai-result" wx:if="{{prediction}}">
-    <view class="result-row">
-       <text class="result-time">预计 {{prediction.predictTime}}</text>
-       <text class="result-trend">{{prediction.trend}}</text>
-    </view>
-    <view class="level-bar">
-       <view class="level-inner level-{{prediction.level}}" style="width: {{(prediction.level+1)*25}}"></view>
-    </view>
-    <text class="result-desc">{{prediction.desc}}</text>
-  </view>
-</view>
-
-  <view class="flow-card">
-    <view class="flow-header">
-      <text class="flow-title">📈 每小时下一目的地预测</text>
-      <text class="flow-sub">用于景点分流引导</text>
-    </view>
-
-    <view wx:if="{{loadingNextForecast}}" class="flow-loading">预测加载中...</view>
-    <view wx:if="{{!loadingNextForecast && nextForecast.length === 0}}" class="flow-loading">暂无去向预测数据</view>
-
-    <block wx:for="{{nextForecast}}" wx:key="hour">
-      <view class="hour-row">
-        <text class="hour-tag">{{item.hour}}</text>
-        <view class="dest-list">
-          <block wx:for="{{item.transitions}}" wx:key="locationId">
-            <view class="dest-item">
-              <text class="dest-name">{{item.locationName}}</text>
-              <text class="dest-ratio">{{item.ratioText}}</text>
-            </view>
-          </block>
-        </view>
-      </view>
-    </block>
-  </view>
-  
   <view class="info-card">
     <view class="header-row">
       <text class="title">{{location.title}}</text>
-      <view class="nav-btn" bindtap="openNav">导航 GO</view>
+      <view class="nav-btn" bindtap="openNav">导航</view>
+    </view>
+    <view class="meta-row" wx:if="{{location.category || location.rating}}">
+      <text class="category-tag" wx:if="{{location.category}}">{{location.category}}</text>
+      <text class="rating-text" wx:if="{{location.rating}}">评分 {{location.rating}}</text>
     </view>
     <view class="address-row">
       <text class="addr">{{location.address}}</text>
     </view>
-    <view class="desc-box">
+
+    <view class="prediction-section">
+      <view class="prediction-header">
+        <text class="prediction-title">拥挤度预测</text>
+        <view class="refresh-btn" bindtap="fetchDetail">刷新</view>
+      </view>
+
+      <view wx:if="{{prediction}}">
+        <view class="result-row">
+          <text class="result-time">预计 {{prediction.predictTime}}</text>
+          <text class="result-trend">{{prediction.trend}}</text>
+        </view>
+        <view class="level-score">拥挤指数 {{prediction.crowdIndex}} / 10 · {{prediction.levelLabel}}</view>
+        <view class="level-bar">
+          <view class="level-inner {{prediction.levelClass}}" style="width: {{prediction.crowdIndex * 10}}%"></view>
+        </view>
+        <view class="level-tags">
+          <text class="level-tag level-tag-0 {{prediction.levelLabel === '舒适' ? 'active' : ''}}">舒适</text>
+          <text class="level-tag level-tag-1 {{prediction.levelLabel === '一般' ? 'active' : ''}}">一般</text>
+          <text class="level-tag level-tag-2 {{prediction.levelLabel === '拥挤' ? 'active' : ''}}">拥挤</text>
+          <text class="level-tag level-tag-3 {{prediction.levelLabel === '非常拥挤' ? 'active' : ''}}">非常拥挤</text>
+          <text class="level-tag level-tag-4 {{prediction.levelLabel === '极度拥挤' ? 'active' : ''}}">极度拥挤</text>
+        </view>
+        <text class="result-desc">{{prediction.desc}}</text>
+      </view>
+
+      <view wx:if="{{!prediction}}" class="prediction-empty">暂无预测数据</view>
+    </view>
+
+    <view class="desc-box" wx:if="{{location.description}}">
       <text class="label">关于此地</text>
-      <text class="desc">{{location.desc}}</text>
+      <text class="desc">{{location.description}}</text>
     </view>
   </view>
 </view>

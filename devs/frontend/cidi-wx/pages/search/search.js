@@ -15,7 +15,8 @@ Page({
     hasSearched: false,
     isLoading: false,
     errorMsg: '',
-    results: { articles: [], locations: [] }
+    results: { articles: [], locations: [] },
+    activeTab: 'all'
   },
 
   _requestSerial: 0,
@@ -95,17 +96,20 @@ Page({
     this.setData({
       hasSearched: true,
       isLoading: true,
-      errorMsg: ''
+      errorMsg: '',
+      activeTab: 'locations'
     });
 
     const userId = app.globalData.userInfo ? app.globalData.userInfo.id : null;
     cidiApi.searchKeyword(normalizedKeyword, userId).then(resultData => {
       if (serial !== this._requestSerial) return;
+      const locations = resultData.locations || [];
+      const articles = resultData.articles || [];
+      const activeTab = locations.length > 0 ? 'locations' : (articles.length > 0 ? 'articles' : 'locations');
+
       this.setData({
-        results: {
-          articles: resultData.articles || [],
-          locations: resultData.locations || []
-        },
+        results: { articles, locations },
+        activeTab,
         errorMsg: ''
       });
     }).catch(err => {
@@ -129,6 +133,13 @@ Page({
 
     this.setData({ historyList: history });
     wx.setStorageSync('search_history', history);
+  },
+
+  switchTab: function(e) {
+    const tab = e.currentTarget.dataset.tab;
+    if (tab) {
+      this.setData({ activeTab: tab });
+    }
   },
 
   goArticle: function(e) {

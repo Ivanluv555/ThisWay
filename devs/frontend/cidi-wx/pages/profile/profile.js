@@ -21,9 +21,19 @@ Page({
   },
 
   updateUserProfile: function() {
-    if (app.globalData.userInfo) {
+    let userInfo = app.globalData.userInfo;
+    // globalData 读取失败时从 Storage 兜底
+    if (!userInfo || !userInfo.id) {
+      try {
+        userInfo = wx.getStorageSync('userInfo');
+        if (userInfo && userInfo.id) {
+          app.globalData.userInfo = userInfo;
+        }
+      } catch (e) {}
+    }
+    if (userInfo && userInfo.id) {
       this.setData({
-        userInfo: app.globalData.userInfo,
+        userInfo: userInfo,
         isLogin: true
       });
     } else {

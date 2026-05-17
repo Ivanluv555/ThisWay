@@ -47,31 +47,38 @@
     <view class="state-tip error" wx:if="{{!isLoading && errorMsg}}">{{errorMsg}}</view>
 
     <block wx:if="{{!isLoading && !errorMsg}}">
-    <view class="section" wx:if="{{results.locations.length > 0}}">
-      <view class="section-title">相关地点</view>
-      <block wx:for="{{results.locations}}" wx:key="id">
-        <view class="res-item location-item card" bindtap="goLocation" data-id="{{item.id}}">
-          <view class="loc-icon">📍</view>
-          <view class="res-info">
-            <text class="res-title">{{item.title}}</text>
-            <text class="res-sub">{{item.address}}</text>
-          </view>
+      <view class="tab-bar" wx:if="{{results.locations.length > 0 || results.articles.length > 0}}">
+        <view class="tab-item {{activeTab === 'locations' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="locations" wx:if="{{results.locations.length > 0}}">
+          <text>相关地点 · {{results.locations.length}}</text>
         </view>
-      </block>
-    </view>
+        <view class="tab-item {{activeTab === 'articles' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="articles" wx:if="{{results.articles.length > 0}}">
+          <text>相关帖子 · {{results.articles.length}}</text>
+        </view>
+      </view>
 
-    <view class="section" wx:if="{{results.articles.length > 0}}">
-      <view class="section-title">相关帖子</view>
-      <block wx:for="{{results.articles}}" wx:key="id">
-        <view class="res-item article-item card" bindtap="goArticle" data-id="{{item.id}}">
-          <image class="res-cover" src="{{item.coverUrl}}" mode="aspectFill"/>
-          <view class="res-info">
-            <text class="res-title">{{item.title}}</text>
-            <text class="res-sub">{{item.author}} · {{item.likes}} 赞</text>
+      <view class="section" wx:if="{{activeTab === 'locations'}}">
+        <block wx:for="{{results.locations}}" wx:key="id">
+          <view class="res-item location-item card" bindtap="goLocation" data-id="{{item.id}}">
+            <view class="loc-icon">📍</view>
+            <view class="res-info">
+              <text class="res-title">{{item.title}}</text>
+              <text class="res-sub">{{item.address}}</text>
+            </view>
           </view>
-        </view>
-      </block>
-    </view>
+        </block>
+      </view>
+
+      <view class="section" wx:if="{{activeTab === 'articles'}}">
+        <block wx:for="{{results.articles}}" wx:key="id">
+          <view class="res-item article-item card" bindtap="goArticle" data-id="{{item.id}}">
+            <image class="res-cover" src="{{item.coverUrl}}" mode="aspectFill"/>
+            <view class="res-info">
+              <text class="res-title">{{item.title}}</text>
+              <text class="res-sub">{{item.author}} · {{item.likes}} 赞</text>
+            </view>
+          </view>
+        </block>
+      </view>
 
       <view class="empty-tip" wx:if="{{results.articles.length === 0 && results.locations.length === 0}}">
         未找到相关内容，试试更换关键词

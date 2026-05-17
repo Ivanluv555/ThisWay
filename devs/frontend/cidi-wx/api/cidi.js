@@ -9,7 +9,7 @@ const LOCAL_SCENIC_POSTS = [
     title: '洪崖洞夜景打卡全攻略：灯火层叠的山城名片',
     content:
       '洪崖洞依山而建，夜幕亮灯后像一座现实版宫崎骏城堡。建议傍晚先到千厮门大桥拍全景，再下到沿江步道拍近景，错峰时间为工作日下午4:30前。',
-    coverUrl: '/images/hongyadong.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/hongyadong.jpg',
     location: '重庆 洪崖洞',
     category: '摄影',
     likes: 268
@@ -19,7 +19,7 @@ const LOCAL_SCENIC_POSTS = [
     title: '磁器口古镇慢游路线：老街烟火与地道小吃',
     content:
       '磁器口适合步行慢逛，主街看热闹、支巷找安静。推荐从东门进入，依次打卡老茶馆、手作店和临江观景点，陈麻花与毛血旺可避开饭点排队。',
-    coverUrl: '/images/ciqikou.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/ciqikou.jpg',
     location: '重庆 磁器口古镇',
     category: '美食',
     likes: 194
@@ -29,7 +29,7 @@ const LOCAL_SCENIC_POSTS = [
     title: '长江索道体验指南：俯瞰两江与城市天际线',
     content:
       '长江索道是感受重庆立体交通的经典方式。建议南站上车、北站下车，单程体验更从容。晴天上午光线通透，阴天傍晚更有雾都层次感。',
-    coverUrl: '/images/changjiangsuodao.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/changjiangsuodao.jpg',
     location: '重庆 长江索道',
     category: '攻略',
     likes: 156
@@ -39,7 +39,7 @@ const LOCAL_SCENIC_POSTS = [
     title: '武隆天生三桥一日游：喀斯特地貌震撼现场',
     content:
       '武隆天生三桥以峡谷与天坑闻名，步道上下坡较多，建议穿防滑运动鞋。路线可先三桥后地缝，节省体力且观景体验更完整。',
-    coverUrl: '/images/wulong.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/wulong.jpg',
     location: '重庆 武隆天生三桥',
     category: '推荐',
     likes: 221
@@ -50,25 +50,25 @@ const SCENIC_META_RULES = [
   {
     keywords: ['洪崖洞', 'hongyadong'],
     location: '重庆 洪崖洞',
-    coverUrl: '/images/hongyadong.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/hongyadong.jpg',
     intro: '洪崖洞依山临江，夜景层叠灯火是重庆最具辨识度的地标之一。'
   },
   {
     keywords: ['磁器口', 'ciqikou'],
     location: '重庆 磁器口古镇',
-    coverUrl: '/images/ciqikou.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/ciqikou.jpg',
     intro: '磁器口古镇兼具老街风貌与市井烟火，适合慢节奏步行体验。'
   },
   {
     keywords: ['长江索道', '索道', 'changjiangsuodao'],
     location: '重庆 长江索道',
-    coverUrl: '/images/changjiangsuodao.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/changjiangsuodao.jpg',
     intro: '长江索道横跨两岸，短时间即可获得山城立体城市景观视角。'
   },
   {
     keywords: ['武隆', '天生三桥', 'wulong'],
     location: '重庆 武隆天生三桥',
-    coverUrl: '/images/wulong.jpg',
+    coverUrl: 'https://cidi.oss-cn-beijing.aliyuncs.com/wulong.jpg',
     intro: '武隆天生三桥以喀斯特地貌闻名，峡谷与天坑景观极具震撼力。'
   }
 ];
@@ -79,6 +79,49 @@ const DEFAULT_CATEGORIES = [
   { id: 4, name: '摄影' },
   { id: 5, name: '避坑' }
 ];
+
+const LOCATION_CATEGORIES = [
+  { id: 1, name: '城市地标' },
+  { id: 2, name: '历史老街' },
+  { id: 3, name: '自然风光' },
+  { id: 4, name: '文博场馆' },
+  { id: 5, name: '特色体验' }
+];
+
+const SPOT_CATEGORY_MAP = {
+  '解放碑': 1,
+  '朝天门广场': 1,
+  '大礼堂': 1,
+  '重庆大剧院': 1,
+  '洪崖洞': 2,
+  '磁器口': 2,
+  '十八梯': 2,
+  '龙门浩': 2,
+  '金刚碑': 2,
+  '南山植物园': 3,
+  '鹅岭公园': 3,
+  '江北嘴公园': 3,
+  '南滨路': 3,
+  '三峡博物馆': 4,
+  '建川博物馆': 4,
+  '歌乐山革命纪念馆': 4,
+  '白公馆渣滓洞': 4,
+  '长江索道': 5,
+  '观音桥': 5,
+  '鸿恩寺': 5,
+  '鹅岭印刷二厂': 5
+};
+
+function getSpotCategoryName(title) {
+  const id = SPOT_CATEGORY_MAP[title];
+  if (!id) return '';
+  const cat = LOCATION_CATEGORIES.find(c => c.id === id);
+  return cat ? cat.name : '';
+}
+
+function getSpotCategoryId(title) {
+  return SPOT_CATEGORY_MAP[title] || 0;
+}
 
 function safeRequest(path, fallback = []) {
   return request({ path }).catch(() => fallback);
@@ -333,6 +376,8 @@ async function getMapLocations() {
 
   return (locations || []).map((item) => {
     const imgs = (imagesMap[item.id] || []).map((img) => img.imageUrl).filter(Boolean);
+    const categoryName = getSpotCategoryName(item.title) || item.category || '未知分类';
+    const categoryId = getSpotCategoryId(item.title) || (item.categoryId || 0);
     return {
       id: item.id,
       markerType: 'spot',
@@ -340,7 +385,9 @@ async function getMapLocations() {
       longitude: Number(item.longitude),
       title: item.title,
       address: item.address || '',
-      desc: `${item.category || '未知分类'} · 评分 ${item.rating || '-'} `,
+      category: categoryName,
+      categoryId,
+      desc: `${categoryName} · 评分 ${item.rating || '-'}`,
       images: imgs,
       image: imgs[0] || DEFAULT_COVER,
       callout: {
@@ -396,9 +443,10 @@ async function getMapPostMarkers(limit = 40) {
 }
 
 async function getLocationDetail(locationId) {
-  const [location, locationImages] = await Promise.all([
+  const [location, locationImages, predictions] = await Promise.all([
     request({ path: `/api/locations/${locationId}` }),
-    request({ path: '/api/location-images' })
+    request({ path: '/api/location-images' }),
+    request({ path: '/api/spot-traffic-predictions' }).catch(() => [])
   ]);
   const images = (locationImages || [])
     .filter((img) => `${img.locationId}` === `${locationId}`)
@@ -406,14 +454,50 @@ async function getLocationDetail(locationId) {
     .map((img) => img.imageUrl)
     .filter(Boolean);
 
+  const spotPredictions = (predictions || [])
+    .filter((item) => `${item.spotId}` === `${locationId}`)
+    .sort((a, b) => new Date(b.predictTime || 0) - new Date(a.predictTime || 0));
+  const latest = spotPredictions[0] || null;
+
+  let prediction = null;
+  if (latest) {
+    const rawDensity = Number(latest.crowdDensity || 0);
+    const crowdIndex = Math.min(10, Math.max(0, rawDensity > 10 ? rawDensity / 10 : rawDensity));
+    let levelLabel = '舒适';
+    let levelClass = 'crowd-0';
+    if (crowdIndex >= 8.5) { levelLabel = '极度拥挤'; levelClass = 'crowd-4'; }
+    else if (crowdIndex >= 7.0) { levelLabel = '非常拥挤'; levelClass = 'crowd-3'; }
+    else if (crowdIndex >= 5.0) { levelLabel = '拥挤'; levelClass = 'crowd-2'; }
+    else if (crowdIndex >= 2.5) { levelLabel = '一般'; levelClass = 'crowd-1'; }
+
+    prediction = {
+      predictTime: formatDateTime(latest.predictTime),
+      crowdIndex: Math.round(crowdIndex * 10) / 10,
+      levelLabel,
+      levelClass,
+      trend: latest.trend || '',
+      desc: `预测人流密度 ${latest.crowdDensity || '-'}，请合理规划出行时间。`,
+      visitorCount: latest.visitorCount || 0
+    };
+  }
+
+  const categoryName = getSpotCategoryName(location.title) || location.category || '';
+  const categoryId = getSpotCategoryId(location.title) || (location.categoryId || 0);
+
   return {
-    id: location.id,
-    title: location.title,
-    address: location.address || '',
-    desc: `${location.category || '未知分类'} · 评分 ${location.rating || '-'} `,
-    latitude: Number(location.latitude),
-    longitude: Number(location.longitude),
-    images: images.length ? images : [DEFAULT_COVER]
+    location: {
+      id: location.id,
+      title: location.title,
+      address: location.address || '',
+      description: location.description || '',
+      category: categoryName,
+      categoryId,
+      rating: location.rating != null ? Number(location.rating) : null,
+      latitude: Number(location.latitude),
+      longitude: Number(location.longitude),
+      images: images.length ? images : [DEFAULT_COVER]
+    },
+    prediction
   };
 }
 
@@ -439,10 +523,9 @@ async function getCategories() {
 }
 
 function getCurrentLocationInfo() {
-  return new Promise((resolve) => {
+  function tryGetLocation(resolve) {
     wx.getLocation({
       type: 'gcj02',
-      isHighAccuracy: true,
       success: (res) => {
         resolve({
           ok: true,
@@ -453,13 +536,66 @@ function getCurrentLocationInfo() {
         });
       },
       fail: () => {
-        resolve({
-          ok: false,
-          latitude: null,
-          longitude: null,
-          ipLocation: '未授权定位',
-          source: 'none'
+        wx.getSetting({
+          success: (settingRes) => {
+            const auth = (settingRes && settingRes.authSetting) || {};
+            resolve({
+              ok: false,
+              denied: auth['scope.userLocation'] === false,
+              latitude: null,
+              longitude: null,
+              ipLocation: '未授权定位',
+              source: 'none'
+            });
+          },
+          fail: () => {
+            resolve({
+              ok: false,
+              denied: false,
+              latitude: null,
+              longitude: null,
+              ipLocation: '未授权定位',
+              source: 'none'
+            });
+          }
         });
+      }
+    });
+  }
+
+  return new Promise((resolve) => {
+    wx.getSetting({
+      success: (settingRes) => {
+        const auth = settingRes.authSetting || {};
+        if (auth['scope.userLocation'] === false) {
+          resolve({
+            ok: false,
+            denied: true,
+            latitude: null,
+            longitude: null,
+            ipLocation: '未授权定位',
+            source: 'none'
+          });
+          return;
+        }
+        tryGetLocation(resolve);
+      },
+      fail: () => {
+        tryGetLocation(resolve);
+      }
+    });
+  });
+}
+
+function openLocationSetting() {
+  return new Promise((resolve) => {
+    wx.openSetting({
+      success: (res) => {
+        const granted = !!(res.authSetting && res.authSetting['scope.userLocation']);
+        resolve({ ok: true, granted });
+      },
+      fail: () => {
+        resolve({ ok: false, granted: false });
       }
     });
   });
@@ -758,7 +894,8 @@ async function createPost({
       viewCount: 0,
       likeCount: 0,
       createTime: now
-    }
+    },
+    withAuth: true
   });
 
   const remoteImages = (images || []).filter((item) => /^https?:\/\//i.test(item));
@@ -785,7 +922,8 @@ async function createPost({
         width: null,
         height: null,
         sortOrder: index + 1
-      }
+      },
+      withAuth: true
     })));
   }
 
@@ -801,85 +939,43 @@ async function createPost({
   return post;
 }
 
-async function getRecommendedSpots(limit = 5) {
-  try {
-    const list = await request({
-      path: '/api/spot-traffic-predictions/recent/crowd-density-asc'
-    });
-
-    // 获取景点详情
-    const locations = await safeRequest('/api/locations', []);
-    const locationsMap = buildLocationsMap(locations);
-
-    return (list || [])
-      .slice(0, limit)
-      .map((item) => {
-        const location = locationsMap[item.spotId] || {};
-        return {
-          id: item.spotId,
-          title: location.title || '未知景点',
-          crowdDensity: item.crowdDensity || 0,
-          trafficLevel: item.trafficLevel || 1,
-          trend: item.trend || '通畅',
-          predictTime: formatDateTime(item.predictTime),
-          latitude: location.latitude,
-          longitude: location.longitude,
-          address: location.address || ''
-        };
-      });
-  } catch (error) {
-    console.error('获取推荐景点失败:', error);
-    return [];
-  }
-}
-
 async function getFuturePrediction(spotId) {
-  try {
-    // 优化：使用 /latest 接口，只返回最新一轮预测（21条）
-    const list = await request({ path: '/api/spot-traffic-predictions/latest' });
-    const picked = (list || []).find((item) => `${item.spotId}` === `${spotId}`);
-
-    if (!picked) {
-      return {
-        code: 1,
-        message: '暂无预测数据'
-      };
-    }
-
-    const level = Number(picked.trafficLevel || 0);
-    return {
-      code: 0,
-      data: {
-        predictTime: formatDateTime(picked.predictTime),
-        level,
-        trend: picked.trend || (level >= 3 ? '拥挤' : level >= 2 ? '较忙' : '通畅'),
-        desc: `预测人流密度 ${picked.crowdDensity || '-'}，请合理规划出行时间。`
-      }
-    };
-  } catch (error) {
-    console.error('获取人流预测失败:', error);
+  const list = await request({ path: '/api/spot-traffic-predictions' });
+  const sorted = (list || [])
+    .filter((item) => `${item.spotId}` === `${spotId}`)
+    .sort((a, b) => new Date(a.predictTime || 0) - new Date(b.predictTime || 0));
+  const picked = sorted[0];
+  if (!picked) {
     return {
       code: 1,
-      message: '预测服务暂时不可用'
+      message: '暂无预测数据'
     };
   }
+  return {
+    code: 0,
+    data: {
+      predictTime: formatDateTime(picked.predictTime),
+      congestionLevel: Number(picked.congestionLevel),
+      crowdDensity: picked.crowdDensity != null ? Number(picked.crowdDensity) : null,
+      visitorCount: picked.visitorCount != null ? Number(picked.visitorCount) : null,
+      trend: picked.trend || '平稳'
+    }
+  };
+}
+
+async function getLatestPredictions() {
+  const list = await request({ path: '/api/spot-traffic-predictions/latest' });
+  return (list || []).map((item) => ({
+    spotId: item.spotId,
+    predictTime: formatDateTime(item.predictTime),
+    congestionLevel: Number(item.congestionLevel),
+    crowdDensity: item.crowdDensity != null ? Number(item.crowdDensity) : null,
+    visitorCount: item.visitorCount != null ? Number(item.visitorCount) : null,
+    trend: item.trend || '平稳'
+  }));
 }
 
 async function getNextDestinationForecast(spotId) {
-  try {
-    const result = await request({
-      path: `/api/location-transitions/next-destinations/${spotId}`,
-      method: 'GET'
-    });
-    return result || [];
-  } catch (error) {
-    console.error('获取下一目的地预测失败:', error);
-    // 降级：使用原有模拟逻辑
-    return getNextDestinationForecastFallback(spotId);
-  }
-}
-
-async function getNextDestinationForecastFallback(spotId) {
   const locations = await safeRequest('/api/locations', []);
   const peers = (locations || []).filter((item) => `${item.id}` !== `${spotId}`);
   if (!peers.length) {
@@ -948,10 +1044,11 @@ module.exports = {
   getUserCollections,
   createPost,
   getFuturePrediction,
+  getLatestPredictions,
   getCategories,
   getCurrentLocationInfo,
+  openLocationSetting,
   getPublishOptions,
   getMapPostMarkers,
-  getNextDestinationForecast,
-  getRecommendedSpots
+  getNextDestinationForecast
 };

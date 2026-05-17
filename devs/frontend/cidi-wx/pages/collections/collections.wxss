@@ -4,28 +4,22 @@
 }
 
 .hero {
-  position: relative;
-  min-height: 110rpx;
   margin: 8rpx 8rpx 26rpx;
 }
 
-.hero-main,
-.hero-sub {
-  position: absolute;
-  font-size: 40rpx;
+.hero-main {
+  display: block;
+  font-size: 38rpx;
   font-weight: 700;
   color: #1f2937;
-  line-height: 1.25;
-}
-
-.hero-main {
-  top: 0;
-  left: 0;
+  line-height: 1.3;
 }
 
 .hero-sub {
-  right: 0;
-  bottom: 0;
+  display: block;
+  margin-top: 6rpx;
+  font-size: 26rpx;
+  color: #6b7280;
 }
 
 .glass-panel {
@@ -61,6 +55,15 @@
   color: #4b5563;
 }
 
+.location-panel.location-denied {
+  border: 2rpx solid rgba(59, 130, 246, 0.42);
+}
+
+.location-panel.location-denied:active {
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.82) 0%, rgba(219, 234, 254, 0.40) 100%);
+}
+
+/* Best spot card */
 .best-row {
   display: flex;
   align-items: center;
@@ -77,21 +80,78 @@
 .best-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
 .best-name {
   font-size: 30rpx;
   color: #111827;
   font-weight: 700;
+  margin-bottom: 4rpx;
+}
+
+.best-category {
+  font-size: 22rpx;
+  color: #6b7280;
   margin-bottom: 8rpx;
 }
 
-.best-meta {
-  font-size: 23rpx;
-  color: #4b5563;
-  line-height: 1.5;
+.best-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-bottom: 6rpx;
 }
 
+.best-tag-item {
+  font-size: 22rpx;
+  color: #4b5563;
+}
+
+.best-meta-row {
+  display: flex;
+  align-items: center;
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.best-trend {
+  color: #7c3aed;
+}
+
+/* Congestion badge */
+.badge {
+  display: inline-block;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.badge-0 {
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.12);
+}
+
+.badge-1 {
+  color: #ca8a04;
+  background: rgba(202, 138, 4, 0.12);
+}
+
+.badge-2 {
+  color: #ea580c;
+  background: rgba(234, 88, 12, 0.12);
+}
+
+.badge-3 {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.12);
+}
+
+/* List */
 .list-head {
   margin: 24rpx 4rpx 12rpx;
   display: flex;
@@ -122,6 +182,7 @@
   display: flex;
   align-items: center;
   min-width: 0;
+  flex: 1;
 }
 
 .rank-num {
@@ -140,10 +201,16 @@
 
 .rank-body {
   min-width: 0;
+  flex: 1;
+}
+
+.rank-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
 }
 
 .rank-name {
-  display: block;
   font-size: 28rpx;
   color: #111827;
   font-weight: 600;
@@ -155,15 +222,15 @@
 .rank-desc {
   display: block;
   margin-top: 4rpx;
-  font-size: 23rpx;
-  color: #4b5563;
+  font-size: 22rpx;
+  color: #6b7280;
 }
 
-.rank-trend {
-  font-size: 23rpx;
-  color: #7c3aed;
-  margin-left: 12rpx;
-  flex-shrink: 0;
+.rank-meta-row {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #6b7280;
 }
 
 .empty-block {

@@ -11,10 +11,21 @@ Page({
     locationOptions: [],
     selectedLocationIndex: 0,
     currentGeo: null,
-    locationLabel: '未定位'
+    locationLabel: '未定位',
+    statusBarHeight: 44,
+    navBarHeight: 88,
+    navPaddingRight: 0,
+    submitting: false
   },
 
   onLoad() {
+    const sysInfo = wx.getSystemInfoSync();
+    const menuRect = wx.getMenuButtonBoundingClientRect();
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight || 44,
+      navBarHeight: (menuRect.bottom - sysInfo.statusBarHeight) + menuRect.height + 8,
+      navPaddingRight: sysInfo.windowWidth - menuRect.left
+    });
     this.initPublishMeta();
   },
 
@@ -88,27 +99,31 @@ Page({
     this.setData({ images: list });
   },
 
-  // === 核心发布逻辑 ===
   async handlePublish() {
+    if (this.data.submitting) return;
+
     if (!app.globalData.userInfo) {
-       wx.showToast({ title: '请先登录', icon: 'none' });
-       return;
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return;
     }
 
-    if (!this.data.title.trim() && !this.data.content.trim() && this.data.images.length === 0) {
+    const title = (this.data.title || '').trim();
+    const content = (this.data.content || '').trim();
+    if (!title && !content && this.data.images.length === 0) {
       wx.showToast({ title: '请填写标题/内容或上传图片', icon: 'none' });
       return;
     }
 
-    wx.showLoading({ title: '上传中...', mask: true });
+    this.setData({ submitting: true });
+    wx.showLoading({ title: '发布中...', mask: true });
 
     try {
       const selectedLocation = this.data.locationOptions[this.data.selectedLocationIndex] || { id: null, title: '' };
       const selectedCategory = (this.data.categories || []).find((item) => Number(item.id) === Number(this.data.activeCategoryId));
 
       await cidiApi.createPost({
-        title: this.data.title || '分享图片',
-        content: this.data.content,
+        title: title || '分享图片',
+        content,
         images: this.data.images,
         userId: app.globalData.userInfo.id,
         categoryId: this.data.activeCategoryId,
@@ -121,16 +136,16 @@ Page({
 
       wx.hideLoading();
       wx.showToast({ title: '发布成功', icon: 'success' });
-      
-      // 3. 延迟返回，让用户看清提示
       setTimeout(() => {
         wx.navigateBack();
       }, 1000);
 
     } catch (err) {
-      console.error(err);
+      console.error('发布失败', err);
       wx.hideLoading();
-      wx.showToast({ title: '发布失败，请重试', icon: 'none' });
+      const msg = (err && err.message) ? err.message : '发布失败，请重试';
+      wx.showToast({ title: msg, icon: 'none', duration: 2000 });
+      this.setData({ submitting: false });
     }
   }
 })

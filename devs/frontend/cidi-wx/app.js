@@ -13,7 +13,7 @@ App({
   },
   globalData: {
     userInfo: null,
-    apiBaseUrl: 'http://127.0.0.1:8080',
+    apiBaseUrl: 'http://47.111.180.134:8080',
     uploadApiPath: '/api/files/upload',
     networkOnline: true
   },

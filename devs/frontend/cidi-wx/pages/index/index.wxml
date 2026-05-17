@@ -1,5 +1,5 @@
 <view class="pull-refresh-bg {{isPullRefreshing ? 'show' : ''}}">
-  <image class="pull-refresh-bg-image" src="/images/renew.jpg" mode="aspectFill" />
+  <image class="pull-refresh-bg-image" src="https://cidi.oss-cn-beijing.aliyuncs.com/renew.jpg" mode="aspectFill" />
 </view>
 
 <view class="container">
@@ -39,7 +39,7 @@
           
           <view class="card-meta">
             <view class="author-box">
-              <image class="author-face" src="https://api.multiavatar.com/{{item.author}}.png" />
+              <image class="author-face" src="{{item.authorAvatar}}" />
               <text class="author-name">{{item.author}}</text>
             </view>
             <view class="likes-box">

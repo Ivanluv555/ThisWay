@@ -51,7 +51,8 @@
     <text class="empty-desc">可下拉刷新，或点击右下角发布第一条</text>
   </view>
 
-  <view class="fab-btn" bindtap="goPublish">
-    <text>+</text>
-  </view>
+</view>
+
+<view class="fab-btn" bindtap="goPublish">
+  <text>+</text>
 </view>
