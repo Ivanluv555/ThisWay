@@ -8,19 +8,10 @@
 	</view>
 
 	<view class="enter-wrap">
-		<view
-			class="glass-slider"
-			bindtouchstart="onDragStart"
-			bindtouchmove="onDragMove"
-			bindtouchend="onDragEnd"
-			bindtouchcancel="onDragEnd"
-		>
+		<view class="glass-slider">
 			<view class="glass-slider-fill" style="width: {{fillWidth}}px;"></view>
 			<text class="glass-slider-text">{{sliderTip}}</text>
-			<view
-				class="glass-slider-knob {{isDragging ? 'dragging' : ''}} {{entering ? 'entering' : ''}}"
-				style="transform: translateX({{knobX}}px);"
-			>
+			<view class="glass-slider-knob {{entering ? 'entering' : ''}}" style="transform: translateX({{knobX}}px);">
 				<text class="knob-arrow">›</text>
 			</view>
 		</view>
