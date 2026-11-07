@@ -1,0 +1,14 @@
+{
+  "name": "thisway-document-diagrams",
+  "private": true,
+  "type": "module",
+  "scripts": { "draw": "node 生成图示.mjs" },
+  "devDependencies": {
+    "@excalidraw/excalidraw": "0.18.0",
+    "@sparticuz/chromium": "133.0.0",
+    "esbuild": "0.28.2",
+    "playwright": "1.65.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  }
+}
