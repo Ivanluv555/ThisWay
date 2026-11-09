@@ -2,7 +2,6 @@ package org.daiso.cidi.modules.locationimage.repository;
 
 import org.daiso.cidi.modules.locationimage.entity.LocationImage;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 /**
  * 景点图片元数据的 Spring Data JPA 数据访问接口。
@@ -11,6 +10,5 @@ import org.springframework.stereotype.Repository;
  *
  * <p>当前未声明业务条件查询，关联 ID、状态和展示顺序由调用方按实际需求处理。
  */
-@Repository
 public interface LocationImageRepository extends JpaRepository<LocationImage, Long> {
 }

@@ -2,7 +2,6 @@ package org.daiso.cidi.modules.searchhistory.repository;
 
 import org.daiso.cidi.modules.searchhistory.entity.SearchHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 /**
  * 用户搜索历史的 Spring Data JPA 数据访问接口。
@@ -11,6 +10,5 @@ import org.springframework.stereotype.Repository;
  *
  * <p>当前未声明业务条件查询，关联 ID、状态和展示顺序由调用方按实际需求处理。
  */
-@Repository
 public interface SearchHistoryRepository extends JpaRepository<SearchHistory, Long> {
 }

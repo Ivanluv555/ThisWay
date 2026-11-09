@@ -2,7 +2,6 @@ package org.daiso.cidi.modules.usersetting.repository;
 
 import org.daiso.cidi.modules.usersetting.entity.UserSetting;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 /**
@@ -12,7 +11,6 @@ import java.util.Optional;
  *
  * <p>供设置服务实现按需创建默认值、合并更新及删除后重建的重置流程。
  */
-@Repository
 public interface UserSettingRepository extends JpaRepository<UserSetting, Long> {
     Optional<UserSetting> findByUserId(Long userId);
     boolean existsByUserId(Long userId);

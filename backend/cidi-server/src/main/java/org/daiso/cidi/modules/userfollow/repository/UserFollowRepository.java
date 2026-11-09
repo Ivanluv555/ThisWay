@@ -4,7 +4,6 @@ import org.daiso.cidi.modules.userfollow.entity.UserFollow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +15,6 @@ import java.util.Optional;
  *
  * <p>关系查询通过 {@link Optional} 表达是否存在，计数分别统计出向与入向关系，供主页统计和双向状态展示使用。
  */
-@Repository
 public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
 
     /**

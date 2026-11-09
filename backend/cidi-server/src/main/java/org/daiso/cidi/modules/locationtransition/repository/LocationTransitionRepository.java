@@ -4,7 +4,6 @@ import org.daiso.cidi.modules.locationtransition.entity.LocationTransition;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.List;
  *
  * <p>最新记录的排序供服务层截取前三个候选目的地，基础写入由继承的 JPA 操作提供。
  */
-@Repository
 public interface LocationTransitionRepository extends JpaRepository<LocationTransition, Long> {
 
     /**

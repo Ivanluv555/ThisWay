@@ -3,7 +3,6 @@ package org.daiso.cidi.modules.spottrafficprediction.repository;
 import org.daiso.cidi.modules.spottrafficprediction.entity.SpotTrafficPrediction;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
@@ -13,7 +12,6 @@ import java.util.List;
  *
  * <p>另提供按一组 spotId 删除记录的方法；最新轮次与最近写入使用不同时间字段。
  */
-@Repository
 public interface SpotTrafficPredictionRepository extends JpaRepository<SpotTrafficPrediction, Long> {
 
     List<SpotTrafficPrediction> findBySpotIdOrderByPredictTimeDesc(Long spotId);

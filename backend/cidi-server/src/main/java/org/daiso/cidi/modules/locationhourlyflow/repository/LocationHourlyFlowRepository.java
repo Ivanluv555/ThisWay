@@ -4,7 +4,6 @@ import org.daiso.cidi.modules.locationhourlyflow.entity.LocationHourlyFlow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.List;
  *
  * <p>最新查询按每个景点自身的最大 recordHour 选取记录，各景点返回的时间可以不同。
  */
-@Repository
 public interface LocationHourlyFlowRepository extends JpaRepository<LocationHourlyFlow, Long> {
 
     List<LocationHourlyFlow> findByRecordHourAfterOrderByRecordHourAsc(LocalDateTime since);
