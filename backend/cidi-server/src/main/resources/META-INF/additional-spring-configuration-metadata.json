@@ -1,0 +1,39 @@
+{
+    "properties": [
+        {
+            "name": "jwt.secret",
+            "type": "java.lang.String",
+            "description": "The secret key used to sign and verify JSON Web Tokens."
+        },
+        {
+            "name": "wx.appid",
+            "type": "java.lang.String",
+            "description": "The WeChat mini program application ID."
+        },
+        {
+            "name": "wx.secret",
+            "type": "java.lang.String",
+            "description": "The secret credential for the WeChat mini program."
+        },
+        {
+            "name": "wx.mini-program-env",
+            "type": "java.lang.String",
+            "description": "The WeChat mini program environment identifier returned in login responses: dev, trial, or release. Defaults to dev."
+        },
+        {
+            "name": "wx.phone-api-url",
+            "type": "java.lang.String",
+            "description": "The WeChat API URL used to exchange a phone authorization code for the user's phone number."
+        },
+        {
+            "name": "wx.mock-login-enabled",
+            "type": "java.lang.String",
+            "description": "Whether to allow login to fall back to a mock WeChat session when credentials are missing or certain API calls fail. Does not apply to phone number binding. Defaults to false."
+        },
+        {
+            "name": "jwt.expiration",
+            "type": "java.lang.String",
+            "description": "The validity period of JSON Web Tokens in milliseconds from issuance. Defaults to 604800000 (7 days)."
+        }
+    ]
+}
