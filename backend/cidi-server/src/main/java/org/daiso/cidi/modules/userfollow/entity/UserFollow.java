@@ -1,10 +1,3 @@
-/**
- * UserFollow
- *
- * 说明：本文件定义了 UserFollow，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.userfollow.entity;
 
 import jakarta.persistence.Column;
@@ -19,6 +12,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 用户之间的有向关注关系，映射到 {@code user_follows} 表。
+ *
+ * <p>{@code followerId} 是发起关注的用户，{@code followedId} 是被关注用户，{@code createTime} 为建立关系的时间。
+ *
+ * <p>两个用户 ID 按标量存储；当前映射未定义二者组合唯一约束，专用关注流程在写入前查询已有关系。
+ */
 @Entity
 @Table(name = "user_follows")
 @Data

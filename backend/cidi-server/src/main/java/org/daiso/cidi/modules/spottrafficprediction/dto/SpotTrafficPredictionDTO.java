@@ -1,10 +1,3 @@
-/**
- * SpotTrafficPredictionDTO
- *
- * 说明：本文件定义了 SpotTrafficPredictionDTO，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.spottrafficprediction.dto;
 
 import java.math.BigDecimal;
@@ -14,6 +7,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 景点客流预测的数据传输模型，包含景点 ID、预测时刻、客流指标和写入时间。
+ *
+ * <p>保留人数、拥挤等级、趋势、交通等级及密度字段；当前预测控制器直接收发实体，此 DTO 尚未接入该调用链。
+ */
 @Data
 @Builder
 @NoArgsConstructor

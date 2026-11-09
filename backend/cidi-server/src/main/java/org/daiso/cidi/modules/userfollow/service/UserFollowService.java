@@ -1,9 +1,3 @@
-/**
- * UserFollowService
- *
- * 说明：本文件定义了 UserFollowService，是 cidi-server 项目中的核心代码文件之一。
- */
-
 package org.daiso.cidi.modules.userfollow.service;
 
 import org.daiso.cidi.modules.user.entity.User;
@@ -20,6 +14,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 用户关注应用服务，维护有向关系并组装关注列表、粉丝列表及用户统计。
+ *
+ * <p>专用关注操作查询后复用已有关系，取消关注按用户对删除；列表加载用户资料，并相对 currentUserId 计算两个方向的关系。
+ *
+ * <p>同时保留直接操作实体的基础 CRUD。当前列表在关联用户缺失时保留 null 元素，禁止关注自己的检查位于控制器的专用关注接口。
+ */
 @Service
 @RequiredArgsConstructor
 public class UserFollowService {
@@ -44,7 +45,9 @@ public class UserFollowService {
     }
 
     /**
-     * 关注用户
+     * 按关注方向查询已有记录，存在则直接返回，否则创建带当前时间的关系。
+     *
+     * <p>此处未校验用户存在性或禁止自关注；查询后写入也不构成并发场景下的唯一性保证。
      */
     @Transactional
     public UserFollow followUser(Long followerId, Long followedId) {
@@ -117,7 +120,12 @@ public class UserFollowService {
     }
 
     /**
-     * 构建 UserFollowDTO
+     * 加载被展示用户资料，并相对 currentUserId 计算双向关注状态。
+     *
+     * @param userId 被展示用户 ID，同时写入 DTO 的 id 和 userId
+     * @param currentUserId 关系展示视角的用户 ID，可为空
+     * @param followTime 当前列表对应关注记录的创建时间
+     * @return 用户展示项，关联用户不存在时返回 null
      */
     private UserFollowDTO buildUserFollowDTO(Long userId, Long currentUserId, LocalDateTime followTime) {
         Optional<User> userOpt = userRepository.findById(userId);

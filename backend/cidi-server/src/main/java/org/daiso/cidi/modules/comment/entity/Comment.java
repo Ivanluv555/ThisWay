@@ -1,10 +1,3 @@
-/**
- * Comment
- *
- * 说明：本文件定义了 Comment，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.comment.entity;
 
 import jakarta.persistence.Column;
@@ -19,6 +12,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 帖子评论的 JPA 持久化实体，映射到 {@code comments} 表。
+ *
+ * <p>通过 postId 关联帖子、userId 标识评论作者；可选的 parentId 表示被回复的评论。
+ *
+ * <p>关联字段均保存为标量 ID，当前模块未组装回复树，也未校验父评论与帖子的归属关系。
+ */
 @Entity
 @Table(name = "comments")
 @Data

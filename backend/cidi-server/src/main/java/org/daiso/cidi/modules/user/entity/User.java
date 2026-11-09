@@ -1,10 +1,3 @@
-/**
- * User
- *
- * 说明：本文件定义了 User，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.user.entity;
 
 import jakarta.persistence.Column;
@@ -19,6 +12,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 小程序用户资料的 JPA 持久化实体，映射到 {@code users} 表。
+ *
+ * <p>以唯一 openid 关联微信身份，保存昵称、头像、简介、可选唯一手机号、状态和登录时间。
+ *
+ * <p>微信登录服务按 openid 查找或创建用户，新用户状态为 1；手机号授权绑定单独处理。
+ */
 @Entity
 @Table(name = "users")
 @Data

@@ -1,10 +1,3 @@
-/**
- * FeedbackImageService
- *
- * 说明：本文件定义了 FeedbackImageService，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.feedbackimage.service;
 
 import org.daiso.cidi.modules.feedbackimage.entity.FeedbackImage;
@@ -14,6 +7,13 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * 反馈附件图片元数据的基础应用服务，封装对 {@link FeedbackImageRepository} 的访问。
+ *
+ * <p>维护反馈与图片地址的关联，文件内容由图片 URL 指向的资源承载。
+ *
+ * <p>按主键查询通过 {@link Optional} 表达记录缺失，HTTP 层负责转换为资源不存在响应。
+ */
 @Service
 @RequiredArgsConstructor
 public class FeedbackImageService {

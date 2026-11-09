@@ -1,10 +1,3 @@
-/**
- * UserDTO
- *
- * 说明：本文件定义了 UserDTO，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.user.dto;
 
 import java.time.LocalDateTime;
@@ -13,6 +6,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 小程序用户资料的数据传输模型，包含对应记录的标识及业务字段。
+ *
+ * <p>以唯一 openid 关联微信身份，保存昵称、头像、简介、可选唯一手机号、状态和登录时间。
+ *
+ * <p>由 {@code WechatAuthService} 组装后嵌入微信登录响应；通用用户 CRUD 接口直接使用实体。
+ */
 @Data
 @Builder
 @NoArgsConstructor

@@ -1,10 +1,3 @@
-/**
- * WechatAuthService
- *
- * 说明：本文件定义了 WechatAuthService，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.user.service;
 
 import java.time.LocalDateTime;
@@ -25,6 +18,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+/**
+ * 微信身份与本地用户的应用服务，编排登录、资料同步、JWT 签发和手机号授权绑定。
+ *
+ * <p>登录时按 openid 查找或创建状态为 1 的用户，仅用非空昵称和头像覆盖资料，更新最后登录时间后签发以本地用户 ID 为 subject 的 JWT。
+ *
+ * <p>绑定手机号时先确认目标用户存在，再兑换授权手机号并拒绝其他用户已占用的号码；登录和绑定各自在事务内执行。
+ */
 @Service
 @RequiredArgsConstructor
 public class WechatAuthService {

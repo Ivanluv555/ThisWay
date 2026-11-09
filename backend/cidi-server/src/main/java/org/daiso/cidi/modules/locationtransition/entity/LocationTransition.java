@@ -1,9 +1,3 @@
-/**
- * LocationTransition
- *
- * 说明：景点间人流转移预测实体类
- */
-
 package org.daiso.cidi.modules.locationtransition.entity;
 
 import jakarta.persistence.Column;
@@ -19,6 +13,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 景点间人流转移预测实体，映射到 {@code location_transitions} 表。
+ *
+ * <p>通过 sourceLocationId 和 targetLocationId 表示有向转移，predictHour 标识预测时刻，保存转移概率与预计人数。
+ *
+ * <p>可选 couponAmount 表示优惠金额，当前展示 DTO 未输出该字段；批量接口在 createTime 缺失时补齐写入时间。
+ */
 @Entity
 @Table(name = "location_transitions")
 @Data

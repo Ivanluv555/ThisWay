@@ -1,10 +1,3 @@
-/**
- * GlobalExceptionHandler
- *
- * 说明：本文件定义了 GlobalExceptionHandler，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.core.error;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +15,13 @@ import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+/**
+ * REST 控制器的统一异常转换器，将业务异常、参数错误和未预期异常转换为 {@link ErrorResponse}。
+ *
+ * <p>{@link CidiException} 保留其业务错误码与消息；Bean Validation 失败返回 HTTP 422，参数或请求体错误返回 HTTP 400。
+ *
+ * <p>同时处理资源缺失、请求方法及媒体类型错误；未预期异常返回通用 HTTP 500 提示，响应不暴露其原始消息。
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

@@ -1,9 +1,3 @@
-/**
- * UserFollowController
- *
- * 说明：本文件定义了 UserFollowController，是 cidi-server 项目中的核心代码文件之一。
- */
-
 package org.daiso.cidi.modules.userfollow.controller;
 
 import org.daiso.cidi.core.error.CidiException;
@@ -26,6 +20,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 用户关注 REST 入口，基础路径为 {@code /api/user-follows}。
+ *
+ * <p>同时提供关注记录 CRUD、专用关注与取消关注、关系检查、关注及粉丝列表和用户统计；专用关注接口拒绝关注自己。
+ *
+ * <p>列表及统计中的可选 currentUserId 指定关系展示视角；基础 CRUD 直接收发实体，缺失记录返回资源不存在错误，删除成功返回 HTTP 204。
+ */
 @RestController
 @RequestMapping("/api/user-follows")
 @RequiredArgsConstructor

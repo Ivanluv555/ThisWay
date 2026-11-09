@@ -9,6 +9,13 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 景点小时客流数据访问接口，提供历史时间窗口和各景点最新状态查询。
+ *
+ * <p>单景点历史查询严格晚于 since 并按时间升序；全景点历史查询包含 since 边界，按景点 ID、记录时间升序返回。
+ *
+ * <p>最新查询按每个景点自身的最大 recordHour 选取记录，各景点返回的时间可以不同。
+ */
 @Repository
 public interface LocationHourlyFlowRepository extends JpaRepository<LocationHourlyFlow, Long> {
 

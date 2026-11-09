@@ -1,10 +1,3 @@
-/**
- * PostImage
- *
- * 说明：本文件定义了 PostImage，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.postimage.entity;
 
 import jakarta.persistence.Column;
@@ -18,6 +11,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 帖子图片元数据的 JPA 持久化实体，映射到 {@code post_images} 表。
+ *
+ * <p>通过 postId 关联帖子，保存图片 URL、可选宽高和用于展示的 sortOrder。
+ *
+ * <p>图片内容通过 URL 引用；当前查询未按 sortOrder 自动排序。
+ */
 @Entity
 @Table(name = "post_images")
 @Data

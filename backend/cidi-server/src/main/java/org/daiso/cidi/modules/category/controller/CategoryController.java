@@ -1,10 +1,3 @@
-/**
- * CategoryController
- *
- * 说明：本文件定义了 CategoryController，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.category.controller;
 
 import org.daiso.cidi.core.error.CidiException;
@@ -24,6 +17,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 帖子分类的 REST 入口，基础路径为 {@code /api/categories}。
+ *
+ * <p>委托 {@link CategoryService} 提供列表、详情、新建、更新和删除操作，请求体与响应直接使用实体。
+ *
+ * <p>更新先确认记录存在，再以路径 ID 保存请求实体；查询、更新或删除目标不存在时抛出资源不存在异常，删除成功返回 HTTP 204。
+ */
 @RestController
 @RequestMapping("/api/categories")
 @RequiredArgsConstructor

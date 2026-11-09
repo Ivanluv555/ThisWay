@@ -1,14 +1,14 @@
-/**
- * ErrorCode
- *
- * 说明：本文件定义了 ErrorCode，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.core.error;
 
 import org.springframework.http.HttpStatus;
 
+/**
+ * 对外错误契约：为通用请求错误、微信接入失败及手机号冲突定义稳定的业务错误码。
+ *
+ * <p>每项同时携带字符串编码、默认中文提示和 HTTP 状态；业务编码的数字部分不一定等于 HTTP 状态。
+ *
+ * <p>由 {@link CidiException} 标识业务失败，{@link GlobalExceptionHandler} 据此生成统一错误响应。
+ */
 public enum ErrorCode {
     INTERNAL_SERVER_ERROR("SYS-500", "服务器内部错误", HttpStatus.INTERNAL_SERVER_ERROR),
 

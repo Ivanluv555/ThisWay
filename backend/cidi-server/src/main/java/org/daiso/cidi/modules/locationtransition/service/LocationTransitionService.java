@@ -1,9 +1,3 @@
-/**
- * LocationTransitionService
- *
- * 说明：景点间人流转移预测业务逻辑层
- */
-
 package org.daiso.cidi.modules.locationtransition.service;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +16,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * 景点转移预测应用服务，保存外部预测结果并组装下一目的地展示数据。
+ *
+ * <p>按起点读取最大 predictHour 的记录，取概率最高的三个目标并查询景点名称；景点不存在时显示“未知景点”。
+ *
+ * <p>从该预测时刻起生成指定数量的小时标签，每个小时复用相同候选、概率及人数；无预测或 hours 非正时返回空列表。
+ */
 @Service
 @RequiredArgsConstructor
 public class LocationTransitionService {
@@ -38,10 +39,16 @@ public class LocationTransitionService {
     }
 
     /**
-     * 获取某景点的下一目的地预测（未来N小时）
+     * 将起点最新预测时刻的前三个转移目标展开为按小时组织的展示结果。
+     *
+     * <p>所有小时使用同一组概率及人数，起始标签为数据中的 predictHour；当前时间不参与筛选。
+     *
+     * @param sourceLocationId 起点景点 ID
+     * @param hours 生成的小时条目数；非正数时返回空列表
+     * @return 按小时递增的展示条目，无预测记录时为空列表
      */
     public List<NextDestinationDTO> getNextDestinations(Long sourceLocationId, int hours) {
-        // 获取最新一轮预测
+        // 仓储已按该起点的最大 predictHour 筛选，并按概率降序排列。
         List<LocationTransition> transitions = repository.findLatestBySourceLocation(sourceLocationId);
 
         if (transitions.isEmpty()) {
@@ -51,7 +58,7 @@ public class LocationTransitionService {
         LocalDateTime baseTime = transitions.get(0).getPredictHour();
         List<NextDestinationDTO> result = new ArrayList<>();
 
-        // 生成未来N小时的预测（基于同一轮数据）
+        // 复用这一时刻的预测指标，仅将小时标签逐次递增。
         for (int i = 0; i < hours; i++) {
             LocalDateTime targetHour = baseTime.plusHours(i);
             NextDestinationDTO dto = new NextDestinationDTO();

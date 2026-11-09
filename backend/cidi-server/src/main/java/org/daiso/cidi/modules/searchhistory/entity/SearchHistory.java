@@ -1,10 +1,3 @@
-/**
- * SearchHistory
- *
- * 说明：本文件定义了 SearchHistory，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.searchhistory.entity;
 
 import jakarta.persistence.Column;
@@ -19,6 +12,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 用户搜索历史的 JPA 持久化实体，映射到 {@code search_history} 表。
+ *
+ * <p>通过 userId 标识搜索用户，记录关键词、创建时间和删除标记 isDeleted。
+ *
+ * <p>isDeleted 仅作为存储字段；当前列表未过滤该标记，删除接口执行物理删除。
+ */
 @Entity
 @Table(name = "search_history")
 @Data

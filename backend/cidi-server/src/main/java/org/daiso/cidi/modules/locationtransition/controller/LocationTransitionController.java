@@ -1,9 +1,3 @@
-/**
- * LocationTransitionController
- *
- * 说明：景点间人流转移预测控制器
- */
-
 package org.daiso.cidi.modules.locationtransition.controller;
 
 import lombok.RequiredArgsConstructor;
@@ -17,6 +11,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * 景点转移预测 REST 入口，基础路径为 {@code /api/location-transitions}。
+ *
+ * <p>除实体 CRUD 外，通过 {@code /batch} 接收外部转移预测并补齐缺失的 createTime，通过下一目的地接口返回按小时组织的展示 DTO。
+ *
+ * <p>下一目的地默认生成 6 个小时条目，基于起点最新预测时刻的前三个目标；数据选择及展示组装由 LocationTransitionService 完成。
+ */
 @RestController
 @RequestMapping("/api/location-transitions")
 @RequiredArgsConstructor
@@ -61,7 +62,11 @@ public class LocationTransitionController {
     }
 
     /**
-     * 获取某景点的下一目的地预测（最新一轮）
+     * 将起点最新预测时刻的前三个目标展开为小时展示列表。
+     *
+     * @param sourceLocationId 起点景点 ID
+     * @param hours 展示条目数，默认 6，各小时复用相同预测指标
+     * @return 下一目的地展示列表
      */
     @GetMapping("/next-destinations/{sourceLocationId}")
     public ResponseEntity<List<NextDestinationDTO>> getNextDestinations(
@@ -71,7 +76,7 @@ public class LocationTransitionController {
     }
 
     /**
-     * 批量写入转移预测（供FastAPI调用）
+     * 接收外部服务的转移预测，补齐缺失的 createTime 后批量保存。
      */
     @PostMapping("/batch")
     public ResponseEntity<List<LocationTransition>> batchCreate(

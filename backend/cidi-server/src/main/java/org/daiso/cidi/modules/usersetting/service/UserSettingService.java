@@ -1,9 +1,3 @@
-/**
- * UserSettingService
- *
- * 说明：本文件定义了 UserSettingService，是 cidi-server 项目中的核心代码文件之一。
- */
-
 package org.daiso.cidi.modules.usersetting.service;
 
 import org.daiso.cidi.modules.usersetting.entity.UserSetting;
@@ -15,6 +9,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 用户设置应用服务，提供按需初始化、非空字段合并更新和恢复默认值。
+ *
+ * <p>读取不存在的设置时会写入默认记录；更新只接受非空的偏好字段，并保留路径指定的用户 ID、刷新更新时间。
+ *
+ * <p>默认设置为公开账号、开启推送、system 主题；重置在事务内删除旧记录后重新创建，同时保留基础 CRUD 供内部调用。
+ */
 @Service
 @RequiredArgsConstructor
 public class UserSettingService {

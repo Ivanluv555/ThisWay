@@ -1,10 +1,3 @@
-/**
- * CommentService
- *
- * 说明：本文件定义了 CommentService，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.comment.service;
 
 import org.daiso.cidi.modules.comment.entity.Comment;
@@ -14,6 +7,13 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * 帖子评论的基础应用服务，封装对 {@link CommentRepository} 的访问。
+ *
+ * <p>维护评论正文及回复关系，按记录查询和保存，不组装评论树。
+ *
+ * <p>按主键查询通过 {@link Optional} 表达记录缺失，HTTP 层负责转换为资源不存在响应。
+ */
 @Service
 @RequiredArgsConstructor
 public class CommentService {

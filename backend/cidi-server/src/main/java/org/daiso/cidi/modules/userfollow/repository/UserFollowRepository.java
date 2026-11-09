@@ -1,9 +1,3 @@
-/**
- * UserFollowRepository
- *
- * 说明：本文件定义了 UserFollowRepository，是 cidi-server 项目中的核心代码文件之一。
- */
-
 package org.daiso.cidi.modules.userfollow.repository;
 
 import org.daiso.cidi.modules.userfollow.entity.UserFollow;
@@ -15,6 +9,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 有向关注关系的数据访问接口，支持用户对查询、列表、计数及关系删除。
+ *
+ * <p>关注列表按 followerId 查询、粉丝列表按 followedId 查询，两类列表均按 createTime 降序返回。
+ *
+ * <p>关系查询通过 {@link Optional} 表达是否存在，计数分别统计出向与入向关系，供主页统计和双向状态展示使用。
+ */
 @Repository
 public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
 

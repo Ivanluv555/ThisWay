@@ -12,6 +12,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 小时客流应用服务，负责历史窗口查询、最新状态读取及 DTO 与实体的转换。
+ *
+ * <p>历史窗口从服务端当前时间向前回溯指定小时数，可限定单一景点；时间边界与排序规则由对应仓储查询决定。
+ *
+ * <p>批量写入在事务内执行，空拥挤指数补为零、空来源补为 simulated；保留 DTO 中的 ID，由数据库唯一约束限制重复景点时刻。
+ */
 @Service
 @RequiredArgsConstructor
 public class LocationHourlyFlowService {

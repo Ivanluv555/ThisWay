@@ -1,10 +1,3 @@
-/**
- * SpotTrafficPredictionService
- *
- * 说明：本文件定义了 SpotTrafficPredictionService，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.spottrafficprediction.service;
 
 import org.daiso.cidi.modules.spottrafficprediction.entity.SpotTrafficPrediction;
@@ -16,6 +9,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+/**
+ * 景点客流预测结果应用服务，封装基础 CRUD、批量保存及结果展示查询。
+ *
+ * <p>最新轮次沿用仓储对最大 predictTime 的选择；密度查询先取 createTime 最新的最多 21 条，再在内存按 crowdDensity 升序排序，空密度排末尾。
+ *
+ * <p>本服务读取和保存外部计算结果，批量写入直接委托 saveAll，未限制每批数量。
+ */
 @Service
 @RequiredArgsConstructor
 public class SpotTrafficPredictionService {

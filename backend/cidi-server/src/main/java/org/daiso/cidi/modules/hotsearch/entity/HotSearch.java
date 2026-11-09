@@ -1,10 +1,3 @@
-/**
- * HotSearch
- *
- * 说明：本文件定义了 HotSearch，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.hotsearch.entity;
 
 import jakarta.persistence.Column;
@@ -18,6 +11,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 热搜关键词的 JPA 持久化实体，映射到 {@code hot_searches} 表。
+ *
+ * <p>保存关键词、热度值 hotValue 和启用标记 isActive，作为搜索入口的展示数据。
+ *
+ * <p>当前列表直接查询全部记录，未按热度排序或按启用状态过滤。
+ */
 @Entity
 @Table(name = "hot_searches")
 @Data

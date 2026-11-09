@@ -1,10 +1,3 @@
-/**
- * FeedbackImage
- *
- * 说明：本文件定义了 FeedbackImage，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.feedbackimage.entity;
 
 import jakarta.persistence.Column;
@@ -18,6 +11,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 反馈附件图片元数据的 JPA 持久化实体，映射到 {@code feedback_images} 表。
+ *
+ * <p>通过 feedbackId 标识所属反馈，imageUrl 保存附件图片的访问地址。
+ *
+ * <p>以标量 ID 关联反馈，当前实体未配置 JPA 关联或级联操作。
+ */
 @Entity
 @Table(name = "feedback_images")
 @Data

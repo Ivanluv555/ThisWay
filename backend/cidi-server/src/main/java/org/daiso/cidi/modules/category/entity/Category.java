@@ -1,10 +1,3 @@
-/**
- * Category
- *
- * 说明：本文件定义了 Category，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.category.entity;
 
 import jakarta.persistence.Column;
@@ -18,6 +11,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 帖子分类的 JPA 持久化实体，映射到 {@code categories} 表。
+ *
+ * <p>记录分类名称、图标地址、排序值 sortOrder 和启用标记 isActive，供帖子通过 categoryId 引用。
+ *
+ * <p>排序值和启用标记仅作为数据存储，当前列表查询未据此排序或过滤。
+ */
 @Entity
 @Table(name = "categories")
 @Data

@@ -1,0 +1,17 @@
+# 仅用于开发和测试
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: cidi_root_local
+      MYSQL_DATABASE: cidi_dev
+      MYSQL_USER: cidi_dev
+      MYSQL_PASSWORD: cidi_dev_local
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  mysql-data:

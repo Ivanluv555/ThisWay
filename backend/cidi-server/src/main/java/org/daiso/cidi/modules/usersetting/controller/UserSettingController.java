@@ -1,10 +1,3 @@
-/**
- * UserSettingController
- *
- * 说明：本文件定义了 UserSettingController，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.usersetting.controller;
 
 import org.daiso.cidi.core.error.CidiException;
@@ -21,6 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 用户偏好设置 REST 入口，基础路径为 {@code /api/user-settings}。
+ *
+ * <p>在 {@code /user/{userId}} 提供读取和更新，在其 {@code /reset} 子路径提供重置；输入输出直接使用 UserSetting 实体。
+ *
+ * <p>首次读取会持久化默认设置；更新仅合并请求体中的非空偏好字段，用户归属由路径参数决定。
+ */
 @RestController
 @RequestMapping("/api/user-settings")
 @RequiredArgsConstructor
@@ -29,7 +29,7 @@ public class UserSettingController {
     private final UserSettingService service;
 
     /**
-     * 获取用户设置（不存在则返回默认设置）
+     * 获取用户设置；记录不存在时创建并持久化默认设置。
      * GET /api/user-settings/user/{userId}
      */
     @GetMapping("/user/{userId}")
@@ -38,7 +38,7 @@ public class UserSettingController {
     }
 
     /**
-     * 更新用户设置
+     * 合并非空偏好字段；记录不存在时先使用默认值，所属用户由路径参数确定。
      * PUT /api/user-settings/user/{userId}
      */
     @PutMapping("/user/{userId}")

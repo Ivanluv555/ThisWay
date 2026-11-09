@@ -1,10 +1,3 @@
-/**
- * LocationImageDTO
- *
- * 说明：本文件定义了 LocationImageDTO，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.locationimage.dto;
 
 import lombok.AllArgsConstructor;
@@ -12,6 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 景点图片元数据的数据传输模型，包含对应记录的标识及业务字段。
+ *
+ * <p>以 locationId 标识所属景点，保存图片 URL、封面标记 isCover 和展示顺序 sortOrder。
+ *
+ * <p>当前 {@code LocationImageController} 的 CRUD 接口直接收发实体，此 DTO 尚未接入该调用链。
+ */
 @Data
 @Builder
 @NoArgsConstructor

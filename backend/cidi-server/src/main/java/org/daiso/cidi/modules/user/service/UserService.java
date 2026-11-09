@@ -1,10 +1,3 @@
-/**
- * UserService
- *
- * 说明：本文件定义了 UserService，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.user.service;
 
 import org.daiso.cidi.modules.user.entity.User;
@@ -14,6 +7,13 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * 小程序用户资料的基础应用服务，封装对 {@link UserRepository} 的访问。
+ *
+ * <p>提供用户资料的基础查询、保存和删除；微信登录及手机号绑定由 WechatAuthService 编排。
+ *
+ * <p>按主键查询通过 {@link Optional} 表达记录缺失，HTTP 层负责转换为资源不存在响应。
+ */
 @Service
 @RequiredArgsConstructor
 public class UserService {

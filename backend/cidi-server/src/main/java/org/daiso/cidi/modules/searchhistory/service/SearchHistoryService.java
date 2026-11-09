@@ -1,10 +1,3 @@
-/**
- * SearchHistoryService
- *
- * 说明：本文件定义了 SearchHistoryService，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.searchhistory.service;
 
 import org.daiso.cidi.modules.searchhistory.entity.SearchHistory;
@@ -14,6 +7,13 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * 用户搜索历史的基础应用服务，封装对 {@link SearchHistoryRepository} 的访问。
+ *
+ * <p>维护用户搜索记录；基础查询返回全部记录，deleteById 直接删除数据库行。
+ *
+ * <p>按主键查询通过 {@link Optional} 表达记录缺失，HTTP 层负责转换为资源不存在响应。
+ */
 @Service
 @RequiredArgsConstructor
 public class SearchHistoryService {

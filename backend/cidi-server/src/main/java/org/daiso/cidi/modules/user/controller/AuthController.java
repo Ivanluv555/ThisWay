@@ -1,10 +1,3 @@
-/**
- * AuthController
- *
- * 说明：本文件定义了 AuthController，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.user.controller;
 
 import jakarta.validation.Valid;
@@ -19,6 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 微信认证 REST 入口，基础路径为 {@code /api/auth/wechat}。
+ *
+ * <p>通过 {@code /login} 接收小程序登录 code 并返回本地 JWT 与用户资料，通过 {@code /phone/bind} 接收手机号授权 code 和目标用户 ID。
+ *
+ * <p>请求先执行 Bean Validation，再委托 {@link WechatAuthService} 完成微信调用、用户写入与手机号冲突检查。
+ */
 @RestController
 @RequestMapping("/api/auth/wechat")
 @RequiredArgsConstructor

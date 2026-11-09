@@ -1,10 +1,3 @@
-/**
- * Admin
- *
- * 说明：本文件定义了 Admin，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.admin.entity;
 
 import jakarta.persistence.Column;
@@ -19,6 +12,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 管理员资料的 JPA 持久化实体，映射到 {@code admin} 表。
+ *
+ * <p>保存后台人员的岗位、唯一用户名、密码字段、角色字符串和创建时间，主键映射到 adminid。
+ *
+ * <p>password 和 role 按普通字段读写；当前模块仅维护资料，未实现密码编码或角色鉴权。
+ */
 @Entity
 @Table(name = "admin")
 @Data

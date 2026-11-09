@@ -1,10 +1,3 @@
-/**
- * FeedbackService
- *
- * 说明：本文件定义了 FeedbackService，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.feedback.service;
 
 import org.daiso.cidi.modules.feedback.entity.Feedback;
@@ -14,6 +7,13 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * 用户反馈的基础应用服务，封装对 {@link FeedbackRepository} 的访问。
+ *
+ * <p>维护反馈正文、联系方式和状态，附件地址由反馈图片模块单独保存。
+ *
+ * <p>按主键查询通过 {@link Optional} 表达记录缺失，HTTP 层负责转换为资源不存在响应。
+ */
 @Service
 @RequiredArgsConstructor
 public class FeedbackService {

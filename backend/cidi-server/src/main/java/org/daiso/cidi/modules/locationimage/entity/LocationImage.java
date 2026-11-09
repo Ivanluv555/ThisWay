@@ -1,10 +1,3 @@
-/**
- * LocationImage
- *
- * 说明：本文件定义了 LocationImage，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.locationimage.entity;
 
 import jakarta.persistence.Column;
@@ -18,6 +11,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 景点图片元数据的 JPA 持久化实体，映射到 {@code location_images} 表。
+ *
+ * <p>以 locationId 标识所属景点，保存图片 URL、封面标记 isCover 和展示顺序 sortOrder。
+ *
+ * <p>本实体保存图片地址及展示属性，当前代码未约束每个景点只能有一张封面。
+ */
 @Entity
 @Table(name = "location_images")
 @Data

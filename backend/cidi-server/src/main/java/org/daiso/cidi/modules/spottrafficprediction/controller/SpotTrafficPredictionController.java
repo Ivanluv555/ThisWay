@@ -1,10 +1,3 @@
-/**
- * SpotTrafficPredictionController
- *
- * 说明：本文件定义了 SpotTrafficPredictionController，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.spottrafficprediction.controller;
 
 import org.daiso.cidi.core.error.CidiException;
@@ -24,6 +17,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 景点客流预测 REST 入口，基础路径为 {@code /api/spot-traffic-predictions}。
+ *
+ * <p>提供实体 CRUD、外部结果批量写入、全局最新预测轮次及最近 21 条记录的密度升序查询。
+ *
+ * <p>批量写入仅补齐缺失的 createTime，不限制记录数量；最新轮次依据 predictTime，最近记录依据 createTime，具体查询由服务层完成。
+ */
 @RestController
 @RequestMapping("/api/spot-traffic-predictions")
 @RequiredArgsConstructor
@@ -68,7 +68,7 @@ public class SpotTrafficPredictionController {
     }
 
     /**
-     * 批量写入预测结果（供 FastAPI 调用，每次写 21 条）
+     * 接收外部服务的客流预测结果，补齐缺失的 createTime 后保存，不限制每批数量。
      */
     @PostMapping("/batch")
     public ResponseEntity<List<SpotTrafficPrediction>> batchCreate(
@@ -90,7 +90,7 @@ public class SpotTrafficPredictionController {
     }
 
     /**
-     * 查询最近 21 条预测记录，并按 crowdDensity 从小到大返回
+     * 按 createTime 选取最近最多 21 条记录，再按 crowdDensity 升序返回，空密度排末尾。
      */
     @GetMapping("/recent/crowd-density-asc")
     public List<SpotTrafficPrediction> getRecent21ByCrowdDensityAsc() {

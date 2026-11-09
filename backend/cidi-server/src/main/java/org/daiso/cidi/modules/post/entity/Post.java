@@ -1,10 +1,3 @@
-/**
- * Post
- *
- * 说明：本文件定义了 Post，是 cidi-server 项目中的核心代码文件之一。
- *
- */
-
 package org.daiso.cidi.modules.post.entity;
 
 import jakarta.persistence.Column;
@@ -19,6 +12,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 社区帖子的 JPA 持久化实体，映射到 {@code posts} 表。
+ *
+ * <p>通过 userId 标识作者、categoryId 标识分类，可选的 locationId 将帖子关联到景点。
+ *
+ * <p>正文与浏览量、点赞量一起持久化；当前计数由写入方提供，未与互动记录自动联动。
+ */
 @Entity
 @Table(name = "posts")
 @Data
